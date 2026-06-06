@@ -17,6 +17,8 @@ class DatabaseSeeder extends Seeder
 
         User::create([
             'name' => 'Admin SmartRoom',
+            'username' => 'admin',
+            'phone' => '0987654321',
             'email' => 'admin@smartroom.com',
             'password' => \Hash::make('admin123'),
             'role' => 'admin',
@@ -25,6 +27,8 @@ class DatabaseSeeder extends Seeder
 
         User::create([
             'name' => 'Test Tenant',
+            'username' => 'tenant',
+            'phone' => '0123456789',
             'email' => 'tenant@example.com',
             'password' => \Hash::make('password'),
             'role' => 'user',

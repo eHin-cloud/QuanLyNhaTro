@@ -64,12 +64,32 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-2" for="email">Địa chỉ Email</label>
+                    <label class="block text-xs font-semibold text-slate-400 mb-2" for="username">Tên đăng nhập</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                            <i class="fa-solid fa-user-tag"></i>
+                        </span>
+                        <input type="text" name="username" id="username" required class="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800/80 rounded-xl text-slate-200 text-sm focus:border-indigo-500 focus:outline-none transition-all" placeholder="username_vi_viet">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-2" for="phone">Số điện thoại</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                            <i class="fa-solid fa-phone"></i>
+                        </span>
+                        <input type="tel" name="phone" id="phone" required class="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800/80 rounded-xl text-slate-200 text-sm focus:border-indigo-500 focus:outline-none transition-all" placeholder="0901234567">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-2" for="email">Địa chỉ Email (Không bắt buộc)</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
                             <i class="fa-solid fa-envelope"></i>
                         </span>
-                        <input type="email" name="email" id="email" required class="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800/80 rounded-xl text-slate-200 text-sm focus:border-indigo-500 focus:outline-none transition-all" placeholder="admin@example.com">
+                        <input type="email" name="email" id="email" class="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800/80 rounded-xl text-slate-200 text-sm focus:border-indigo-500 focus:outline-none transition-all" placeholder="admin@example.com (tùy chọn)">
                     </div>
                 </div>
 

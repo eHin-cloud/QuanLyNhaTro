@@ -28,13 +28,23 @@ class CrudUserController extends Controller
     public function authUser(Request $request)
     {
         $request->validate([
-            'email' => 'required',
+            'login' => 'required',
             'password' => 'required',
         ]);
 
-        $credentials = $request->only('email', 'password');
+        $login = $request->input('login');
+        $password = $request->input('password');
 
-        if (Auth::attempt($credentials)) {
+        // Try logging in using phone
+        $attemptPhone = Auth::attempt(['phone' => $login, 'password' => $password]);
+
+        // If not successful, try logging in using username
+        $attemptUsername = false;
+        if (!$attemptPhone) {
+            $attemptUsername = Auth::attempt(['username' => $login, 'password' => $password]);
+        }
+
+        if ($attemptPhone || $attemptUsername) {
             $user = Auth::user();
             $defaultRoute = $user->role === 'admin' ? route('smartroom.admin') : route('renty.user');
             return redirect()->intended($defaultRoute)
@@ -59,7 +69,9 @@ class CrudUserController extends Controller
     {
         $request->validate([
             'name' => 'required',
-            'email' => 'required|email|unique:users',
+            'username' => 'required|alpha_dash|unique:users',
+            'phone' => 'required|numeric|unique:users',
+            'email' => 'nullable|email|unique:users',
             'password' => 'required|min:6',
             'like' => 'required|max:255',
         ]);
@@ -67,13 +79,15 @@ class CrudUserController extends Controller
         $data = $request->all();
         $check = User::create([
             'name' => $data['name'],
-            'email' => $data['email'],
+            'username' => $data['username'],
+            'phone' => $data['phone'],
+            'email' => $data['email'] ?? null,
             'like' => $data['like'],
             'role' => 'user',
             'password' => Hash::make($data['password'])
         ]);
 
-        return redirect("login");
+        return redirect("login")->with('success', 'Đăng ký tài khoản thành công! Hãy đăng nhập.');
     }
 
     /**
@@ -118,19 +132,23 @@ class CrudUserController extends Controller
 
         $request->validate([
             'name' => 'required',
-            'email' => 'required|email|unique:users,id,' . $input['id'],
+            'username' => 'required|alpha_dash|unique:users,username,' . $input['id'],
+            'phone' => 'required|numeric|unique:users,phone,' . $input['id'],
+            'email' => 'nullable|email|unique:users,email,' . $input['id'],
+            'like' => 'required|max:255',
             'password' => 'required|min:6',
         ]);
 
         $user = User::find($input['id']);
         $user->name = $input['name'];
-        $user->email = $input['email'];
-        $user->email = $input['like'];
-
-        $user->password = $input['password'];
+        $user->username = $input['username'];
+        $user->phone = $input['phone'];
+        $user->email = $input['email'] ?? null;
+        $user->like = $input['like'];
+        $user->password = Hash::make($input['password']);
         $user->save();
 
-        return redirect("list")->withSuccess('You have signed-in');
+        return redirect()->route('user.list')->with('success', 'Cập nhật thông tin quản trị viên thành công!');
     }
 
     /**

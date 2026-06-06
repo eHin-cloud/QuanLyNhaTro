@@ -95,12 +95,12 @@
             <form action="{{ route('user.authUser') }}" method="POST" class="space-y-5">
                 @csrf
                 <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-2" for="email">Địa chỉ Email</label>
+                    <label class="block text-xs font-semibold text-slate-400 mb-2" for="login">Tên đăng nhập hoặc Số điện thoại</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
-                            <i class="fa-solid fa-envelope"></i>
+                            <i class="fa-solid fa-user"></i>
                         </span>
-                        <input type="email" name="email" id="email" required class="w-full pl-10 pr-4 py-3 bg-slate-950 border border-slate-800/80 rounded-xl text-slate-200 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all" placeholder="admin@example.com">
+                        <input type="text" name="login" id="login" required class="w-full pl-10 pr-4 py-3 bg-slate-950 border border-slate-800/80 rounded-xl text-slate-200 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all" placeholder="Nhập tên đăng nhập hoặc số điện thoại">
                     </div>
                 </div>
 
