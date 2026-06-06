@@ -603,16 +603,60 @@
                 </div>
             </section>
 
-            <!-- SECTION 4: RESIDENT MANAGEMENT -->
+            <!-- SECTION 4: RESIDENT MANAGEMENT (Quản lý khách trọ) -->
             <section id="resident-section" class="tab-content hidden space-y-8 animate-fade-in">
+                <!-- Stat Cards cho Trạng thái tạm trú -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="glass-card rounded-2xl p-5 relative overflow-hidden group hover:shadow-[0_0_30px_rgba(99,102,241,0.1)] transition-all duration-300">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-600/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500"></div>
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Tổng cư dân</p>
+                                <h3 class="text-2xl font-extrabold text-white mt-1">{{ $residents->count() }}</h3>
+                            </div>
+                            <div class="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400"><i class="fa-solid fa-users"></i></div>
+                        </div>
+                    </div>
+                    <div class="glass-card rounded-2xl p-5 relative overflow-hidden group hover:shadow-[0_0_30px_rgba(16,185,129,0.1)] transition-all duration-300">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-600/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500"></div>
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Đã đăng ký tạm trú</p>
+                                <h3 class="text-2xl font-extrabold text-emerald-400 mt-1">{{ $residents->where('temporary_residence_status', 'registered')->count() }}</h3>
+                            </div>
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400"><i class="fa-solid fa-clipboard-check"></i></div>
+                        </div>
+                    </div>
+                    <div class="glass-card rounded-2xl p-5 relative overflow-hidden group hover:shadow-[0_0_30px_rgba(245,158,11,0.1)] transition-all duration-300">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-amber-600/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500"></div>
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Tạm vắng</p>
+                                <h3 class="text-2xl font-extrabold text-amber-400 mt-1">{{ $residents->where('temporary_residence_status', 'absent')->count() }}</h3>
+                            </div>
+                            <div class="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400"><i class="fa-solid fa-user-clock"></i></div>
+                        </div>
+                    </div>
+                    <div class="glass-card rounded-2xl p-5 relative overflow-hidden group hover:shadow-[0_0_30px_rgba(239,68,68,0.1)] transition-all duration-300">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-rose-600/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500"></div>
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Chưa đăng ký</p>
+                                <h3 class="text-2xl font-extrabold text-rose-400 mt-1">{{ $residents->where('temporary_residence_status', 'none')->count() }}</h3>
+                            </div>
+                            <div class="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-400"><i class="fa-solid fa-user-xmark"></i></div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="glass-card rounded-2xl p-6">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                         <div>
                             <h3 class="text-base font-bold text-slate-200">Quản Lý Danh Sách Cư Dân</h3>
-                            <p class="text-xs text-slate-500">Thêm mới, cập nhật thông tin và quản lý hợp đồng thuê phòng trọ.</p>
+                            <p class="text-xs text-slate-500">Lưu trữ thông tin cá nhân, đăng ký tạm trú, quản lý người thân tạm trú.</p>
                         </div>
                         <div class="flex gap-2">
-                            <input type="text" id="resident-search-input" onkeyup="searchResidentTable()" class="px-4 py-2 text-xs rounded-xl bg-slate-900 border border-slate-800 text-slate-200 placeholder-slate-500 focus:border-indigo-500 focus:outline-none" placeholder="Tìm tên cư dân / số phòng...">
+                            <input type="text" id="resident-search-input" onkeyup="searchResidentTable()" class="px-4 py-2 text-xs rounded-xl bg-slate-900 border border-slate-800 text-slate-200 placeholder-slate-500 focus:border-indigo-500 focus:outline-none" placeholder="Tìm tên / CCCD / phòng...">
                             <button onclick="toggleAddResidentModal(true)" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2">
                                 <i class="fa-solid fa-plus"></i> Thêm Cư Dân
                             </button>
@@ -623,40 +667,63 @@
                         <table class="w-full text-left text-sm text-slate-300">
                             <thead class="text-xs text-slate-500 uppercase bg-slate-900/50 border-b border-slate-900">
                                 <tr>
-                                    <th class="px-6 py-4 font-bold">Họ tên</th>
-                                    <th class="px-6 py-4 font-bold">Phòng</th>
-                                    <th class="px-6 py-4 font-bold">Số điện thoại</th>
-                                    <th class="px-6 py-4 font-bold">Ngày bắt đầu ở</th>
-                                    <th class="px-6 py-4 font-bold">Trạng thái hợp đồng</th>
-                                    <th class="px-6 py-4 font-bold text-center">Hành động</th>
+                                    <th class="px-4 py-4 font-bold">Họ tên</th>
+                                    <th class="px-4 py-4 font-bold">Phòng</th>
+                                    <th class="px-4 py-4 font-bold">SĐT</th>
+                                    <th class="px-4 py-4 font-bold">CCCD</th>
+                                    <th class="px-4 py-4 font-bold">Quê quán</th>
+                                    <th class="px-4 py-4 font-bold">Tạm trú</th>
+                                    <th class="px-4 py-4 font-bold">Ngày vào ở</th>
+                                    <th class="px-4 py-4 font-bold text-center">Hành động</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-900" id="resident-table-body">
                                 @foreach($residents as $resident)
                                 <tr class="hover:bg-slate-900/30 transition-all">
-                                    <td class="px-6 py-4 font-bold text-slate-200">{{ $resident->name }}</td>
-                                    <td class="px-6 py-4 text-xs font-semibold text-indigo-400">P. {{ $resident->room ? $resident->room->room_number : 'N/A' }}</td>
-                                    <td class="px-6 py-4 text-xs text-slate-400">{{ $resident->phone }}</td>
-                                    <td class="px-6 py-4 text-xs text-slate-500">{{ \Carbon\Carbon::parse($resident->start_date)->format('d/m/Y') }}</td>
-                                    <td class="px-6 py-4">
-                                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                            {{ $resident->status === 'active' ? 'Đang hoạt động' : 'Tạm ngưng' }}
-                                        </span>
+                                    <td class="px-4 py-4 font-bold text-slate-200">{{ $resident->name }}</td>
+                                    <td class="px-4 py-4 text-xs font-semibold text-indigo-400">P. {{ $resident->room ? $resident->room->room_number : 'N/A' }}</td>
+                                    <td class="px-4 py-4 text-xs text-slate-400 font-mono">{{ $resident->phone }}</td>
+                                    <td class="px-4 py-4 text-xs text-slate-400 font-mono">{{ $resident->cccd ?? '—' }}</td>
+                                    <td class="px-4 py-4 text-xs text-slate-500 max-w-[120px] truncate" title="{{ $resident->hometown }}">{{ $resident->hometown ?? '—' }}</td>
+                                    <td class="px-4 py-4">
+                                        @if($resident->temporary_residence_status === 'registered')
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Đã đăng ký
+                                            </span>
+                                        @elseif($resident->temporary_residence_status === 'absent')
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> Tạm vắng
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> Chưa ĐK
+                                            </span>
+                                        @endif
                                     </td>
-                                    <td class="px-6 py-4 flex gap-2 justify-center">
-                                        <button onclick="openViewResidentModal('{{ $resident->name }}', '{{ $resident->phone }}', '{{ $resident->email }}', '{{ $resident->room ? $resident->room->room_number : 'N/A' }}', '{{ \Carbon\Carbon::parse($resident->start_date)->format('d/m/Y') }}', '{{ $resident->status === 'active' ? 'Đang hoạt động' : 'Tạm ngưng' }}')" class="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-lg text-xs font-bold text-emerald-400 transition-all">
-                                            <i class="fa-regular fa-eye"></i> Xem
-                                        </button>
-                                        <button onclick="openEditResidentModal('{{ $resident->id }}', '{{ $resident->name }}', '{{ $resident->phone }}', '{{ $resident->room_id }}', '{{ $resident->start_date }}')" class="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-lg text-xs font-bold text-indigo-400 transition-all">
-                                            <i class="fa-regular fa-pen-to-square"></i> Sửa
-                                        </button>
-                                        <form action="{{ route('smartroom.admin.resident.delete', $resident->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa cư dân này ra khỏi phòng trọ?')" class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="px-2.5 py-1.5 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 rounded-lg text-xs font-bold text-rose-400 transition-all">
-                                                <i class="fa-regular fa-trash-can"></i> Xóa
+                                    <td class="px-4 py-4 text-xs text-slate-500">{{ \Carbon\Carbon::parse($resident->start_date)->format('d/m/Y') }}</td>
+                                    <td class="px-4 py-4">
+                                        <div class="flex gap-1.5 justify-center flex-wrap">
+                                            {{-- Nút Xem chi tiết --}}
+                                            <button onclick="openViewResidentModal({{ $resident->id }}, '{{ addslashes($resident->name) }}', '{{ $resident->phone }}', '{{ $resident->email }}', '{{ $resident->room ? $resident->room->room_number : 'N/A' }}', '{{ \Carbon\Carbon::parse($resident->start_date)->format('d/m/Y') }}', '{{ $resident->status === 'active' ? 'Đang hoạt động' : 'Tạm ngưng' }}', '{{ $resident->dob }}', '{{ $resident->cccd }}', '{{ addslashes($resident->hometown) }}', '{{ $resident->temporary_residence_status }}')" class="px-2 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-lg text-[10px] font-bold text-emerald-400 transition-all" title="Xem chi tiết">
+                                                <i class="fa-regular fa-eye"></i>
                                             </button>
-                                        </form>
+                                            {{-- Nút Sửa thông tin --}}
+                                            <button onclick="openEditResidentModal('{{ $resident->id }}', '{{ addslashes($resident->name) }}', '{{ $resident->phone }}', '{{ $resident->room_id }}', '{{ $resident->start_date }}', '{{ $resident->dob }}', '{{ $resident->cccd }}', '{{ addslashes($resident->hometown) }}', '{{ $resident->temporary_residence_status }}', '{{ $resident->version }}')" class="px-2 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-lg text-[10px] font-bold text-indigo-400 transition-all" title="Sửa thông tin">
+                                                <i class="fa-regular fa-pen-to-square"></i>
+                                            </button>
+                                            {{-- Nút Quản lý người thân --}}
+                                            <button onclick="openRelativesModal({{ $resident->id }}, '{{ addslashes($resident->name) }}')" class="px-2 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-lg text-[10px] font-bold text-cyan-400 transition-all" title="Quản lý người thân tạm trú">
+                                                <i class="fa-solid fa-people-roof"></i>
+                                            </button>
+                                            {{-- Nút Xóa cư dân - có chống spam click (disabled sau click) --}}
+                                            <form action="{{ route('smartroom.admin.resident.delete', $resident->id) }}" method="POST" onsubmit="return confirmAndDisable(this, 'Bạn có chắc chắn muốn xóa cư dân này ra khỏi phòng trọ?')" class="inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="anti-spam-btn px-2 py-1.5 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 rounded-lg text-[10px] font-bold text-rose-400 transition-all" title="Xóa cư dân">
+                                                    <i class="fa-regular fa-trash-can"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                                 @endforeach
@@ -951,46 +1018,69 @@
         </main>
     </div>
 
-    <!-- ADD RESIDENT MODAL (POPUP) -->
+    <!-- ADD RESIDENT MODAL (POPUP) - Mở rộng thêm thông tin cá nhân & tạm trú -->
     <div id="add-resident-modal" class="fixed inset-0 z-50 bg-[#04060b]/80 backdrop-blur-sm hidden flex items-center justify-center transition-opacity duration-300">
-        <div class="w-full max-w-lg bg-[#0a0f1d] border border-slate-800 p-8 rounded-3xl shadow-2xl relative animate-fade-in mx-4">
+        <div class="w-full max-w-2xl bg-[#0a0f1d] border border-slate-800 p-8 rounded-3xl shadow-2xl relative animate-fade-in mx-4 max-h-[90vh] overflow-y-auto">
             <button onclick="toggleAddResidentModal(false)" class="absolute top-6 right-6 w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-all">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             <h2 class="text-xl font-bold mb-4 text-slate-100 flex items-center gap-2">
                 <i class="fa-solid fa-user-plus text-indigo-400"></i> Thêm Cư Dân Mới
             </h2>
-            <form action="{{ route('smartroom.admin.resident.store') }}" method="POST" class="space-y-4">
+            <!-- Chống spam click: form submit sẽ disable nút sau lần click đầu tiên -->
+            <form action="{{ route('smartroom.admin.resident.store') }}" method="POST" class="space-y-4" onsubmit="return antiSpamSubmit(this)">
                 @csrf
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Họ và tên</label>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Họ và tên *</label>
                         <input type="text" name="name" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none" placeholder="Nguyễn Văn A">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Số điện thoại</label>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Số điện thoại *</label>
                         <input type="tel" name="phone" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none" placeholder="09xxxxxxxx">
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-3 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Chọn phòng trọ</label>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Ngày sinh</label>
+                        <input type="date" name="dob" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Số CCCD</label>
+                        <input type="text" name="cccd" maxlength="12" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none" placeholder="0xxxxxxxxxx">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Quê quán</label>
+                        <input type="text" name="hometown" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none" placeholder="TP. Hồ Chí Minh">
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Chọn phòng *</label>
                         <select name="room_id" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
                             @foreach($emptyRoomsList as $room)
-                                <option value="{{ $room->id }}">Phòng {{ $room->room_number }} (Trống)</option>
+                                <option value="{{ $room->id }}">P. {{ $room->room_number }} (Trống)</option>
                             @endforeach
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Ngày bắt đầu ở</label>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Ngày vào ở *</label>
                         <input type="date" name="start_date" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tạm trú *</label>
+                        <select name="temporary_residence_status" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                            <option value="none">Chưa đăng ký</option>
+                            <option value="registered">Đã đăng ký</option>
+                            <option value="absent">Tạm vắng</option>
+                        </select>
                     </div>
                 </div>
                 <div class="pt-4 flex justify-end gap-3">
                     <button type="button" onclick="toggleAddResidentModal(false)" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 bg-transparent hover:bg-slate-900 border border-transparent hover:border-slate-800 transition-all">
                         Hủy bỏ
                     </button>
-                    <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20 transition-all">
+                    <button type="submit" class="anti-spam-btn px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20 transition-all">
                         Xác Nhận Thêm
                     </button>
                 </div>
@@ -998,47 +1088,71 @@
         </div>
     </div>
 
-    <!-- EDIT RESIDENT MODAL (POPUP) -->
+    <!-- EDIT RESIDENT MODAL - Có Optimistic Locking (version) để chặn ghi đè xung đột -->
     <div id="edit-resident-modal" class="fixed inset-0 z-50 bg-[#04060b]/80 backdrop-blur-sm hidden flex items-center justify-center transition-opacity duration-300">
-        <div class="w-full max-w-lg bg-[#0a0f1d] border border-slate-800 p-8 rounded-3xl shadow-2xl relative animate-fade-in mx-4">
+        <div class="w-full max-w-2xl bg-[#0a0f1d] border border-slate-800 p-8 rounded-3xl shadow-2xl relative animate-fade-in mx-4 max-h-[90vh] overflow-y-auto">
             <button onclick="toggleEditResidentModal(false)" class="absolute top-6 right-6 w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-all">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             <h2 class="text-xl font-bold mb-4 text-slate-100 flex items-center gap-2">
                 <i class="fa-solid fa-user-pen text-indigo-400"></i> Chỉnh Sửa Thông Tin Cư Dân
             </h2>
-            <form id="edit-resident-form" action="" method="POST" class="space-y-4">
+            <form id="edit-resident-form" action="" method="POST" class="space-y-4" onsubmit="return antiSpamSubmit(this)">
                 @csrf
                 @method('PUT')
+                <!-- Optimistic Locking: trường version ẩn để server so sánh phiên bản trước khi cập nhật -->
+                <input type="hidden" name="version" id="edit-version" value="1">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Họ và tên</label>
-                        <input type="text" name="name" id="edit-name" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none" placeholder="Nguyễn Văn A">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Họ và tên *</label>
+                        <input type="text" name="name" id="edit-name" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Số điện thoại</label>
-                        <input type="tel" name="phone" id="edit-phone" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none" placeholder="09xxxxxxxx">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Số điện thoại *</label>
+                        <input type="tel" name="phone" id="edit-phone" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-3 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Chọn phòng trọ</label>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Ngày sinh</label>
+                        <input type="date" name="dob" id="edit-dob" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Số CCCD</label>
+                        <input type="text" name="cccd" id="edit-cccd" maxlength="12" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Quê quán</label>
+                        <input type="text" name="hometown" id="edit-hometown" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Phòng trọ *</label>
                         <select name="room_id" id="edit-room-id" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
                             @foreach($rooms as $r)
-                                <option value="{{ $r->id }}">Phòng {{ $r->room_number }} ({{ $r->status === 'empty' ? 'Trống' : 'Đang thuê' }})</option>
+                                <option value="{{ $r->id }}">P. {{ $r->room_number }} ({{ $r->status === 'empty' ? 'Trống' : 'Đang thuê' }})</option>
                             @endforeach
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Ngày bắt đầu ở</label>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Ngày vào ở *</label>
                         <input type="date" name="start_date" id="edit-start-date" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tạm trú *</label>
+                        <select name="temporary_residence_status" id="edit-temp-status" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                            <option value="none">Chưa đăng ký</option>
+                            <option value="registered">Đã đăng ký</option>
+                            <option value="absent">Tạm vắng</option>
+                        </select>
                     </div>
                 </div>
                 <div class="pt-4 flex justify-end gap-3">
                     <button type="button" onclick="toggleEditResidentModal(false)" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 bg-transparent hover:bg-slate-900 border border-transparent hover:border-slate-800 transition-all">
                         Hủy bỏ
                     </button>
-                    <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20 transition-all">
+                    <button type="submit" class="anti-spam-btn px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20 transition-all">
                         Lưu Thay Đổi
                     </button>
                 </div>
@@ -1046,47 +1160,182 @@
         </div>
     </div>
 
-    <!-- VIEW RESIDENT MODAL (POPUP) -->
+    <!-- VIEW RESIDENT MODAL (POPUP) - Hiển thị chi tiết cư dân & danh sách người thân đi cùng -->
     <div id="view-resident-modal" class="fixed inset-0 z-50 bg-[#04060b]/80 backdrop-blur-sm hidden flex items-center justify-center transition-opacity duration-300">
-        <div class="w-full max-w-md bg-[#0a0f1d] border border-slate-800 p-8 rounded-3xl shadow-2xl relative animate-fade-in mx-4">
+        <div class="w-full max-w-2xl bg-[#0a0f1d] border border-slate-800 p-8 rounded-3xl shadow-2xl relative animate-fade-in mx-4 max-h-[90vh] overflow-y-auto">
             <button onclick="toggleViewResidentModal(false)" class="absolute top-6 right-6 w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-all">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             <h2 class="text-xl font-bold mb-4 text-slate-100 flex items-center gap-2">
                 <i class="fa-solid fa-address-card text-indigo-400"></i> Thông Tin Chi Tiết Cư Dân
             </h2>
-            <div class="space-y-4">
-                <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800/40 space-y-3">
-                    <div class="flex justify-between text-sm">
-                        <span class="text-slate-500">Họ và tên:</span>
-                        <strong class="text-slate-200" id="view-name">Nguyễn Văn A</strong>
-                    </div>
-                    <div class="flex justify-between text-sm">
-                        <span class="text-slate-500">Số điện thoại:</span>
-                        <strong class="text-slate-200" id="view-phone">09xxxxxxxx</strong>
-                    </div>
-                    <div class="flex justify-between text-sm">
-                        <span class="text-slate-500">Email liên hệ:</span>
-                        <strong class="text-slate-200" id="view-email">email@gmail.com</strong>
-                    </div>
-                    <div class="flex justify-between text-sm">
-                        <span class="text-slate-500">Phòng thuê:</span>
-                        <strong class="text-indigo-400 font-bold" id="view-room">Phòng 101</strong>
-                    </div>
-                    <div class="flex justify-between text-sm">
-                        <span class="text-slate-500">Ngày bắt đầu ở:</span>
-                        <strong class="text-slate-200" id="view-start-date">01/01/2026</strong>
-                    </div>
-                    <div class="flex justify-between text-sm">
-                        <span class="text-slate-500">Trạng thái:</span>
-                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" id="view-status">Đang hoạt động</span>
+            <div class="space-y-6">
+                <!-- Thông tin cá nhân -->
+                <div>
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <i class="fa-solid fa-user text-indigo-400 text-[10px]"></i> Thông tin cá nhân
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4 p-4 rounded-xl bg-slate-900/50 border border-slate-800/40">
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs border-b border-slate-800/60 pb-1.5">
+                                <span class="text-slate-500">Họ và tên:</span>
+                                <strong class="text-slate-200" id="view-name">Nguyễn Văn A</strong>
+                            </div>
+                            <div class="flex justify-between text-xs border-b border-slate-800/60 pb-1.5">
+                                <span class="text-slate-500">Số điện thoại:</span>
+                                <strong class="text-slate-200 font-mono" id="view-phone">09xxxxxxxx</strong>
+                            </div>
+                            <div class="flex justify-between text-xs border-b border-slate-800/60 pb-1.5">
+                                <span class="text-slate-500">Email liên hệ:</span>
+                                <strong class="text-slate-200" id="view-email">email@gmail.com</strong>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-500">Ngày sinh:</span>
+                                <strong class="text-slate-200 font-mono" id="view-dob">—</strong>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs border-b border-slate-800/60 pb-1.5">
+                                <span class="text-slate-500">Phòng thuê:</span>
+                                <strong class="text-indigo-400 font-bold" id="view-room">Phòng 101</strong>
+                            </div>
+                            <div class="flex justify-between text-xs border-b border-slate-800/60 pb-1.5">
+                                <span class="text-slate-500">Số CCCD:</span>
+                                <strong class="text-slate-200 font-mono" id="view-cccd">—</strong>
+                            </div>
+                            <div class="flex justify-between text-xs border-b border-slate-800/60 pb-1.5">
+                                <span class="text-slate-500">Quê quán:</span>
+                                <strong class="text-slate-200" id="view-hometown">—</strong>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-500">Đăng ký tạm trú:</span>
+                                <span id="view-temp-status" class="px-2 py-0.5 rounded text-[10px] font-bold">Chưa ĐK</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="pt-2 flex justify-end">
+
+                <!-- Danh sách người thân -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-people-group text-cyan-400 text-[10px]"></i> Người thân tạm trú cùng
+                        </h3>
+                        <button id="view-manage-relatives-btn" onclick="" class="text-[10px] font-bold text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1">
+                            <i class="fa-solid fa-cog"></i> Quản lý
+                        </button>
+                    </div>
+                    <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800/40 min-h-[80px]">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs text-slate-300 hidden" id="view-relatives-table">
+                                <thead class="text-slate-500 uppercase font-bold text-[10px] border-b border-slate-800">
+                                    <tr>
+                                        <th class="pb-2">Họ tên</th>
+                                        <th class="pb-2">Quan hệ</th>
+                                        <th class="pb-2">CCCD</th>
+                                        <th class="pb-2">Trạng thái tạm trú</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-800/40" id="view-relatives-tbody">
+                                    <!-- AJAX insert relatives here -->
+                                </tbody>
+                            </table>
+                            <div class="text-slate-500 text-center py-4" id="view-relatives-empty">
+                                <i class="fa-solid fa-folder-open text-lg mb-1 block"></i>
+                                Không có thông tin người thân tạm trú.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2">
                     <button type="button" onclick="toggleViewResidentModal(false)" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20 transition-all">
                         Đóng
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MANAGE RELATIVES MODAL (POPUP) - Quản lý người thân tạm trú qua AJAX -->
+    <div id="relatives-modal" class="fixed inset-0 z-50 bg-[#04060b]/80 backdrop-blur-sm hidden flex items-center justify-center transition-opacity duration-300">
+        <div class="w-full max-w-3xl bg-[#0a0f1d] border border-slate-800 p-8 rounded-3xl shadow-2xl relative animate-fade-in mx-4 max-h-[90vh] overflow-y-auto">
+            <button onclick="toggleRelativesModal(false)" class="absolute top-6 right-6 w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-all">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h2 class="text-xl font-bold mb-2 text-slate-100 flex items-center gap-2">
+                <i class="fa-solid fa-people-roof text-cyan-400"></i> Quản Lý Người Thân Tạm Trú
+            </h2>
+            <p class="text-xs text-slate-500 mb-6">Của cư dân: <strong class="text-slate-300 font-bold" id="relatives-modal-resident-name">—</strong></p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                <!-- Danh sách người thân hiện có -->
+                <div class="lg:col-span-3 space-y-4">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                        <i class="fa-solid fa-list text-cyan-400"></i> Danh sách người thân trọ cùng
+                    </h3>
+                    <div class="p-4 rounded-xl bg-slate-900/40 border border-slate-800/60 min-h-[200px] max-h-[350px] overflow-y-auto space-y-2" id="relatives-list-container">
+                        <!-- AJAX generated list here -->
+                    </div>
+                </div>
+
+                <!-- Form Thêm / Sửa người thân -->
+                <div class="lg:col-span-2 space-y-4 border-t lg:border-t-0 lg:border-l border-slate-800/80 pt-4 lg:pt-0 lg:pl-6">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1" id="relative-form-title">
+                        <i class="fa-solid fa-user-plus text-indigo-400"></i> Thêm Người Thân Mới
+                    </h3>
+                    
+                    <form id="relative-ajax-form" onsubmit="saveRelative(event)" class="space-y-3">
+                        <input type="hidden" id="relative-id" value="">
+                        <!-- version của relative cho Optimistic Locking -->
+                        <input type="hidden" id="relative-version" value="1">
+                        
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Họ và tên *</label>
+                            <input type="text" id="relative-name" required class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="Nguyễn Văn B">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Mối quan hệ *</label>
+                                <input type="text" id="relative-relationship" required class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="Bố, mẹ, vợ, con...">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Ngày sinh</label>
+                                <input type="date" id="relative-dob" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Số CCCD</label>
+                            <input type="text" id="relative-cccd" maxlength="12" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="12 số">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Quê quán</label>
+                            <input type="text" id="relative-hometown" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="Địa chỉ quê quán">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Trạng thái đăng ký tạm trú *</label>
+                            <select id="relative-temp-status" required class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none">
+                                <option value="none">Chưa đăng ký</option>
+                                <option value="registered">Đã đăng ký</option>
+                                <option value="absent">Tạm vắng</option>
+                            </select>
+                        </div>
+                        <div class="pt-2 flex gap-2">
+                            <button type="button" id="relative-reset-btn" onclick="resetRelativeForm()" class="hidden w-1/2 py-2 rounded-lg text-xs font-bold text-slate-400 bg-transparent hover:bg-slate-900 border border-slate-800 transition-all">
+                                Hủy sửa
+                            </button>
+                            <button type="submit" id="relative-submit-btn" class="w-full py-2 rounded-lg text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-md shadow-indigo-600/20 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-save"></i> <span>Lưu Lại</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="pt-6 mt-6 border-t border-slate-900 flex justify-end">
+                <button type="button" onclick="toggleRelativesModal(false)" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-300 bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all">
+                    Đóng
+                </button>
             </div>
         </div>
     </div>
@@ -1715,6 +1964,15 @@
             document.getElementById('add-res-date').value = '';
         }
 
+        // ==========================================
+        // 1. CƠ CHẾ KHÓA ĐỒNG THỜI (OPTIMISTIC LOCKING)
+        // Giải thích: Server và Client truyền tay nhau thuộc tính 'version' (phiên bản dữ liệu).
+        // Khi Landlord sửa dữ liệu cư dân, giá trị version hiện tại sẽ được gửi kèm lên Server.
+        // Server kiểm tra xem version đó có khớp với database không. Nếu một Landlord khác đã lưu trước đó,
+        // version trong database sẽ tăng lên, dẫn đến xung đột phiên bản và Server sẽ chặn cập nhật (HTTP 409).
+        // Dưới client, nếu nhận được HTTP 409 hoặc lỗi 422, ta sẽ hiển thị cảnh báo cho người dùng reload lại trang.
+        // ==========================================
+
         // Edit resident modal triggers
         function toggleEditResidentModal(show) {
             const modal = document.getElementById('edit-resident-modal');
@@ -1725,7 +1983,7 @@
             }
         }
 
-        function openEditResidentModal(id, name, phone, roomId, startDate) {
+        function openEditResidentModal(id, name, phone, roomId, startDate, dob, cccd, hometown, tempStatus, version) {
             const form = document.getElementById('edit-resident-form');
             form.action = `/smartroom/admin/resident/${id}`;
             
@@ -1733,6 +1991,15 @@
             document.getElementById('edit-phone').value = phone;
             document.getElementById('edit-room-id').value = roomId;
             document.getElementById('edit-start-date').value = startDate;
+            
+            // Điền thông tin cá nhân mở rộng
+            document.getElementById('edit-dob').value = dob || '';
+            document.getElementById('edit-cccd').value = cccd || '';
+            document.getElementById('edit-hometown').value = hometown || '';
+            document.getElementById('edit-temp-status').value = tempStatus || 'none';
+            
+            // Optimistic Locking: Gán version hiện tại của bản ghi
+            document.getElementById('edit-version').value = version || 1;
             
             toggleEditResidentModal(true);
         }
@@ -1747,16 +2014,412 @@
             }
         }
 
-        function openViewResidentModal(name, phone, email, room, startDate, status) {
+        function openViewResidentModal(id, name, phone, email, room, startDate, status, dob, cccd, hometown, tempStatus) {
             document.getElementById('view-name').textContent = name;
             document.getElementById('view-phone').textContent = phone;
             document.getElementById('view-email').textContent = email || 'Chưa cung cấp';
             document.getElementById('view-room').textContent = 'Phòng ' + room;
-            document.getElementById('view-start-date').textContent = startDate;
-            document.getElementById('view-status').textContent = status;
+            
+            // Gán dữ liệu mở rộng
+            document.getElementById('view-dob').textContent = dob ? formatDateString(dob) : 'Chưa cập nhật';
+            document.getElementById('view-cccd').textContent = cccd || 'Chưa cập nhật';
+            document.getElementById('view-hometown').textContent = hometown || 'Chưa cập nhật';
+            
+            const tempBadge = document.getElementById('view-temp-status');
+            if (tempStatus === 'registered') {
+                tempBadge.textContent = 'Đã đăng ký';
+                tempBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+            } else if (tempStatus === 'absent') {
+                tempBadge.textContent = 'Tạm vắng';
+                tempBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20';
+            } else {
+                tempBadge.textContent = 'Chưa ĐK';
+                tempBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20';
+            }
+
+            // Gán nút cấu hình người thân đi cùng
+            const manageBtn = document.getElementById('view-manage-relatives-btn');
+            manageBtn.onclick = function() {
+                toggleViewResidentModal(false);
+                openRelativesModal(id, name);
+            };
+
+            // Tải danh sách người thân trọ cùng qua AJAX
+            loadRelativesForView(id);
             
             toggleViewResidentModal(true);
         }
+
+        function formatDateString(dateStr) {
+            if (!dateStr) return '—';
+            try {
+                const date = new Date(dateStr);
+                if (isNaN(date.getTime())) return dateStr;
+                return date.getDate().toString().padStart(2, '0') + '/' + (date.getMonth() + 1).toString().padStart(2, '0') + '/' + date.getFullYear();
+            } catch(e) {
+                return dateStr;
+            }
+        }
+
+        // Tải danh sách người thân chỉ để hiển thị trong View Modal
+        function loadRelativesForView(residentId) {
+            const table = document.getElementById('view-relatives-table');
+            const tbody = document.getElementById('view-relatives-tbody');
+            const emptyDiv = document.getElementById('view-relatives-empty');
+
+            tbody.innerHTML = '';
+            table.classList.add('hidden');
+            emptyDiv.classList.remove('hidden');
+
+            fetch(`/smartroom/admin/resident/${residentId}/relatives`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.relatives.length > 0) {
+                        data.relatives.forEach(relative => {
+                            let tempBadgeHTML = '';
+                            if (relative.temporary_residence_status === 'registered') {
+                                tempBadgeHTML = '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/10 text-emerald-400">Đã ĐK</span>';
+                            } else if (relative.temporary_residence_status === 'absent') {
+                                tempBadgeHTML = '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 text-amber-400">Tạm vắng</span>';
+                            } else {
+                                tempBadgeHTML = '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-500/10 text-rose-400">Chưa ĐK</span>';
+                            }
+
+                            const tr = document.createElement('tr');
+                            tr.className = "hover:bg-slate-900/10 transition-all border-b border-slate-800 last:border-0";
+                            tr.innerHTML = `
+                                <td class="py-2 text-slate-200 font-semibold text-xs">${relative.name}</td>
+                                <td class="py-2 text-slate-400 text-xs">${relative.relationship}</td>
+                                <td class="py-2 text-slate-400 text-xs font-mono">${relative.cccd || '—'}</td>
+                                <td class="py-2">${tempBadgeHTML}</td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                        table.classList.remove('hidden');
+                        emptyDiv.classList.add('hidden');
+                    }
+                })
+                .catch(err => console.error("Error fetching relatives for view:", err));
+        }
+
+        // ==========================================
+        // RELATIVES AJAX CRUD LOGIC (Quản lý người thân tạm trú)
+        // ==========================================
+        let currentResidentId = null;
+
+        function toggleRelativesModal(show) {
+            const modal = document.getElementById('relatives-modal');
+            if (show) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+                resetRelativeForm();
+            }
+        }
+
+        function openRelativesModal(residentId, residentName) {
+            currentResidentId = residentId;
+            document.getElementById('relatives-modal-resident-name').textContent = residentName;
+            
+            // Load danh sách người thân hiện tại
+            loadRelativesList();
+            toggleRelativesModal(true);
+        }
+
+        function loadRelativesList() {
+            const container = document.getElementById('relatives-list-container');
+            container.innerHTML = `
+                <div class="flex items-center justify-center py-10">
+                    <div class="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+            `;
+
+            fetch(`/smartroom/admin/resident/${currentResidentId}/relatives`)
+                .then(res => res.json())
+                .then(data => {
+                    container.innerHTML = '';
+                    if (data.success && data.relatives.length > 0) {
+                        data.relatives.forEach(rel => {
+                            let statusText = 'Chưa ĐK';
+                            let statusClass = 'bg-rose-500/10 text-rose-400 border border-rose-500/20';
+                            if (rel.temporary_residence_status === 'registered') {
+                                statusText = 'Đã ĐK';
+                                statusClass = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+                            } else if (rel.temporary_residence_status === 'absent') {
+                                statusText = 'Tạm vắng';
+                                statusClass = 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+                            }
+
+                            const card = document.createElement('div');
+                            card.className = "flex items-center justify-between p-3 rounded-xl bg-slate-950/40 border border-slate-900 hover:border-slate-800 transition-all";
+                            
+                            // Tránh lỗi ký tự đặc biệt khi parse JSON trong inline onclick
+                            const relEscaped = JSON.stringify(rel).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                            
+                            card.innerHTML = `
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h4 class="text-xs font-bold text-slate-200">${rel.name}</h4>
+                                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 font-semibold">${rel.relationship}</span>
+                                        <span class="text-[9px] px-1.5 py-0.5 rounded ${statusClass} font-bold">${statusText}</span>
+                                    </div>
+                                    <div class="text-[10px] text-slate-500 mt-1 flex gap-3">
+                                        <span>CCCD: <strong class="font-mono text-slate-400">${rel.cccd || '—'}</strong></span>
+                                        <span>Sinh: <strong class="font-mono text-slate-400">${rel.dob ? formatDateString(rel.dob) : '—'}</strong></span>
+                                        <span class="truncate max-w-[150px]" title="${rel.hometown}">Quê: <strong class="text-slate-400">${rel.hometown || '—'}</strong></span>
+                                    </div>
+                                </div>
+                                <div class="flex gap-1.5">
+                                    <button onclick="editRelative(JSON.parse('${JSON.stringify(rel).replace(/'/g, "\\'")}'))" class="w-7 h-7 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 flex items-center justify-center text-cyan-400 transition-all" title="Sửa">
+                                        <i class="fa-solid fa-pencil text-[10px]"></i>
+                                    </button>
+                                    <button onclick="deleteRelative(${rel.id})" class="w-7 h-7 rounded-lg bg-slate-900 hover:bg-rose-950/20 border border-slate-800 hover:border-rose-900/50 flex items-center justify-center text-rose-400 transition-all" title="Xóa">
+                                        <i class="fa-solid fa-trash-can text-[10px]"></i>
+                                    </button>
+                                </div>
+                            `;
+                            container.appendChild(card);
+                        });
+                    } else {
+                        container.innerHTML = `
+                            <div class="flex flex-col items-center justify-center py-12 text-slate-500 text-xs">
+                                <i class="fa-solid fa-people-arrows text-2xl mb-2 text-slate-600"></i>
+                                <span>Chưa có người thân tạm trú nào đăng ký cùng.</span>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(err => {
+                    container.innerHTML = `<p class="text-xs text-rose-400 py-4 text-center">Không thể tải danh sách người thân!</p>`;
+                    console.error(err);
+                });
+        }
+
+        function resetRelativeForm() {
+            document.getElementById('relative-id').value = '';
+            document.getElementById('relative-version').value = '1';
+            document.getElementById('relative-name').value = '';
+            document.getElementById('relative-relationship').value = '';
+            document.getElementById('relative-dob').value = '';
+            document.getElementById('relative-cccd').value = '';
+            document.getElementById('relative-hometown').value = '';
+            document.getElementById('relative-temp-status').value = 'none';
+
+            document.getElementById('relative-form-title').innerHTML = '<i class="fa-solid fa-user-plus text-indigo-400"></i> Thêm Người Thân Mới';
+            document.getElementById('relative-submit-btn').innerHTML = '<i class="fa-solid fa-save"></i> <span>Lưu Lại</span>';
+            document.getElementById('relative-reset-btn').classList.add('hidden');
+            document.getElementById('relative-submit-btn').className = "w-full py-2 rounded-lg text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-md shadow-indigo-600/20 transition-all flex items-center justify-center gap-1.5";
+        }
+
+        function editRelative(rel) {
+            document.getElementById('relative-id').value = rel.id;
+            document.getElementById('relative-version').value = rel.version;
+            document.getElementById('relative-name').value = rel.name;
+            document.getElementById('relative-relationship').value = rel.relationship;
+            document.getElementById('relative-dob').value = rel.dob || '';
+            document.getElementById('relative-cccd').value = rel.cccd || '';
+            document.getElementById('relative-hometown').value = rel.hometown || '';
+            document.getElementById('relative-temp-status').value = rel.temporary_residence_status || 'none';
+
+            document.getElementById('relative-form-title').innerHTML = '<i class="fa-solid fa-user-pen text-cyan-400"></i> Cập Nhật Người Thân';
+            document.getElementById('relative-submit-btn').innerHTML = '<i class="fa-solid fa-save"></i> <span>Cập Nhật</span>';
+            document.getElementById('relative-reset-btn').classList.remove('hidden');
+            document.getElementById('relative-submit-btn').className = "w-1/2 py-2 rounded-lg text-xs font-bold text-white bg-cyan-600 hover:bg-cyan-500 shadow-md shadow-cyan-600/20 transition-all flex items-center justify-center gap-1.5";
+        }
+
+        function saveRelative(e) {
+            e.preventDefault();
+            const relativeId = document.getElementById('relative-id').value;
+            const submitBtn = document.getElementById('relative-submit-btn');
+
+            const payload = {
+                name: document.getElementById('relative-name').value,
+                relationship: document.getElementById('relative-relationship').value,
+                dob: document.getElementById('relative-dob').value,
+                cccd: document.getElementById('relative-cccd').value,
+                hometown: document.getElementById('relative-hometown').value,
+                temporary_residence_status: document.getElementById('relative-temp-status').value,
+                version: document.getElementById('relative-version').value
+            };
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            const originalHTML = submitBtn.innerHTML;
+            
+            // Chống click liên tiếp
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i>';
+
+            let url = `/smartroom/admin/resident/${currentResidentId}/relative`;
+            let method = 'POST';
+
+            if (relativeId) {
+                url = `/smartroom/admin/relative/${relativeId}`;
+                method = 'PUT';
+            }
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(async res => {
+                const isJson = res.headers.get('content-type')?.includes('application/json');
+                const data = isJson ? await res.json() : null;
+
+                if (res.status === 409) {
+                    // Xử lý xung đột phiên bản dữ liệu (Optimistic Locking)
+                    alert("❌ Lỗi Xung Đột Phiên Bản (Optimistic Locking):\nDữ liệu của người thân này đã bị thay đổi bởi một quản trị viên khác. Vui lòng đóng và mở lại danh sách để nhận dữ liệu mới nhất.");
+                    return false;
+                }
+
+                if (!res.ok) {
+                    throw new Error(data?.message || "Lỗi xử lý API!");
+                }
+
+                return data;
+            })
+            .then(data => {
+                if (data) {
+                    alert(data.message || "Đã lưu thông tin người thân thành công!");
+                    resetRelativeForm();
+                    loadRelativesList();
+                }
+            })
+            .catch(err => {
+                alert("Lỗi: " + err.message);
+                console.error(err);
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalHTML;
+            });
+        }
+
+        function deleteRelative(id) {
+            if (!confirm('Bạn có chắc chắn muốn xóa thông tin người thân này?')) return;
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            
+            fetch(`/smartroom/admin/relative/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message || "Đã xóa thành công!");
+                    loadRelativesList();
+                } else {
+                    alert("Có lỗi xảy ra: " + (data.message || "Không thể xóa!"));
+                }
+            })
+            .catch(err => {
+                alert("Không thể kết nối máy chủ để xóa!");
+                console.error(err);
+            });
+        }
+
+        // ==========================================
+        // 2. CHỐNG SPAM CLICK (ANTI-SPAM frontend)
+        // Giải thích: Vô hiệu hóa nút nhấn hoặc form submit ngay sau click đầu tiên,
+        // ngăn chặn việc gửi trùng lặp nhiều request cùng lúc khi mạng chậm.
+        // ==========================================
+        function antiSpamSubmit(form) {
+            const btn = form.querySelector('.anti-spam-btn') || form.querySelector('button[type="submit"]');
+            if (btn) {
+                btn.disabled = true;
+                const origHTML = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang xử lý...';
+            }
+            return true;
+        }
+
+        function confirmAndDisable(form, message) {
+            if (confirm(message)) {
+                const btn = form.querySelector('.anti-spam-btn') || form.querySelector('button[type="submit"]');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i>';
+                }
+                return true;
+            }
+            return false;
+        }
+
+        // ==========================================
+        // 3. CHỐNG MỞ F12 & CÔNG CỤ NHÀ PHÁT TRIỂN (ANTI-F12 / DEVTOOLS)
+        // Giải thích: Hạn chế người dùng hoặc hacker táy máy thay đổi DOM, xem mã nguồn,
+        // hoặc bắt các request API nhạy cảm bằng cách chặn phím tắt và theo dõi DevTools.
+        // ==========================================
+        (function() {
+            // Chặn phím tắt mở Developer Tools
+            window.addEventListener('keydown', function(e) {
+                // F12
+                if (e.keyCode === 123) {
+                    e.preventDefault();
+                    showDevToolsWarning();
+                    return false;
+                }
+                // Ctrl+Shift+I
+                if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
+                    e.preventDefault();
+                    showDevToolsWarning();
+                    return false;
+                }
+                // Ctrl+Shift+J
+                if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
+                    e.preventDefault();
+                    showDevToolsWarning();
+                    return false;
+                }
+                // Ctrl+U (Xem nguồn trang)
+                if (e.ctrlKey && e.keyCode === 85) {
+                    e.preventDefault();
+                    showDevToolsWarning();
+                    return false;
+                }
+            });
+
+            // Chặn chuột phải
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                showDevToolsWarning();
+                return false;
+            });
+
+            // Phát hiện DevTools mở bằng sự khác biệt về kích thước màn hình
+            const devtools = {
+                isOpen: false,
+                orientation: undefined
+            };
+            const threshold = 160;
+            
+            setInterval(function() {
+                const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+                const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+                
+                if (widthThreshold || heightThreshold) {
+                    if (!devtools.isOpen) {
+                        devtools.isOpen = true;
+                        console.warn("Cảnh báo: Phát hiện bảng điều khiển DevTools!");
+                    }
+                } else {
+                    devtools.isOpen = false;
+                }
+            }, 1000);
+
+            function showDevToolsWarning() {
+                console.warn("🔐 Chức năng F12 và chuột phải đã bị khóa để bảo mật trang Quản trị.");
+            }
+        })();
 
         // CHARTS INITIALIZATION
         window.addEventListener('DOMContentLoaded', () => {
