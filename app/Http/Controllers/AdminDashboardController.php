@@ -72,6 +72,9 @@ class AdminDashboardController extends Controller
         // 6. Contracts Tab
         $contracts = \App\Models\Contract::with(['room', 'resident'])->orderBy('id', 'desc')->get();
 
+        // 8. Contact Requests Tab
+        $contactRequests = \App\Models\ContactRequest::with('room')->orderBy('id', 'desc')->get();
+
         // 7. Recent activities log (Mocked for dashboard realism based on DB actions)
         $recentActivities = [
             ['time' => '10 phút trước', 'icon' => 'fa-bolt text-amber-400', 'desc' => 'Hóa đơn tiền điện nước phòng 103 vừa được gửi đi'],
@@ -92,7 +95,8 @@ class AdminDashboardController extends Controller
             'residents',
             'emptyRoomsList',
             'recentActivities',
-            'contracts'
+            'contracts',
+            'contactRequests'
         ));
     }
 
@@ -415,5 +419,45 @@ class AdminDashboardController extends Controller
         ]);
 
         return redirect()->route('smartroom.contract.sign_view', $id)->with('success', 'Ký hợp đồng online thành công!');
+    }
+
+    public function storeContactRequest(Request $request)
+    {
+        $request->validate([
+            'room_id' => 'required|exists:rooms,id',
+            'name' => 'required|string|max:255',
+            'phone' => 'required|string|max:50',
+            'message' => 'nullable|string',
+        ]);
+
+        \App\Models\ContactRequest::create([
+            'room_id' => $request->room_id,
+            'name' => $request->name,
+            'phone' => $request->phone,
+            'message' => $request->message,
+            'status' => 'pending',
+        ]);
+
+        return redirect()->back()->with('success', 'Đăng ký nhận tư vấn thành công! Chủ trọ sẽ sớm liên hệ lại với bạn.');
+    }
+
+    public function updateContactRequestStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:pending,processed',
+        ]);
+
+        $contact = \App\Models\ContactRequest::findOrFail($id);
+        $contact->update(['status' => $request->status]);
+
+        return redirect()->route('smartroom.admin', ['tab' => 'contact-section'])->with('success', 'Cập nhật trạng thái yêu cầu tư vấn thành công!');
+    }
+
+    public function deleteContactRequest($id)
+    {
+        $contact = \App\Models\ContactRequest::findOrFail($id);
+        $contact->delete();
+
+        return redirect()->route('smartroom.admin', ['tab' => 'contact-section'])->with('success', 'Xóa yêu cầu tư vấn thành công!');
     }
 }

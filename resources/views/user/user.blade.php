@@ -417,11 +417,66 @@
                 </div>
             </div>
 
-            <!-- Existing Reviews List -->
-            <div class="border-t border-slate-800/60 pt-6 mb-6">
-                <h3 class="text-sm font-bold text-slate-300 mb-4">Đánh giá thực tế từ người ở trước</h3>
-                <div class="space-y-4 max-h-[200px] overflow-y-auto pr-2" id="detail-reviews-container">
-                    <!-- Dynamic list of reviews -->
+            <!-- Contact landlord and request consultation -->
+            <div class="border-t border-slate-800/60 pt-6 mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-300 mb-3"><i class="fa-solid fa-phone-volume text-emerald-400 mr-1.5"></i>Liên hệ Chủ nhà</h3>
+                    <div class="p-4 rounded-xl bg-[#070b13] border border-slate-800/60 space-y-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400 font-bold">
+                                <i class="fa-solid fa-user-tie"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold text-slate-200 block">Chủ trọ SmartRoom</span>
+                                <span class="text-[10px] text-slate-400">Hỗ trợ tư vấn, xem phòng trực tiếp</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <a href="tel:0987654321" class="flex-1 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold text-center flex items-center justify-center gap-1.5 transition-all">
+                                <i class="fa-solid fa-phone"></i> Gọi điện
+                            </a>
+                            <a href="https://zalo.me/0987654321" target="_blank" class="flex-1 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold text-center flex items-center justify-center gap-1.5 transition-all">
+                                <i class="fa-solid fa-comments"></i> Chat Zalo
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Consultation Form -->
+                    <h3 class="text-sm font-bold text-slate-300 mt-6 mb-3"><i class="fa-solid fa-calendar-check text-indigo-400 mr-1.5"></i>Đăng ký Tư vấn & Xem phòng</h3>
+                    <form action="{{ route('renty.contact_request.store') }}" method="POST" class="p-4 rounded-xl bg-[#070b13] border border-slate-800/60 space-y-3.5">
+                        @csrf
+                        <input type="hidden" name="room_id" id="contact-room-id" value="">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Họ tên của bạn</label>
+                            @auth
+                                <input type="text" name="name" value="{{ Auth::user()->name }}" readonly class="w-full px-3 py-2 rounded-lg bg-[#0c1222] border border-slate-850 text-slate-400 text-xs cursor-not-allowed">
+                            @else
+                                <input type="text" name="name" required class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="Nguyễn Văn A">
+                            @endauth
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Số điện thoại liên hệ</label>
+                            @auth
+                                <input type="tel" name="phone" value="{{ Auth::user()->phone }}" readonly class="w-full px-3 py-2 rounded-lg bg-[#0c1222] border border-slate-855 text-slate-400 text-xs cursor-not-allowed">
+                            @else
+                                <input type="tel" name="phone" required class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="0901234567">
+                            @endauth
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Lời nhắn (Ví dụ: Thời gian muốn xem phòng...)</label>
+                            <textarea name="message" rows="2" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="Tôi muốn xem phòng vào tối nay lúc 19h..."></textarea>
+                        </div>
+                        <button type="submit" class="w-full py-2.5 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-bold transition-all shadow-md shadow-indigo-500/10">
+                            Gửi Yêu Cầu Tư Vấn
+                        </button>
+                    </form>
+                </div>
+
+                <div>
+                    <h3 class="text-sm font-bold text-slate-300 mb-3"><i class="fa-solid fa-comments text-amber-400 mr-1.5"></i>Đánh giá thực tế từ người ở trước</h3>
+                    <div class="space-y-4 max-h-[460px] overflow-y-auto pr-2" id="detail-reviews-container">
+                        <!-- Dynamic list of reviews -->
+                    </div>
                 </div>
             </div>
 
@@ -680,6 +735,9 @@
             // Set form action route
             const form = document.getElementById('write-review-form');
             form.action = `/renty/room/${roomId}/review`;
+
+            // Set contact request hidden input
+            document.getElementById('contact-room-id').value = roomId;
 
             // Populate reviews
             const container = document.getElementById('detail-reviews-container');

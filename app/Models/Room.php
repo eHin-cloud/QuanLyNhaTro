@@ -30,4 +30,9 @@ class Room extends Model
     {
         return $this->hasMany(Contract::class);
     }
+
+    public function contactRequests()
+    {
+        return $this->hasMany(ContactRequest::class);
+    }
 }
