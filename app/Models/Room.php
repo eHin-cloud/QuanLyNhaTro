@@ -17,7 +17,9 @@ class Room extends Model
         'price',
         'area',
         'amenities',
-        'description'
+        'description',
+        'image',
+        'version'
     ];
 
     protected $casts = [
