@@ -461,6 +461,169 @@
 
     <!-- JS LOGIC -->
     <script>
+        // Setup custom toast notification override for alert()
+        (function() {
+            const toastStyle = document.createElement('style');
+            toastStyle.innerHTML = `
+                .custom-toast-container {
+                    position: fixed;
+                    top: 24px;
+                    right: 24px;
+                    z-index: 9999;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                    pointer-events: none;
+                }
+                .custom-toast {
+                    min-width: 320px;
+                    max-width: 450px;
+                    background: rgba(15, 23, 42, 0.9);
+                    backdrop-filter: blur(12px);
+                    -webkit-backdrop-filter: blur(12px);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 16px;
+                    padding: 16px 20px;
+                    color: #f1f5f9;
+                    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3), 0 0 1px 1px rgba(255, 255, 255, 0.05);
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 14px;
+                    pointer-events: auto;
+                    transform: translateX(120%);
+                    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                }
+                .custom-toast.show {
+                    transform: translateX(0);
+                }
+                .custom-toast.hide {
+                    transform: translateX(120%);
+                    opacity: 0;
+                    margin-top: -60px;
+                }
+                .custom-toast-icon {
+                    flex-shrink: 0;
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 13px;
+                }
+                .custom-toast-success .custom-toast-icon {
+                    background: rgba(16, 185, 129, 0.15);
+                    color: #10b981;
+                    border: 1px solid rgba(16, 185, 129, 0.2);
+                }
+                .custom-toast-warning .custom-toast-icon {
+                    background: rgba(245, 158, 11, 0.15);
+                    color: #f59e0b;
+                    border: 1px solid rgba(245, 158, 11, 0.2);
+                }
+                .custom-toast-error .custom-toast-icon {
+                    background: rgba(239, 68, 68, 0.15);
+                    color: #ef4444;
+                    border: 1px solid rgba(239, 68, 68, 0.2);
+                }
+                .custom-toast-info .custom-toast-icon {
+                    background: rgba(59, 130, 246, 0.15);
+                    color: #3b82f6;
+                    border: 1px solid rgba(59, 130, 246, 0.2);
+                }
+                .custom-toast-content {
+                    flex-grow: 1;
+                }
+                .custom-toast-title {
+                    font-size: 13px;
+                    font-weight: 700;
+                    margin-bottom: 3px;
+                    letter-spacing: 0.3px;
+                }
+                .custom-toast-message {
+                    font-size: 12px;
+                    color: #94a3b8;
+                    line-height: 1.5;
+                    white-space: pre-wrap;
+                }
+                .custom-toast-close {
+                    color: #64748b;
+                    cursor: pointer;
+                    font-size: 14px;
+                    transition: color 0.2s;
+                    margin-top: 1px;
+                }
+                .custom-toast-close:hover {
+                    color: #94a3b8;
+                }
+            `;
+            document.head.appendChild(toastStyle);
+
+            window.alert = function(message) {
+                let type = 'success';
+                let title = 'Thông Báo';
+                
+                const lowerMsg = message.toLowerCase();
+                if (lowerMsg.includes('lỗi') || 
+                    lowerMsg.includes('không thể') || 
+                    lowerMsg.includes('thất bại') || 
+                    lowerMsg.includes('chưa') || 
+                    lowerMsg.includes('không được') || 
+                    lowerMsg.includes('chỉ được') || 
+                    lowerMsg.includes('nhỏ hơn') ||
+                    lowerMsg.includes('vui lòng')) {
+                    type = 'warning';
+                    title = 'Cảnh Báo';
+                } else if (lowerMsg.includes('thành công') || 
+                           lowerMsg.includes('tuyệt vời') || 
+                           lowerMsg.includes('đã') || 
+                           lowerMsg.includes('sao chép')) {
+                    type = 'success';
+                    title = 'Thành Công';
+                } else {
+                    type = 'info';
+                    title = 'Thông Tin';
+                }
+                
+                let container = document.querySelector('.custom-toast-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.className = 'custom-toast-container';
+                    document.body.appendChild(container);
+                }
+                
+                const toast = document.createElement('div');
+                toast.className = `custom-toast custom-toast-${type}`;
+                
+                let iconHtml = '';
+                if (type === 'success') iconHtml = '<i class="fa-solid fa-check"></i>';
+                else if (type === 'warning') iconHtml = '<i class="fa-solid fa-triangle-exclamation"></i>';
+                else if (type === 'error') iconHtml = '<i class="fa-solid fa-circle-xmark"></i>';
+                else iconHtml = '<i class="fa-solid fa-info"></i>';
+                
+                toast.innerHTML = `
+                    <div class="custom-toast-icon">${iconHtml}</div>
+                    <div class="custom-toast-content">
+                        <div class="custom-toast-title">${title}</div>
+                        <div class="custom-toast-message">${message}</div>
+                    </div>
+                    <div class="custom-toast-close" onclick="this.parentElement.classList.add('hide'); setTimeout(() => this.parentElement.remove(), 400);"><i class="fa-solid fa-xmark"></i></div>
+                `;
+                
+                container.appendChild(toast);
+                
+                setTimeout(() => toast.classList.add('show'), 10);
+                
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.classList.remove('show');
+                        toast.classList.add('hide');
+                        setTimeout(() => toast.remove(), 400);
+                    }
+                }, 4500);
+            };
+        })();
+
         // Toggle advanced filters
         function toggleFilterDrawer() {
             const drawer = document.getElementById('filter-drawer');
