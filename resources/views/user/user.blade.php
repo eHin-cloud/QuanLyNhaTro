@@ -29,7 +29,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 </head>
 <body class="bg-[#080b11] text-slate-100 min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-emerald-500 selection:text-white">
 
@@ -41,7 +41,7 @@
     <header class="h-20 border-b border-slate-900 bg-[#080b11]/80 backdrop-blur-md sticky top-0 z-40 flex items-center">
         <div class="container mx-auto px-6 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <a href="../index.html" class="flex items-center gap-3">
+                <a href="{{ route('smartroom.portal') }}" class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
                         <i class="fa-solid fa-magnifying-glass-location text-white text-lg"></i>
                     </div>
@@ -53,7 +53,7 @@
                 <a href="#" class="text-emerald-400 hover:text-emerald-300">Khám Phá Phòng</a>
                 <a href="#" class="hover:text-slate-200">Khu Vực Hot</a>
                 <a href="#" class="hover:text-slate-200">Đánh Giá Mới</a>
-                <a href="../admin/admin.html" class="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-slate-100 transition-all flex items-center gap-2">
+                <a href="{{ route('smartroom.admin') }}" class="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-slate-100 transition-all flex items-center gap-2">
                     <i class="fa-solid fa-chart-line text-indigo-400"></i> Chủ Trọ Đăng Nhập
                 </a>
             </nav>

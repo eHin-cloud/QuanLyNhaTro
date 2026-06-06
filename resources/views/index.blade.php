@@ -29,7 +29,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 </head>
 <body class="bg-[#0b0f19] text-slate-100 min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-indigo-500 selection:text-white">
     
@@ -65,7 +65,7 @@
         <div class="grid md:grid-cols-2 gap-8 max-w-5xl w-full mx-auto px-4">
             
             <!-- PORTAL 1: ADMIN (SMARTROOM) -->
-            <a href="admin/admin.html" id="portal-admin" class="group relative bg-slate-900/40 backdrop-blur-xl border border-slate-800 hover:border-indigo-500/50 rounded-3xl p-8 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(99,102,241,0.15)] flex flex-col justify-between overflow-hidden">
+            <a href="{{ route('smartroom.admin') }}" id="portal-admin" class="group relative bg-slate-900/40 backdrop-blur-xl border border-slate-800 hover:border-indigo-500/50 rounded-3xl p-8 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(99,102,241,0.15)] flex flex-col justify-between overflow-hidden">
                 <div class="absolute -right-10 -top-10 w-40 h-40 bg-indigo-600/10 rounded-full blur-2xl group-hover:bg-indigo-600/20 transition-all duration-500"></div>
                 <div>
                     <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300">
@@ -87,7 +87,7 @@
             </a>
 
             <!-- PORTAL 2: USER (RENTY REVIEW) -->
-            <a href="user/user.html" id="portal-user" class="group relative bg-slate-900/40 backdrop-blur-xl border border-slate-800 hover:border-emerald-500/50 rounded-3xl p-8 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(16,185,129,0.15)] flex flex-col justify-between overflow-hidden">
+            <a href="{{ route('renty.user') }}" id="portal-user" class="group relative bg-slate-900/40 backdrop-blur-xl border border-slate-800 hover:border-emerald-500/50 rounded-3xl p-8 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(16,185,129,0.15)] flex flex-col justify-between overflow-hidden">
                 <div class="absolute -right-10 -top-10 w-40 h-40 bg-emerald-600/10 rounded-full blur-2xl group-hover:bg-emerald-600/20 transition-all duration-500"></div>
                 <div>
                     <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300">

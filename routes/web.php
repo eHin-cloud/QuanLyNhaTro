@@ -36,3 +36,15 @@ Route::get('signout', [CrudUserController::class, 'signOut'])->name('signout');
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/smartroom-renty', function () {
+    return view('index');
+})->name('smartroom.portal');
+
+Route::get('/smartroom/admin', function () {
+    return view('admin.admin');
+})->name('smartroom.admin');
+
+Route::get('/renty/user', function () {
+    return view('user.user');
+})->name('renty.user');
