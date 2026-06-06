@@ -166,7 +166,15 @@
 
         // Display notifications from Laravel session if present
         @if(session('success'))
-            showToast("{{ session('success') }}", "{{ strpos(session('success'), 'invalid') !== false || strpos(session('success'), 'not allowed') !== false ? 'error' : 'success' }}");
+            showToast("{{ session('success') }}", "success");
+        @endif
+
+        @if(session('error'))
+            showToast("{{ session('error') }}", "error");
+        @endif
+
+        @if($errors->any())
+            showToast("{{ $errors->first() }}", "error");
         @endif
     </script>
 </body>

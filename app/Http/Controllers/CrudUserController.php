@@ -35,11 +35,13 @@ class CrudUserController extends Controller
         $credentials = $request->only('email', 'password');
 
         if (Auth::attempt($credentials)) {
-            return redirect()->intended('list')
-                ->withSuccess('Signed in');
+            $user = Auth::user();
+            $defaultRoute = $user->role === 'admin' ? route('smartroom.admin') : route('renty.user');
+            return redirect()->intended($defaultRoute)
+                ->with('success', 'Đăng nhập thành công!');
         }
 
-        return redirect("login")->withSuccess('Login details are not valid');
+        return redirect("login")->with('error', 'Thông tin đăng nhập không chính xác!');
     }
 
     /**
@@ -65,10 +67,9 @@ class CrudUserController extends Controller
         $data = $request->all();
         $check = User::create([
             'name' => $data['name'],
-            //            'phone' => $data['phone'],
-            //            'address' => $data['address'],
             'email' => $data['email'],
-             'like' => $data['like'],
+            'like' => $data['like'],
+            'role' => 'user',
             'password' => Hash::make($data['password'])
         ]);
 

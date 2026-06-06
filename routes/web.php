@@ -39,7 +39,7 @@ Route::get('/', function () {
 })->name('smartroom.portal');
 
 
-Route::middleware('auth')->group(function () {
+Route::middleware('admin')->group(function () {
     Route::get('/smartroom/admin', [AdminDashboardController::class, 'index'])->name('smartroom.admin');
     Route::post('/smartroom/admin/utility', [AdminDashboardController::class, 'storeUtility'])->name('smartroom.admin.utility.store');
     Route::post('/smartroom/admin/utility/bulk', [AdminDashboardController::class, 'storeUtilityBulk'])->name('smartroom.admin.utility.bulk_store');
