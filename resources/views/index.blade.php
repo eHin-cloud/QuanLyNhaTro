@@ -132,9 +132,7 @@
             <div>
                 © 2026 SmartRoom & Renty Review. Đồ án xây dựng hệ thống quản lý & số hóa nhà trọ.
             </div>
-            <div class="flex items-center gap-2">
-                <span>Thực hiện bởi: <strong class="text-slate-400">Thành viên 1</strong> (Frontend Developer)</span>
-            </div>
+
         </div>
     </footer>
 

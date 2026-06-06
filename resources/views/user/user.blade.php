@@ -528,9 +528,7 @@
             <div>
                 © 2026 Renty Review. Hệ thống đánh giá không gian sống sinh viên Việt Nam.
             </div>
-            <div class="flex items-center gap-4">
-                <span>Thực hiện bởi: <strong class="text-slate-400">Thành viên 1</strong></span>
-            </div>
+
         </div>
     </footer>
 
