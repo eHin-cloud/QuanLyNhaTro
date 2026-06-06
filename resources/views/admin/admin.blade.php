@@ -71,6 +71,10 @@
                     <i class="fa-solid fa-users text-lg"></i>
                     <span>Quản Lý Cư Dân</span>
                 </button>
+                <button onclick="switchTab('contract-section', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
+                    <i class="fa-solid fa-file-signature text-lg"></i>
+                    <span>Hợp Đồng Online</span>
+                </button>
             </nav>
         </div>
 
@@ -120,6 +124,19 @@
         <!-- CONTENT PANEL -->
         <main class="p-8 flex-grow overflow-y-auto">
 
+            @if(session('success'))
+                <div class="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-semibold flex items-center gap-2 animate-fade-in">
+                    <i class="fa-solid fa-circle-check text-base"></i>
+                    <span>{{ session('success') }}</span>
+                </div>
+            @endif
+            @if(session('error'))
+                <div class="mb-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm font-semibold flex items-center gap-2 animate-fade-in">
+                    <i class="fa-solid fa-circle-exclamation text-base"></i>
+                    <span>{{ session('error') }}</span>
+                </div>
+            @endif
+
             <!-- SECTION 1: DASHBOARD OVERVIEW -->
             <section id="dashboard-section" class="tab-content space-y-8 animate-fade-in">
                 <!-- Stats ribbon -->
@@ -129,7 +146,7 @@
                         <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-blue-500/5 rounded-full blur-xl"></div>
                         <div>
                             <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Tổng số phòng</span>
-                            <h3 class="text-3xl font-extrabold text-slate-100 mt-2">12</h3>
+                            <h3 class="text-3xl font-extrabold text-slate-100 mt-2">{{ $totalRooms }}</h3>
                             <span class="text-[10px] text-emerald-400 font-semibold flex items-center gap-1 mt-1">
                                 <i class="fa-solid fa-arrow-up"></i> 100% Khai thác
                             </span>
@@ -143,9 +160,9 @@
                         <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-red-500/5 rounded-full blur-xl"></div>
                         <div>
                             <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Đang thuê</span>
-                            <h3 class="text-3xl font-extrabold text-red-400 mt-2">9</h3>
+                            <h3 class="text-3xl font-extrabold text-red-400 mt-2">{{ $occupiedRooms }}</h3>
                             <span class="text-[10px] text-slate-400 font-semibold flex items-center gap-1 mt-1">
-                                Tỉ lệ lấp đầy: 75%
+                                Tỉ lệ lấp đầy: {{ $totalRooms > 0 ? round(($occupiedRooms / $totalRooms) * 100) : 0 }}%
                             </span>
                         </div>
                         <div class="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center">
@@ -157,7 +174,7 @@
                         <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl"></div>
                         <div>
                             <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Phòng trống</span>
-                            <h3 class="text-3xl font-extrabold text-emerald-400 mt-2">2</h3>
+                            <h3 class="text-3xl font-extrabold text-emerald-400 mt-2">{{ $emptyRooms }}</h3>
                             <span class="text-[10px] text-emerald-400 font-semibold flex items-center gap-1 mt-1">
                                 Sẵn sàng đón khách
                             </span>
@@ -171,7 +188,7 @@
                         <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-amber-500/5 rounded-full blur-xl"></div>
                         <div>
                             <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Chưa đóng tiền</span>
-                            <h3 class="text-3xl font-extrabold text-amber-400 mt-2">1</h3>
+                            <h3 class="text-3xl font-extrabold text-amber-400 mt-2">{{ $overdueRooms }}</h3>
                             <span class="text-[10px] text-amber-400 font-semibold flex items-center gap-1 mt-1">
                                 Cần nhắc nhở đóng phí
                             </span>
@@ -209,15 +226,15 @@
                         <div class="grid grid-cols-3 gap-2 mt-4 text-center">
                             <div class="p-2 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
                                 <span class="block text-[10px] text-slate-500 font-bold uppercase">Trống</span>
-                                <strong class="text-sm text-emerald-400">16.7%</strong>
+                                <strong class="text-sm text-emerald-400">{{ $totalRooms > 0 ? round(($emptyRooms / $totalRooms) * 100, 1) : 0 }}%</strong>
                             </div>
                             <div class="p-2 rounded-xl bg-red-500/5 border border-red-500/10">
                                 <span class="block text-[10px] text-slate-500 font-bold uppercase">Thuê</span>
-                                <strong class="text-sm text-red-400">75%</strong>
+                                <strong class="text-sm text-red-400">{{ $totalRooms > 0 ? round(($occupiedRooms / $totalRooms) * 100, 1) : 0 }}%</strong>
                             </div>
                             <div class="p-2 rounded-xl bg-amber-500/5 border border-amber-500/10">
                                 <span class="block text-[10px] text-slate-500 font-bold uppercase">Nợ</span>
-                                <strong class="text-sm text-amber-400">8.3%</strong>
+                                <strong class="text-sm text-amber-400">{{ $totalRooms > 0 ? round(($overdueRooms / $totalRooms) * 100, 1) : 0 }}%</strong>
                             </div>
                         </div>
                     </div>
@@ -246,63 +263,45 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-900">
+                                @foreach($rooms->where('status', '!=', 'empty')->take(3) as $r)
+                                @php
+                                    $latestRecord = $r->utilityRecords->first();
+                                    $resident = $r->residents->first();
+                                @endphp
+                                @if($resident)
                                 <tr class="hover:bg-slate-900/30 transition-all">
                                     <td class="px-6 py-4 flex items-center gap-3">
                                         <div class="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 font-bold text-xs">
-                                            101
+                                            {{ $r->room_number }}
                                         </div>
                                         <div>
-                                            <strong class="text-slate-200 text-xs block">Nguyễn Văn An</strong>
-                                            <span class="text-[10px] text-slate-500">Phòng 101</span>
+                                            <strong class="text-slate-200 text-xs block">{{ $resident->name }}</strong>
+                                            <span class="text-[10px] text-slate-500">Phòng {{ $r->room_number }}</span>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4 font-semibold text-xs text-slate-400">Thanh toán hóa đơn tháng 05</td>
-                                    <td class="px-6 py-4 text-emerald-400 font-bold text-xs">4,150,000đ</td>
-                                    <td class="px-6 py-4 text-xs text-slate-500">Hôm nay, 08:32</td>
+                                    <td class="px-6 py-4 font-semibold text-xs text-slate-400">
+                                        {{ $r->status === 'overdue' ? 'Gửi hóa đơn tháng ' . ($latestRecord ? explode('-', $latestRecord->billing_month)[1] : '06') : 'Đã đóng hóa đơn tháng ' . ($latestRecord ? explode('-', $latestRecord->billing_month)[1] : '05') }}
+                                    </td>
+                                    <td class="px-6 py-4 {{ $r->status === 'overdue' ? 'text-amber-400' : 'text-emerald-400' }} font-bold text-xs">
+                                        @if($latestRecord)
+                                            {{ number_format($r->price + ($latestRecord->new_electricity - $latestRecord->old_electricity) * $latestRecord->electricity_price + ($latestRecord->new_water - $latestRecord->old_water) * $latestRecord->water_price + 150000) }}đ
+                                        @else
+                                            {{ number_format($r->price + 150000) }}đ
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 text-xs text-slate-500">
+                                        {{ $latestRecord ? $latestRecord->updated_at->diffForHumans() : 'Hôm nay' }}
+                                    </td>
                                     <td class="px-6 py-4">
-                                        <span class="px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                            Hoàn tất (VietQR)
-                                        </span>
+                                        @if($r->status === 'overdue')
+                                            <span class="px-2 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">Chưa đóng</span>
+                                        @else
+                                            <span class="px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Hoàn tất</span>
+                                        @endif
                                     </td>
                                 </tr>
-                                <tr class="hover:bg-slate-900/30 transition-all">
-                                    <td class="px-6 py-4 flex items-center gap-3">
-                                        <div class="w-8 h-8 rounded-lg bg-yellow-500/10 flex items-center justify-center text-yellow-500 font-bold text-xs">
-                                            202
-                                        </div>
-                                        <div>
-                                            <strong class="text-slate-200 text-xs block">Lê Thị Bình</strong>
-                                            <span class="text-[10px] text-slate-500">Phòng 202</span>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 font-semibold text-xs text-slate-400">Nhập chỉ số điện nước tháng 06</td>
-                                    <td class="px-6 py-4 text-slate-400 font-bold text-xs">Chốt số mới</td>
-                                    <td class="px-6 py-4 text-xs text-slate-500">Hôm qua, 18:15</td>
-                                    <td class="px-6 py-4">
-                                        <span class="px-2 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                                            Đã cập nhật
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-slate-900/30 transition-all">
-                                    <td class="px-6 py-4 flex items-center gap-3">
-                                        <div class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500 font-bold text-xs">
-                                            302
-                                        </div>
-                                        <div>
-                                            <strong class="text-slate-200 text-xs block">Trần Văn Cường</strong>
-                                            <span class="text-[10px] text-slate-500">Phòng 302</span>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 font-semibold text-xs text-slate-400">Báo cáo sự cố: Nghẹt đường thoát nước máy giặt</td>
-                                    <td class="px-6 py-4 text-slate-500 text-xs">Sửa chữa</td>
-                                    <td class="px-6 py-4 text-xs text-slate-500">05/06/2026, 10:20</td>
-                                    <td class="px-6 py-4">
-                                        <span class="px-2 py-1 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                                            Mới tiếp nhận
-                                        </span>
-                                    </td>
-                                </tr>
+                                @endif
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -315,16 +314,16 @@
                 <div class="flex flex-wrap items-center justify-between gap-4 bg-slate-900/40 border border-slate-800/80 p-4 rounded-2xl">
                     <div class="flex items-center gap-2">
                         <button onclick="filterRooms('all')" class="room-filter-btn px-4 py-2 text-xs font-bold rounded-xl bg-indigo-600 text-white transition-all">
-                            Tất cả (12)
+                            Tất cả ({{ $totalRooms }})
                         </button>
                         <button onclick="filterRooms('empty')" class="room-filter-btn px-4 py-2 text-xs font-bold rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-all">
-                            Trống (2)
+                            Trống ({{ $emptyRooms }})
                         </button>
                         <button onclick="filterRooms('occupied')" class="room-filter-btn px-4 py-2 text-xs font-bold rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-all">
-                            Đã thuê (9)
+                            Đã thuê ({{ $occupiedRooms }})
                         </button>
                         <button onclick="filterRooms('overdue')" class="room-filter-btn px-4 py-2 text-xs font-bold rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-all">
-                            Nợ phí (1)
+                            Nợ phí ({{ $overdueRooms }})
                         </button>
                     </div>
                     
@@ -346,128 +345,41 @@
 
                 <!-- Floors and room grid -->
                 <div class="space-y-8">
-                    <!-- Floor 3 -->
+                    @foreach($roomsByFloor as $floor => $floorRooms)
                     <div class="floor-group">
                         <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                            <i class="fa-solid fa-layer-group text-indigo-400"></i> Tầng 3
+                            <i class="fa-solid fa-layer-group text-indigo-400"></i> Tầng {{ $floor }}
                         </h3>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                            <div onclick="openRoomDetail('301', 'occupied', 'Nguyễn Huy Hoàng', '0988777123', '3.500.000đ', '125 kWh', '40 m3')" class="room-card room-occupied glass-card rounded-2xl p-5 cursor-pointer relative overflow-hidden group">
+                            @foreach($floorRooms as $room)
+                            @php
+                                $resident = $room->residents->first();
+                                $latestBill = $room->utilityRecords->first();
+                                $elecUsed = $latestBill ? ($latestBill->new_electricity - $latestBill->old_electricity) : 0;
+                                $waterUsed = $latestBill ? ($latestBill->new_water - $latestBill->old_water) : 0;
+                                $statusLabel = $room->status === 'empty' ? 'Trống' : ($room->status === 'overdue' ? 'Nợ phí' : 'Đã thuê');
+                                $statusClass = $room->status === 'empty' ? 'room-empty border-emerald-500/20' : ($room->status === 'overdue' ? 'room-overdue border-amber-500/20' : 'room-occupied border-red-500/20');
+                                $badgeClass = $room->status === 'empty' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : ($room->status === 'overdue' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20');
+                                $totalBill = $latestBill ? ($room->price + ($elecUsed * $latestBill->electricity_price) + ($waterUsed * $latestBill->water_price) + 150000) : 0;
+                            @endphp
+                            <div onclick="openRoomDetail('{{ $room->room_number }}', '{{ $room->status }}', '{{ $resident ? $resident->name : '' }}', '{{ $resident ? $resident->phone : '' }}', '{{ number_format($room->price) }}đ', '{{ $elecUsed }} kWh', '{{ $waterUsed }} m3', '{{ number_format($totalBill) }}đ', '{{ $latestBill ? $latestBill->id : 'null' }}')" 
+                                 class="room-card {{ $statusClass }} glass-card rounded-2xl p-5 cursor-pointer relative overflow-hidden group">
                                 <div class="flex justify-between items-start mb-4">
-                                    <span class="text-lg font-extrabold text-slate-200">P. 301</span>
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-red-500/10 text-red-400 border border-red-500/20">Đã thuê</span>
+                                    <span class="text-lg font-extrabold text-slate-200">P. {{ $room->room_number }}</span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-extrabold border {{ $badgeClass }}">{{ $statusLabel }}</span>
                                 </div>
-                                <h4 class="text-xs font-bold text-slate-400 truncate mb-1">Cư dân: Nguyễn Huy Hoàng</h4>
-                                <p class="text-[10px] text-slate-500">Giá phòng: 3.500.000đ</p>
+                                @if($resident)
+                                    <h4 class="text-xs font-bold text-slate-400 truncate mb-1">Cư dân: {{ $resident->name }}</h4>
+                                    <p class="text-[10px] text-slate-500">Giá phòng: {{ number_format($room->price) }}đ</p>
+                                @else
+                                    <h4 class="text-xs font-bold text-slate-500 italic mb-1">Chưa có cư dân</h4>
+                                    <p class="text-[10px] text-slate-500">Giá phòng: {{ number_format($room->price) }}đ</p>
+                                @endif
                             </div>
-                            <div onclick="openRoomDetail('302', 'occupied', 'Trần Văn Cường', '0901234567', '3.500.000đ', '180 kWh', '52 m3')" class="room-card room-occupied glass-card rounded-2xl p-5 cursor-pointer relative overflow-hidden group">
-                                <div class="flex justify-between items-start mb-4">
-                                    <span class="text-lg font-extrabold text-slate-200">P. 302</span>
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-red-500/10 text-red-400 border border-red-500/20">Đã thuê</span>
-                                </div>
-                                <h4 class="text-xs font-bold text-slate-400 truncate mb-1">Cư dân: Trần Văn Cường</h4>
-                                <p class="text-[10px] text-slate-500">Giá phòng: 3.500.000đ</p>
-                            </div>
-                            <div onclick="openRoomDetail('303', 'empty', '', '', '3.500.000đ', '', '')" class="room-card room-empty glass-card rounded-2xl p-5 cursor-pointer relative overflow-hidden group">
-                                <div class="flex justify-between items-start mb-4">
-                                    <span class="text-lg font-extrabold text-slate-200">P. 303</span>
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Trống</span>
-                                </div>
-                                <h4 class="text-xs font-bold text-slate-500 italic mb-1">Chưa có cư dân</h4>
-                                <p class="text-[10px] text-slate-500">Giá phòng: 3.500.000đ</p>
-                            </div>
-                            <div onclick="openRoomDetail('304', 'occupied', 'Phạm Minh Hải', '0912345987', '3.500.000đ', '110 kWh', '36 m3')" class="room-card room-occupied glass-card rounded-2xl p-5 cursor-pointer relative overflow-hidden group">
-                                <div class="flex justify-between items-start mb-4">
-                                    <span class="text-lg font-extrabold text-slate-200">P. 304</span>
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-red-500/10 text-red-400 border border-red-500/20">Đã thuê</span>
-                                </div>
-                                <h4 class="text-xs font-bold text-slate-400 truncate mb-1">Cư dân: Phạm Minh Hải</h4>
-                                <p class="text-[10px] text-slate-500">Giá phòng: 3.500.000đ</p>
-                            </div>
+                            @endforeach
                         </div>
                     </div>
-
-                    <!-- Floor 2 -->
-                    <div class="floor-group">
-                        <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                            <i class="fa-solid fa-layer-group text-indigo-400"></i> Tầng 2
-                        </h3>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                            <div onclick="openRoomDetail('201', 'occupied', 'Nguyễn Thị Minh', '0933355577', '3.800.000đ', '95 kWh', '30 m3')" class="room-card room-occupied glass-card rounded-2xl p-5 cursor-pointer relative overflow-hidden group">
-                                <div class="flex justify-between items-start mb-4">
-                                    <span class="text-lg font-extrabold text-slate-200">P. 201</span>
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-red-500/10 text-red-400 border border-red-500/20">Đã thuê</span>
-                                </div>
-                                <h4 class="text-xs font-bold text-slate-400 truncate mb-1">Cư dân: Nguyễn Thị Minh</h4>
-                                <p class="text-[10px] text-slate-500">Giá phòng: 3.800.000đ</p>
-                            </div>
-                            <div onclick="openRoomDetail('202', 'overdue', 'Lê Thị Bình', '0901234567', '3.800.000đ', '210 kWh', '58 m3')" class="room-card room-overdue glass-card rounded-2xl p-5 cursor-pointer relative overflow-hidden group">
-                                <div class="flex justify-between items-start mb-4">
-                                    <span class="text-lg font-extrabold text-slate-200">P. 202</span>
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-amber-500/10 text-amber-400 border border-amber-500/20">Nợ phí</span>
-                                </div>
-                                <h4 class="text-xs font-bold text-slate-400 truncate mb-1">Cư dân: Lê Thị Bình</h4>
-                                <p class="text-[10px] text-slate-500">Nợ tháng: 05/2026</p>
-                            </div>
-                            <div onclick="openRoomDetail('203', 'occupied', 'Võ Hoàng Nam', '0977888999', '3.800.000đ', '140 kWh', '45 m3')" class="room-card room-occupied glass-card rounded-2xl p-5 cursor-pointer relative overflow-hidden group">
-                                <div class="flex justify-between items-start mb-4">
-                                    <span class="text-lg font-extrabold text-slate-200">P. 203</span>
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-red-500/10 text-red-400 border border-red-500/20">Đã thuê</span>
-                                </div>
-                                <h4 class="text-xs font-bold text-slate-400 truncate mb-1">Cư dân: Võ Hoàng Nam</h4>
-                                <p class="text-[10px] text-slate-500">Giá phòng: 3.800.000đ</p>
-                            </div>
-                            <div onclick="openRoomDetail('204', 'occupied', 'Đặng Thùy Dương', '0909090909', '3.800.000đ', '88 kWh', '28 m3')" class="room-card room-occupied glass-card rounded-2xl p-5 cursor-pointer relative overflow-hidden group">
-                                <div class="flex justify-between items-start mb-4">
-                                    <span class="text-lg font-extrabold text-slate-200">P. 204</span>
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-red-500/10 text-red-400 border border-red-500/20">Đã thuê</span>
-                                </div>
-                                <h4 class="text-xs font-bold text-slate-400 truncate mb-1">Cư dân: Đặng Thùy Dương</h4>
-                                <p class="text-[10px] text-slate-500">Giá phòng: 3.800.000đ</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Floor 1 -->
-                    <div class="floor-group">
-                        <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                            <i class="fa-solid fa-layer-group text-indigo-400"></i> Tầng 1
-                        </h3>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                            <div onclick="openRoomDetail('101', 'occupied', 'Nguyễn Văn An', '0912111222', '4.000.000đ', '130 kWh', '42 m3')" class="room-card room-occupied glass-card rounded-2xl p-5 cursor-pointer relative overflow-hidden group">
-                                <div class="flex justify-between items-start mb-4">
-                                    <span class="text-lg font-extrabold text-slate-200">P. 101</span>
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-red-500/10 text-red-400 border border-red-500/20">Đã thuê</span>
-                                </div>
-                                <h4 class="text-xs font-bold text-slate-400 truncate mb-1">Cư dân: Nguyễn Văn An</h4>
-                                <p class="text-[10px] text-slate-500">Giá phòng: 4.000.000đ</p>
-                            </div>
-                            <div onclick="openRoomDetail('102', 'occupied', 'Nguyễn Thị Bích', '0944455566', '4.000.000đ', '102 kWh', '31 m3')" class="room-card room-occupied glass-card rounded-2xl p-5 cursor-pointer relative overflow-hidden group">
-                                <div class="flex justify-between items-start mb-4">
-                                    <span class="text-lg font-extrabold text-slate-200">P. 102</span>
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-red-500/10 text-red-400 border border-red-500/20">Đã thuê</span>
-                                </div>
-                                <h4 class="text-xs font-bold text-slate-400 truncate mb-1">Cư dân: Nguyễn Thị Bích</h4>
-                                <p class="text-[10px] text-slate-500">Giá phòng: 4.000.000đ</p>
-                            </div>
-                            <div onclick="openRoomDetail('103', 'empty', '', '', '4.000.000đ', '', '')" class="room-card room-empty glass-card rounded-2xl p-5 cursor-pointer relative overflow-hidden group">
-                                <div class="flex justify-between items-start mb-4">
-                                    <span class="text-lg font-extrabold text-slate-200">P. 103</span>
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Trống</span>
-                                </div>
-                                <h4 class="text-xs font-bold text-slate-500 italic mb-1">Chưa có cư dân</h4>
-                                <p class="text-[10px] text-slate-500">Giá phòng: 4.000.000đ</p>
-                            </div>
-                            <div onclick="openRoomDetail('104', 'occupied', 'Nguyễn Minh Quân', '0933333333', '4.200.000đ', '165 kWh', '48 m3')" class="room-card room-occupied glass-card rounded-2xl p-5 cursor-pointer relative overflow-hidden group">
-                                <div class="flex justify-between items-start mb-4">
-                                    <span class="text-lg font-extrabold text-slate-200">P. 104</span>
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-red-500/10 text-red-400 border border-red-500/20">Đã thuê</span>
-                                </div>
-                                <h4 class="text-xs font-bold text-slate-400 truncate mb-1">Cư dân: Nguyễn Minh Quân</h4>
-                                <p class="text-[10px] text-slate-500">Giá phòng: 4.200.000đ</p>
-                            </div>
-                        </div>
-                    </div>
+                    @endforeach
                 </div>
 
                 <!-- ROOM DETAIL DRAWER/MODAL (HIDDEN BY DEFAULT) -->
@@ -515,11 +427,23 @@
 
                         <!-- Action buttons -->
                         <div class="space-y-3 mt-6">
+                            <form id="modal-pay-form" action="" method="POST" class="hidden">
+                                @csrf
+                            </form>
+                            <form id="modal-notify-form" action="" method="POST" class="hidden">
+                                @csrf
+                            </form>
+                            <button id="modal-btn-pay" onclick="submitModalPay()" class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-600/30 transition-all hidden">
+                                <i class="fa-solid fa-circle-check"></i> Xác nhận đã đóng tiền
+                            </button>
                             <button id="modal-btn-action" class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/30 transition-all">
                                 <i class="fa-solid fa-bell-slash"></i> Gửi nhắc nợ qua Zalo/Mail
                             </button>
-                            <button onclick="window.open('https://img.vietqr.io/image/970422-1234567890-compact2.jpg?amount=4455000&addInfo=Thanh%20toan%20tien%20phong%20202%20Thang%2005&accountName=NGUYEN%20THANH%20HIEN', '_blank')" class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold text-slate-300 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-all">
+                            <button id="modal-btn-qr" class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold text-slate-300 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-all">
                                 <i class="fa-solid fa-qrcode text-indigo-400"></i> Xem mã VietQR hóa đơn
+                            </button>
+                            <button id="modal-btn-print" onclick="printModalInvoice()" class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold text-slate-300 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-all hidden">
+                                <i class="fa-solid fa-print text-indigo-400"></i> In hóa đơn / Xuất PDF
                             </button>
                             <button onclick="closeRoomDetail()" class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold text-slate-400 bg-transparent hover:bg-slate-900 border border-transparent hover:border-slate-800 transition-all">
                                 Đóng lại
@@ -538,85 +462,79 @@
                             <p class="text-xs text-slate-500">Nhập chỉ số điện nước tháng 06/2026. Đơn giá: Điện 3.500đ/kWh, Nước 15.000đ/m3.</p>
                         </div>
                         <div class="flex items-center gap-2">
-                            <button onclick="submitAllUtilities()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2">
-                                <i class="fa-solid fa-check-double"></i> Lưu & Xuất Hóa Đơn PDF
+                            <button type="submit" form="bulk-utility-form" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2">
+                                <i class="fa-solid fa-check-double"></i> Lưu & Xuất Hóa Đơn Hàng Loạt
                             </button>
                         </div>
                     </div>
                     
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm text-slate-300">
-                            <thead class="text-xs text-slate-500 uppercase bg-slate-900/50 border-b border-slate-900">
-                                <tr>
-                                    <th class="px-6 py-4 font-bold">Phòng</th>
-                                    <th class="px-6 py-4 font-bold">Điện cũ</th>
-                                    <th class="px-6 py-4 font-bold">Điện mới (kWh)</th>
-                                    <th class="px-6 py-4 font-bold">Nước cũ</th>
-                                    <th class="px-6 py-4 font-bold">Nước mới (m3)</th>
-                                    <th class="px-6 py-4 font-bold">Số lượng xài</th>
-                                    <th class="px-6 py-4 font-bold">Thành tiền tạm tính</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-900" id="utility-table-body">
-                                <!-- Room 101 row -->
-                                <tr class="hover:bg-slate-900/10 transition-all" data-room="101" data-price="4000000">
-                                    <td class="px-6 py-4 font-bold text-slate-200 flex items-center gap-2">
-                                        <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> 101 (Văn An)
-                                    </td>
-                                    <td class="px-6 py-4 text-xs text-slate-500" data-field="old-elec">1250</td>
-                                    <td class="px-6 py-4">
-                                        <input type="number" oninput="calculateRowCost(this)" class="w-28 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="Nhập số mới">
-                                    </td>
-                                    <td class="px-6 py-4 text-xs text-slate-500" data-field="old-water">142</td>
-                                    <td class="px-6 py-4">
-                                        <input type="number" oninput="calculateRowCost(this)" class="w-28 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="Nhập số mới">
-                                    </td>
-                                    <td class="px-6 py-4 text-xs text-slate-400">
-                                        <div>⚡ Điện: <strong data-field="used-elec">0</strong> kWh</div>
-                                        <div>💧 Nước: <strong data-field="used-water">0</strong> m3</div>
-                                    </td>
-                                    <td class="px-6 py-4 text-indigo-400 font-bold text-xs" data-field="cost-total">0đ</td>
-                                </tr>
-                                <!-- Room 202 row -->
-                                <tr class="hover:bg-slate-900/10 transition-all" data-room="202" data-price="3800000">
-                                    <td class="px-6 py-4 font-bold text-slate-200 flex items-center gap-2">
-                                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> 202 (Thị Bình)
-                                    </td>
-                                    <td class="px-6 py-4 text-xs text-slate-500" data-field="old-elec">3420</td>
-                                    <td class="px-6 py-4">
-                                        <input type="number" oninput="calculateRowCost(this)" class="w-28 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="Nhập số mới">
-                                    </td>
-                                    <td class="px-6 py-4 text-xs text-slate-500" data-field="old-water">285</td>
-                                    <td class="px-6 py-4">
-                                        <input type="number" oninput="calculateRowCost(this)" class="w-28 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="Nhập số mới">
-                                    </td>
-                                    <td class="px-6 py-4 text-xs text-slate-400">
-                                        <div>⚡ Điện: <strong data-field="used-elec">0</strong> kWh</div>
-                                        <div>💧 Nước: <strong data-field="used-water">0</strong> m3</div>
-                                    </td>
-                                    <td class="px-6 py-4 text-indigo-400 font-bold text-xs" data-field="cost-total">0đ</td>
-                                </tr>
-                                <!-- Room 302 row -->
-                                <tr class="hover:bg-slate-900/10 transition-all" data-room="302" data-price="3500000">
-                                    <td class="px-6 py-4 font-bold text-slate-200 flex items-center gap-2">
-                                        <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> 302 (Văn Cường)
-                                    </td>
-                                    <td class="px-6 py-4 text-xs text-slate-500" data-field="old-elec">1900</td>
-                                    <td class="px-6 py-4">
-                                        <input type="number" oninput="calculateRowCost(this)" class="w-28 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="Nhập số mới">
-                                    </td>
-                                    <td class="px-6 py-4 text-xs text-slate-500" data-field="old-water">198</td>
-                                    <td class="px-6 py-4">
-                                        <input type="number" oninput="calculateRowCost(this)" class="w-28 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="Nhập số mới">
-                                    </td>
-                                    <td class="px-6 py-4 text-xs text-slate-400">
-                                        <div>⚡ Điện: <strong data-field="used-elec">0</strong> kWh</div>
-                                        <div>💧 Nước: <strong data-field="used-water">0</strong> m3</div>
-                                    </td>
-                                    <td class="px-6 py-4 text-indigo-400 font-bold text-xs" data-field="cost-total">0đ</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <form id="bulk-utility-form" action="{{ route('smartroom.admin.utility.bulk_store') }}" method="POST">
+                            @csrf
+                            <table class="w-full text-left text-sm text-slate-300">
+                                <thead class="text-xs text-slate-500 uppercase bg-slate-900/50 border-b border-slate-900">
+                                    <tr>
+                                        <th class="px-6 py-4 font-bold">Phòng</th>
+                                        <th class="px-6 py-4 font-bold">Điện cũ</th>
+                                        <th class="px-6 py-4 font-bold">Điện mới (kWh)</th>
+                                        <th class="px-6 py-4 font-bold">Nước cũ</th>
+                                        <th class="px-6 py-4 font-bold">Nước mới (m3)</th>
+                                        <th class="px-6 py-4 font-bold">Số lượng xài</th>
+                                        <th class="px-6 py-4 font-bold">Thành tiền tạm tính</th>
+                                        <th class="px-6 py-4 font-bold text-center">Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-900" id="utility-table-body">
+                                    @foreach($utilityRooms as $room)
+                                    @php
+                                        $resident = $room->residents->first();
+                                        $latestBill = $room->utilityRecords->first();
+                                        $oldElec = $latestBill ? $latestBill->new_electricity : 0;
+                                        $oldWater = $latestBill ? $latestBill->new_water : 0;
+                                        $statusColor = $room->status === 'overdue' ? 'bg-amber-500' : ($room->status === 'empty' ? 'bg-emerald-500' : 'bg-red-500');
+                                    @endphp
+                                    <tr class="hover:bg-slate-900/10 transition-all" data-room="{{ $room->room_number }}" data-price="{{ $room->price }}">
+                                        <td class="px-6 py-4 font-bold text-slate-200 flex items-center gap-2">
+                                            <span class="w-2.5 h-2.5 rounded-full {{ $statusColor }}"></span> 
+                                            {{ $room->room_number }} ({{ $resident ? $resident->name : 'N/A' }})
+                                        </td>
+                                        <td class="px-6 py-4 text-xs text-slate-500" data-field="old-elec">{{ $oldElec }}</td>
+                                        <td class="px-6 py-4">
+                                            <input type="number" name="utilities[{{ $room->id }}][new_electricity]" oninput="calculateRowCost(this)" class="new-elec-input w-28 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="Nhập số mới">
+                                        </td>
+                                        <td class="px-6 py-4 text-xs text-slate-500" data-field="old-water">{{ $oldWater }}</td>
+                                        <td class="px-6 py-4">
+                                            <input type="number" name="utilities[{{ $room->id }}][new_water]" oninput="calculateRowCost(this)" class="new-water-input w-28 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="Nhập số mới">
+                                        </td>
+                                        <td class="px-6 py-4 text-xs text-slate-400">
+                                            <div>⚡ Điện: <strong data-field="used-elec">0</strong> kWh</div>
+                                            <div>💧 Nước: <strong data-field="used-water">0</strong> m3</div>
+                                        </td>
+                                        <td class="px-6 py-4 text-indigo-400 font-bold text-xs" data-field="cost-total">0đ</td>
+                                        <td class="px-6 py-4 text-center">
+                                             <div class="flex items-center justify-center gap-2">
+                                                 @if($room->status === 'overdue' && $latestBill && $latestBill->status !== 'paid')
+                                                     <form action="{{ route('smartroom.admin.utility.pay', $latestBill->id) }}" method="POST" class="inline">
+                                                         @csrf
+                                                         <button type="submit" class="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-lg text-xs font-bold border border-emerald-500/20 transition-all flex items-center gap-1">
+                                                             <i class="fa-solid fa-check"></i> Xác nhận đóng
+                                                         </button>
+                                                     </form>
+                                                     <a href="{{ route('smartroom.admin.utility.print', $latestBill->id) }}" target="_blank" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold border border-slate-700 transition-all flex items-center gap-1" title="In hóa đơn">
+                                                         <i class="fa-solid fa-print"></i> In
+                                                     </a>
+                                                 @else
+                                                     <button type="button" onclick="saveSingleUtility('{{ $room->id }}', this)" class="px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-400 hover:text-white rounded-lg text-xs font-bold border border-indigo-500/20 transition-all">
+                                                         <i class="fa-solid fa-save"></i> Lưu số
+                                                     </button>
+                                                 @endif
+                                             </div>
+                                         </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </form>
                     </div>
                 </div>
             </section>
@@ -650,50 +568,183 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-900" id="resident-table-body">
+                                @foreach($residents as $resident)
                                 <tr class="hover:bg-slate-900/30 transition-all">
-                                    <td class="px-6 py-4 font-bold text-slate-200">Nguyễn Văn An</td>
-                                    <td class="px-6 py-4 text-xs font-semibold text-indigo-400">P. 101</td>
-                                    <td class="px-6 py-4 text-xs text-slate-400">0912111222</td>
-                                    <td class="px-6 py-4 text-xs text-slate-500">01/01/2024</td>
+                                    <td class="px-6 py-4 font-bold text-slate-200">{{ $resident->name }}</td>
+                                    <td class="px-6 py-4 text-xs font-semibold text-indigo-400">P. {{ $resident->room ? $resident->room->room_number : 'N/A' }}</td>
+                                    <td class="px-6 py-4 text-xs text-slate-400">{{ $resident->phone }}</td>
+                                    <td class="px-6 py-4 text-xs text-slate-500">{{ \Carbon\Carbon::parse($resident->start_date)->format('d/m/Y') }}</td>
                                     <td class="px-6 py-4">
-                                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Đang hoạt động</span>
+                                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                            {{ $resident->status === 'active' ? 'Đang hoạt động' : 'Tạm ngưng' }}
+                                        </span>
                                     </td>
                                     <td class="px-6 py-4 flex gap-2 justify-center">
-                                        <button class="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-lg text-xs font-bold text-indigo-400 transition-all"><i class="fa-regular fa-pen-to-square"></i> Sửa</button>
-                                        <button onclick="deleteRow(this)" class="px-2.5 py-1.5 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 rounded-lg text-xs font-bold text-rose-400 transition-all"><i class="fa-regular fa-trash-can"></i> Xóa</button>
+                                        <button onclick="openViewResidentModal('{{ $resident->name }}', '{{ $resident->phone }}', '{{ $resident->email }}', '{{ $resident->room ? $resident->room->room_number : 'N/A' }}', '{{ \Carbon\Carbon::parse($resident->start_date)->format('d/m/Y') }}', '{{ $resident->status === 'active' ? 'Đang hoạt động' : 'Tạm ngưng' }}')" class="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-lg text-xs font-bold text-emerald-400 transition-all">
+                                            <i class="fa-regular fa-eye"></i> Xem
+                                        </button>
+                                        <button onclick="openEditResidentModal('{{ $resident->id }}', '{{ $resident->name }}', '{{ $resident->phone }}', '{{ $resident->room_id }}', '{{ $resident->start_date }}')" class="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-lg text-xs font-bold text-indigo-400 transition-all">
+                                            <i class="fa-regular fa-pen-to-square"></i> Sửa
+                                        </button>
+                                        <form action="{{ route('smartroom.admin.resident.delete', $resident->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa cư dân này ra khỏi phòng trọ?')" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="px-2.5 py-1.5 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 rounded-lg text-xs font-bold text-rose-400 transition-all">
+                                                <i class="fa-regular fa-trash-can"></i> Xóa
+                                            </button>
+                                        </form>
                                     </td>
                                 </tr>
-                                <tr class="hover:bg-slate-900/30 transition-all">
-                                    <td class="px-6 py-4 font-bold text-slate-200">Lê Thị Bình</td>
-                                    <td class="px-6 py-4 text-xs font-semibold text-indigo-400">P. 202</td>
-                                    <td class="px-6 py-4 text-xs text-slate-400">0901234567</td>
-                                    <td class="px-6 py-4 text-xs text-slate-500">15/03/2025</td>
-                                    <td class="px-6 py-4">
-                                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Đang hoạt động</span>
-                                    </td>
-                                    <td class="px-6 py-4 flex gap-2 justify-center">
-                                        <button class="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-lg text-xs font-bold text-indigo-400 transition-all"><i class="fa-regular fa-pen-to-square"></i> Sửa</button>
-                                        <button onclick="deleteRow(this)" class="px-2.5 py-1.5 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 rounded-lg text-xs font-bold text-rose-400 transition-all"><i class="fa-regular fa-trash-can"></i> Xóa</button>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-slate-900/30 transition-all">
-                                    <td class="px-6 py-4 font-bold text-slate-200">Trần Văn Cường</td>
-                                    <td class="px-6 py-4 text-xs font-semibold text-indigo-400">P. 302</td>
-                                    <td class="px-6 py-4 text-xs text-slate-400">0901234567</td>
-                                    <td class="px-6 py-4 text-xs text-slate-500">10/10/2025</td>
-                                    <td class="px-6 py-4">
-                                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Đang hoạt động</span>
-                                    </td>
-                                    <td class="px-6 py-4 flex gap-2 justify-center">
-                                        <button class="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-lg text-xs font-bold text-indigo-400 transition-all"><i class="fa-regular fa-pen-to-square"></i> Sửa</button>
-                                        <button onclick="deleteRow(this)" class="px-2.5 py-1.5 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 rounded-lg text-xs font-bold text-rose-400 transition-all"><i class="fa-regular fa-trash-can"></i> Xóa</button>
-                                    </td>
-                                </tr>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
                 </div>
             </section>
+
+            <!-- SECTION 5: CONTRACT MANAGEMENT -->
+            <section id="contract-section" class="tab-content hidden space-y-8 animate-fade-in">
+                <!-- Premium Stat Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="glass-card rounded-2xl p-6 relative overflow-hidden group hover:shadow-[0_0_30px_rgba(99,102,241,0.1)] transition-all duration-300">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-600/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500"></div>
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Tổng số hợp đồng</p>
+                                <h3 class="text-3xl font-extrabold text-white mt-2 tracking-tight">{{ $contracts->count() }}</h3>
+                                <span class="text-[10px] text-indigo-400 font-semibold mt-1 block">Tất cả bản ghi</span>
+                            </div>
+                            <span class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-300">
+                                <i class="fa-solid fa-file-contract text-lg"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="glass-card rounded-2xl p-6 relative overflow-hidden group hover:shadow-[0_0_30px_rgba(16,185,129,0.1)] transition-all duration-300">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-600/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500"></div>
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Hợp đồng hiệu lực</p>
+                                <h3 class="text-3xl font-extrabold text-white mt-2 tracking-tight">{{ $contracts->where('status', 'active')->count() }}</h3>
+                                <span class="text-[10px] text-emerald-400 font-semibold mt-1 block">Đã có chữ ký</span>
+                            </div>
+                            <span class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300">
+                                <i class="fa-solid fa-circle-check text-lg"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="glass-card rounded-2xl p-6 relative overflow-hidden group hover:shadow-[0_0_30px_rgba(245,158,11,0.1)] transition-all duration-300">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-amber-600/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500"></div>
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Chờ cư dân ký</p>
+                                <h3 class="text-3xl font-extrabold text-white mt-2 tracking-tight">{{ $contracts->where('status', 'pending')->count() }}</h3>
+                                <span class="text-[10px] text-amber-400 font-semibold mt-1 block">Yêu cầu chữ ký</span>
+                            </div>
+                            <span class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 group-hover:bg-amber-500 group-hover:text-white transition-all duration-300">
+                                <i class="fa-solid fa-signature text-lg"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contract List Glass Card -->
+                <div class="glass-card rounded-2xl p-6 border border-slate-800/40 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent"></div>
+                    
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-200 flex items-center gap-2">
+                                <i class="fa-solid fa-file-invoice-dollar text-indigo-400"></i> Danh Sách Hợp Đồng Online
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Khởi tạo hợp đồng thuê nhà điện tử và theo dõi trạng thái ký trực tuyến.</p>
+                        </div>
+                        <div>
+                            <button onclick="toggleAddContractModal(true)" class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/25 hover:-translate-y-0.5">
+                                <i class="fa-solid fa-plus-circle"></i> Tạo Hợp Đồng Mới
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-xl border border-slate-900">
+                        <table class="w-full text-left text-sm text-slate-300">
+                            <thead class="text-xs text-slate-500 uppercase bg-slate-900/80 border-b border-slate-900">
+                                <tr>
+                                    <th class="px-6 py-4 font-bold tracking-wider">Mã Hợp Đồng</th>
+                                    <th class="px-6 py-4 font-bold tracking-wider">Phòng Trọ</th>
+                                    <th class="px-6 py-4 font-bold tracking-wider">Cư Dân Đại Diện</th>
+                                    <th class="px-6 py-4 font-bold tracking-wider">Tiền Cọc</th>
+                                    <th class="px-6 py-4 font-bold tracking-wider">Thời Hạn Thuê</th>
+                                    <th class="px-6 py-4 font-bold text-center tracking-wider">Trạng Thái</th>
+                                    <th class="px-6 py-4 font-bold text-center tracking-wider">Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-900 bg-slate-950/20">
+                                @forelse($contracts as $c)
+                                <tr class="hover:bg-slate-900/40 transition-all group">
+                                    <td class="px-6 py-4 font-bold text-slate-200 group-hover:text-indigo-400 transition-colors">{{ $c->contract_code }}</td>
+                                    <td class="px-6 py-4">
+                                        <span class="px-2.5 py-1 rounded bg-indigo-500/10 text-indigo-400 text-xs font-bold border border-indigo-500/20">
+                                            Phòng {{ $c->room ? $c->room->room_number : 'N/A' }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="font-bold text-slate-200 text-xs">{{ $c->resident ? $c->resident->name : 'N/A' }}</div>
+                                        <div class="text-[10px] text-slate-500 mt-0.5"><i class="fa-solid fa-phone text-[8px] mr-1"></i>{{ $c->resident ? $c->resident->phone : '' }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 text-xs font-bold text-emerald-400">{{ number_format($c->deposit) }}đ</td>
+                                    <td class="px-6 py-4 text-xs text-slate-400">
+                                        <div class="flex items-center gap-1.5">
+                                            <i class="fa-solid fa-calendar-alt text-[10px] text-slate-500"></i>
+                                            <span>{{ date('d/m/Y', strtotime($c->start_date)) }} - {{ date('d/m/Y', strtotime($c->end_date)) }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        @if($c->status === 'active')
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                                Đã ký hiệu lực
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                                                Chờ chữ ký
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <div class="flex items-center justify-center gap-2">
+                                            @if($c->status === 'pending')
+                                                <button onclick="copySignLink('{{ route('smartroom.contract.sign_view', $c->id) }}', this)" class="px-3 py-2 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-400 hover:text-white rounded-xl text-xs font-bold border border-indigo-500/20 transition-all flex items-center gap-1.5">
+                                                    <i class="fa-solid fa-link"></i> Link ký
+                                                </button>
+                                            @endif
+                                            <a href="{{ route('smartroom.contract.sign_view', $c->id) }}" target="_blank" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold border border-slate-750 transition-all flex items-center gap-1.5">
+                                                <i class="fa-solid fa-arrow-up-right-from-square"></i> Xem HĐ
+                                            </a>
+                                            <form action="{{ route('smartroom.admin.contract.delete', $c->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa hợp đồng này không?')" class="inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="px-3 py-2 bg-rose-600/10 hover:bg-rose-600 text-rose-400 hover:text-white rounded-xl text-xs font-bold border border-rose-500/25 transition-all">
+                                                    <i class="fa-solid fa-trash-can"></i> Xóa
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="7" class="px-6 py-12 text-center text-xs text-slate-500">
+                                        <div class="flex flex-col items-center justify-center gap-3">
+                                            <i class="fa-solid fa-folder-open text-2xl text-slate-700"></i>
+                                            <span>Không tìm thấy hợp đồng nào. Hãy tạo hợp đồng mới!</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
         </main>
     </div>
@@ -707,28 +758,30 @@
             <h2 class="text-xl font-bold mb-4 text-slate-100 flex items-center gap-2">
                 <i class="fa-solid fa-user-plus text-indigo-400"></i> Thêm Cư Dân Mới
             </h2>
-            <form onsubmit="submitAddResident(event)" class="space-y-4">
+            <form action="{{ route('smartroom.admin.resident.store') }}" method="POST" class="space-y-4">
+                @csrf
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Họ và tên</label>
-                        <input type="text" id="add-res-name" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none" placeholder="Nguyễn Văn A">
+                        <input type="text" name="name" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none" placeholder="Nguyễn Văn A">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Số điện thoại</label>
-                        <input type="tel" id="add-res-phone" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none" placeholder="09xxxxxxxx">
+                        <input type="tel" name="phone" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none" placeholder="09xxxxxxxx">
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Chọn phòng trọ</label>
-                        <select id="add-res-room" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
-                            <option value="103">Phòng 103 (Trống)</option>
-                            <option value="303">Phòng 303 (Trống)</option>
+                        <select name="room_id" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                            @foreach($emptyRoomsList as $room)
+                                <option value="{{ $room->id }}">Phòng {{ $room->room_number }} (Trống)</option>
+                            @endforeach
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Ngày bắt đầu ở</label>
-                        <input type="date" id="add-res-date" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="date" name="start_date" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
                     </div>
                 </div>
                 <div class="pt-4 flex justify-end gap-3">
@@ -737,6 +790,164 @@
                     </button>
                     <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20 transition-all">
                         Xác Nhận Thêm
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- EDIT RESIDENT MODAL (POPUP) -->
+    <div id="edit-resident-modal" class="fixed inset-0 z-50 bg-[#04060b]/80 backdrop-blur-sm hidden flex items-center justify-center transition-opacity duration-300">
+        <div class="w-full max-w-lg bg-[#0a0f1d] border border-slate-800 p-8 rounded-3xl shadow-2xl relative animate-fade-in mx-4">
+            <button onclick="toggleEditResidentModal(false)" class="absolute top-6 right-6 w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-all">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h2 class="text-xl font-bold mb-4 text-slate-100 flex items-center gap-2">
+                <i class="fa-solid fa-user-pen text-indigo-400"></i> Chỉnh Sửa Thông Tin Cư Dân
+            </h2>
+            <form id="edit-resident-form" action="" method="POST" class="space-y-4">
+                @csrf
+                @method('PUT')
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Họ và tên</label>
+                        <input type="text" name="name" id="edit-name" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none" placeholder="Nguyễn Văn A">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Số điện thoại</label>
+                        <input type="tel" name="phone" id="edit-phone" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none" placeholder="09xxxxxxxx">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Chọn phòng trọ</label>
+                        <select name="room_id" id="edit-room-id" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                            @foreach($rooms as $r)
+                                <option value="{{ $r->id }}">Phòng {{ $r->room_number }} ({{ $r->status === 'empty' ? 'Trống' : 'Đang thuê' }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Ngày bắt đầu ở</label>
+                        <input type="date" name="start_date" id="edit-start-date" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                    </div>
+                </div>
+                <div class="pt-4 flex justify-end gap-3">
+                    <button type="button" onclick="toggleEditResidentModal(false)" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 bg-transparent hover:bg-slate-900 border border-transparent hover:border-slate-800 transition-all">
+                        Hủy bỏ
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20 transition-all">
+                        Lưu Thay Đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- VIEW RESIDENT MODAL (POPUP) -->
+    <div id="view-resident-modal" class="fixed inset-0 z-50 bg-[#04060b]/80 backdrop-blur-sm hidden flex items-center justify-center transition-opacity duration-300">
+        <div class="w-full max-w-md bg-[#0a0f1d] border border-slate-800 p-8 rounded-3xl shadow-2xl relative animate-fade-in mx-4">
+            <button onclick="toggleViewResidentModal(false)" class="absolute top-6 right-6 w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-all">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h2 class="text-xl font-bold mb-4 text-slate-100 flex items-center gap-2">
+                <i class="fa-solid fa-address-card text-indigo-400"></i> Thông Tin Chi Tiết Cư Dân
+            </h2>
+            <div class="space-y-4">
+                <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800/40 space-y-3">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">Họ và tên:</span>
+                        <strong class="text-slate-200" id="view-name">Nguyễn Văn A</strong>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">Số điện thoại:</span>
+                        <strong class="text-slate-200" id="view-phone">09xxxxxxxx</strong>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">Email liên hệ:</span>
+                        <strong class="text-slate-200" id="view-email">email@gmail.com</strong>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">Phòng thuê:</span>
+                        <strong class="text-indigo-400 font-bold" id="view-room">Phòng 101</strong>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">Ngày bắt đầu ở:</span>
+                        <strong class="text-slate-200" id="view-start-date">01/01/2026</strong>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">Trạng thái:</span>
+                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" id="view-status">Đang hoạt động</span>
+                    </div>
+                </div>
+                <div class="pt-2 flex justify-end">
+                    <button type="button" onclick="toggleViewResidentModal(false)" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20 transition-all">
+                        Đóng
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD CONTRACT MODAL (POPUP) -->
+    <div id="add-contract-modal" class="fixed inset-0 z-50 bg-[#04060b]/80 backdrop-blur-sm hidden flex items-center justify-center transition-opacity duration-300">
+        <div class="w-full max-w-xl bg-[#0a0f1d] border border-slate-800 p-8 rounded-3xl shadow-2xl relative animate-fade-in mx-4">
+            <button onclick="toggleAddContractModal(false)" class="absolute top-6 right-6 w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-all">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h2 class="text-xl font-bold mb-4 text-slate-100 flex items-center gap-2">
+                <i class="fa-solid fa-file-signature text-indigo-400"></i> Tạo Hợp Đồng Thuê Nhà Mới
+            </h2>
+            <form action="{{ route('smartroom.admin.contract.store') }}" method="POST" class="space-y-4">
+                @csrf
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Chọn Cư Dân Đại Diện</label>
+                        <select name="resident_id" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                            @foreach($residents as $res)
+                                <option value="{{ $res->id }}">{{ $res->name }} (P. {{ $res->room ? $res->room->room_number : 'N/A' }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Chọn Phòng Trọ</label>
+                        <select name="room_id" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                            @foreach($rooms as $r)
+                                @if($r->status !== 'empty')
+                                    <option value="{{ $r->id }}">Phòng {{ $r->room_number }}</option>
+                                @endif
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Ngày Bắt Đầu</label>
+                        <input type="date" name="start_date" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Ngày Kết Thúc</label>
+                        <input type="date" name="end_date" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tiền Đặt Cọc (VNĐ)</label>
+                        <input type="number" name="deposit" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none" placeholder="3000000">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Điều Khoản Hợp Đồng</label>
+                    <textarea name="terms" rows="6" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none resize-none">ĐIỀU KHOẢN HỢP ĐỒNG THUÊ PHÒNG
+
+Điều 1: Bên A (Bên cho thuê) đồng ý cho Bên B (Bên thuê) thuê phòng trọ.
+Điều 2: Tiền thuê phòng đóng định kỳ trước ngày 10 hàng tháng. Tiền đặt cọc bảo đảm nghĩa vụ thực hiện hợp đồng.
+Điều 3: Bên thuê cam kết bảo quản tài sản phòng trọ, tuân thủ các quy định phòng chống cháy nổ và khai báo tạm trú theo quy định của pháp luật.</textarea>
+                </div>
+                <div class="pt-4 flex justify-end gap-3">
+                    <button type="button" onclick="toggleAddContractModal(false)" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 bg-transparent hover:bg-slate-900 border border-transparent hover:border-slate-800 transition-all">
+                        Hủy Bỏ
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20 transition-all">
+                        Tạo Hợp Đồng
                     </button>
                 </div>
             </form>
@@ -770,6 +981,7 @@
             else if(tabId === 'room-map-section') title = "Sơ Đồ Phòng Trực Quan";
             else if(tabId === 'utility-section') title = "Chốt Chỉ Số Điện Nước";
             else if(tabId === 'resident-section') title = "Quản Lý Cư Dân";
+            else if(tabId === 'contract-section') title = "Quản Lý Hợp Đồng Online";
             document.getElementById('section-title').textContent = title;
         }
 
@@ -797,8 +1009,43 @@
             });
         }
 
+        function toggleAddContractModal(show) {
+            const modal = document.getElementById('add-contract-modal');
+            if (show) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function copySignLink(url, btn) {
+            navigator.clipboard.writeText(url).then(() => {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Đã sao chép!';
+                btn.classList.remove('text-indigo-400', 'bg-indigo-600/20');
+                btn.classList.add('text-emerald-400', 'bg-emerald-600/20');
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('text-emerald-400', 'bg-emerald-600/20');
+                    btn.classList.add('text-indigo-400', 'bg-indigo-600/20');
+                }, 2000);
+            }).catch(err => {
+                console.error('Lỗi khi sao chép: ', err);
+            });
+        }
+
+        let currentBillId = null;
+
+        function printModalInvoice() {
+            if (currentBillId) {
+                window.open(`/smartroom/admin/utility/${currentBillId}/print`, '_blank');
+            } else {
+                alert('Không tìm thấy hóa đơn hợp lệ để in!');
+            }
+        }
+
         // Room Detail modal triggers
-        function openRoomDetail(roomNum, status, name, phone, rent, elec, water) {
+        function openRoomDetail(roomNum, status, name, phone, rent, elec, water, total, latestBillId) {
             const modal = document.getElementById('room-detail-modal');
             const title = document.getElementById('modal-room-title');
             const badge = document.getElementById('modal-room-status-badge');
@@ -816,11 +1063,16 @@
             const resDetails = document.getElementById('modal-resident-details');
             const billDetails = document.getElementById('modal-billing-details');
             const actionBtn = document.getElementById('modal-btn-action');
+            const payBtn = document.getElementById('modal-btn-pay');
+            const printBtn = document.getElementById('modal-btn-print');
             
             if(status === 'empty') {
                 resDetails.classList.add('hidden');
                 billDetails.classList.add('hidden');
                 actionBtn.classList.add('hidden');
+                payBtn.classList.add('hidden');
+                printBtn.classList.add('hidden');
+                currentBillId = null;
             } else {
                 resDetails.classList.remove('hidden');
                 billDetails.classList.remove('hidden');
@@ -829,28 +1081,92 @@
                 document.getElementById('modal-resident-name').textContent = name;
                 document.getElementById('modal-resident-phone').textContent = phone;
                 document.getElementById('modal-bill-rent').textContent = rent;
-                document.getElementById('modal-bill-electric').textContent = status === 'overdue' ? '385.000đ (110 kWh)' : '350.000đ (100 kWh)';
-                document.getElementById('modal-bill-water').textContent = status === 'overdue' ? '120.000đ (8 m3)' : '105.000đ (7 m3)';
+                document.getElementById('modal-bill-electric').textContent = elec;
+                document.getElementById('modal-bill-water').textContent = water;
+                document.getElementById('modal-bill-total').textContent = total || rent;
                 
                 const billStatusBadge = document.getElementById('modal-bill-status');
+                const qrBtn = document.getElementById('modal-btn-qr');
+                const rawAmount = (total || rent).replace(/\D/g, '');
+                
+                if (qrBtn) {
+                    qrBtn.onclick = function() {
+                        window.open(`https://img.vietqr.io/image/970422-1234567890-compact2.jpg?amount=${rawAmount}&addInfo=Thanh%20toan%20tien%20phong%20${roomNum}&accountName=NGUYEN%20THANH%20HIEN`, '_blank');
+                    };
+                }
+
+                if (latestBillId && latestBillId !== 'null') {
+                    currentBillId = latestBillId;
+                    printBtn.classList.remove('hidden');
+                } else {
+                    currentBillId = null;
+                    printBtn.classList.add('hidden');
+                }
+
                 if(status === 'overdue') {
                     billStatusBadge.textContent = 'Chưa thanh toán';
                     billStatusBadge.className = 'text-[10px] text-amber-400 font-bold px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded';
                     actionBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Gửi nhắc nợ Zalo & SMS';
-                    actionBtn.className = "w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold text-white bg-amber-600 hover:bg-amber-500 shadow-lg shadow-amber-600/30 transition-all";
+                    actionBtn.className = "w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold text-white bg-amber-600 hover:bg-amber-500 shadow-lg shadow-amber-600/30 transition-all cursor-pointer";
+                    
+                    if (latestBillId && latestBillId !== 'null') {
+                        payBtn.classList.remove('hidden');
+                        document.getElementById('modal-pay-form').action = `/smartroom/admin/utility/${latestBillId}/pay`;
+                        document.getElementById('modal-notify-form').action = `/smartroom/admin/utility/${latestBillId}/notify`;
+                        actionBtn.onclick = function() {
+                            document.getElementById('modal-notify-form').submit();
+                        };
+                    } else {
+                        payBtn.classList.add('hidden');
+                        actionBtn.onclick = null;
+                    }
                 } else {
                     billStatusBadge.textContent = 'Đã thanh toán';
                     billStatusBadge.className = 'text-[10px] text-emerald-400 font-bold px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded';
                     actionBtn.innerHTML = '<i class="fa-solid fa-check"></i> Đã đóng tiền tháng này';
                     actionBtn.className = "w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold text-slate-500 bg-slate-900 border border-slate-800 cursor-not-allowed";
+                    payBtn.classList.add('hidden');
+                    actionBtn.onclick = null;
                 }
             }
 
             modal.classList.remove('hidden');
         }
 
+        function syncInputs(btn) {
+            const row = btn.closest('tr');
+            const newElecInput = row.querySelector('.new-elec-input');
+            const newWaterInput = row.querySelector('.new-water-input');
+            const newElecVal = newElecInput.value;
+            const newWaterVal = newWaterInput.value;
+            
+            const oldElec = parseInt(row.querySelector('[data-field="old-elec"]').textContent);
+            const oldWater = parseInt(row.querySelector('[data-field="old-water"]').textContent);
+            
+            if (!newElecVal || !newWaterVal) {
+                alert('Vui lòng nhập đầy đủ số điện và nước mới!');
+                event.preventDefault();
+                return;
+            }
+            
+            if (parseInt(newElecVal) < oldElec || parseInt(newWaterVal) < oldWater) {
+                alert('Số mới không được nhỏ hơn số cũ!');
+                event.preventDefault();
+                return;
+            }
+            
+            row.querySelector('.form-new-elec').value = newElecVal;
+            row.querySelector('.form-new-water').value = newWaterVal;
+        }
+
         function closeRoomDetail() {
             document.getElementById('room-detail-modal').classList.add('hidden');
+        }
+
+        function submitModalPay() {
+            if (confirm('Xác nhận cư dân đã thanh toán hóa đơn này?')) {
+                document.getElementById('modal-pay-form').submit();
+            }
         }
 
         // Live calculation for electricity & water utility row
@@ -884,8 +1200,56 @@
             row.querySelector('[data-field="cost-total"]').textContent = total.toLocaleString('vi-VN') + "đ";
         }
 
-        function submitAllUtilities() {
-            alert('Đã cập nhật chỉ số điện nước thành công! Hệ thống đã gửi tin nhắn thông báo hóa đơn kèm mã VietQR tới từng phòng.');
+        function saveSingleUtility(roomId, btn) {
+            const row = btn.closest('tr');
+            const newElecInput = row.querySelector('.new-elec-input');
+            const newWaterInput = row.querySelector('.new-water-input');
+            const newElecVal = newElecInput.value;
+            const newWaterVal = newWaterInput.value;
+            
+            const oldElec = parseInt(row.querySelector('[data-field="old-elec"]').textContent);
+            const oldWater = parseInt(row.querySelector('[data-field="old-water"]').textContent);
+            
+            if (!newElecVal || !newWaterVal) {
+                alert('Vui lòng nhập đầy đủ số điện và nước mới!');
+                return;
+            }
+            
+            if (parseInt(newElecVal) < oldElec || parseInt(newWaterVal) < oldWater) {
+                alert('Số mới không được nhỏ hơn số cũ!');
+                return;
+            }
+            
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{{ route('smartroom.admin.utility.store') }}";
+            
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = '_token';
+            csrf.value = "{{ csrf_token() }}";
+            form.appendChild(csrf);
+            
+            const roomInp = document.createElement('input');
+            roomInp.type = 'hidden';
+            roomInp.name = 'room_id';
+            roomInp.value = roomId;
+            form.appendChild(roomInp);
+            
+            const elecInp = document.createElement('input');
+            elecInp.type = 'hidden';
+            elecInp.name = 'new_electricity';
+            elecInp.value = newElecVal;
+            form.appendChild(elecInp);
+            
+            const waterInp = document.createElement('input');
+            waterInp.type = 'hidden';
+            waterInp.name = 'new_water';
+            waterInp.value = newWaterVal;
+            form.appendChild(waterInp);
+            
+            document.body.appendChild(form);
+            form.submit();
         }
 
         // Resident search
@@ -980,6 +1344,49 @@
             document.getElementById('add-res-date').value = '';
         }
 
+        // Edit resident modal triggers
+        function toggleEditResidentModal(show) {
+            const modal = document.getElementById('edit-resident-modal');
+            if (show) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function openEditResidentModal(id, name, phone, roomId, startDate) {
+            const form = document.getElementById('edit-resident-form');
+            form.action = `/smartroom/admin/resident/${id}`;
+            
+            document.getElementById('edit-name').value = name;
+            document.getElementById('edit-phone').value = phone;
+            document.getElementById('edit-room-id').value = roomId;
+            document.getElementById('edit-start-date').value = startDate;
+            
+            toggleEditResidentModal(true);
+        }
+
+        // View resident modal triggers
+        function toggleViewResidentModal(show) {
+            const modal = document.getElementById('view-resident-modal');
+            if (show) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function openViewResidentModal(name, phone, email, room, startDate, status) {
+            document.getElementById('view-name').textContent = name;
+            document.getElementById('view-phone').textContent = phone;
+            document.getElementById('view-email').textContent = email || 'Chưa cung cấp';
+            document.getElementById('view-room').textContent = 'Phòng ' + room;
+            document.getElementById('view-start-date').textContent = startDate;
+            document.getElementById('view-status').textContent = status;
+            
+            toggleViewResidentModal(true);
+        }
+
         // CHARTS INITIALIZATION
         window.addEventListener('DOMContentLoaded', () => {
             // Revenue Chart
@@ -991,10 +1398,10 @@
             new Chart(ctxRevenue, {
                 type: 'line',
                 data: {
-                    labels: ['Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6 (Dự tính)'],
+                    labels: {!! json_encode($chartMonths) !!},
                     datasets: [{
                         label: 'Doanh thu phòng trọ (VND)',
-                        data: [31500000, 34200000, 33900000, 38100000],
+                        data: {!! json_encode($chartRevenue) !!},
                         borderColor: '#6366f1',
                         borderWidth: 3,
                         pointBackgroundColor: '#818cf8',
@@ -1039,7 +1446,7 @@
                 data: {
                     labels: ['Trống', 'Đang thuê', 'Nợ tiền'],
                     datasets: [{
-                        data: [2, 9, 1],
+                        data: [{{ $emptyRooms }}, {{ $occupiedRooms }}, {{ $overdueRooms }}],
                         backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
                         borderColor: '#0a0f1d',
                         borderWidth: 4,

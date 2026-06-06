@@ -79,6 +79,7 @@
                         <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-indigo-400 text-[10px]"></i> Sơ đồ phòng màu sắc trực quan (Trống, Đã thuê, Nợ tiền)</li>
                         <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-indigo-400 text-[10px]"></i> Nhập điện nước tự động tính tiền thông minh</li>
                         <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-indigo-400 text-[10px]"></i> Biểu đồ doanh thu trực quan, quản lý cư dân chuyên nghiệp</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-indigo-400 text-[10px]"></i> Ký hợp đồng điện tử E-Contract bằng chữ ký tay trực tuyến</li>
                     </ul>
                 </div>
                 <div class="flex items-center gap-2 text-indigo-400 font-semibold text-sm group-hover:gap-4 transition-all duration-300">

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ký Hợp Đồng Điện Tử - {{ $contract->contract_code }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #030712;
+            overflow-x: hidden;
+        }
+        .glass-card {
+            background: rgba(17, 24, 39, 0.55);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        /* Custom Scrollbar for terms */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 99px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 99px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.6);
+        }
+        /* Grid pattern backdrops */
+        .bg-grid {
+            background-size: 30px 30px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen py-12 px-4 bg-grid relative flex flex-col items-center justify-center">
+
+    <!-- Ambient blur blobs -->
+    <div class="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[120px] -z-10 animate-pulse" style="animation-duration: 8s;"></div>
+    <div class="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[400px] h-[400px] bg-fuchsia-600/10 rounded-full blur-[100px] -z-10 animate-pulse" style="animation-duration: 12s;"></div>
+
+    <div class="w-full max-w-3xl space-y-6 z-10">
+        
+        <!-- Back to Portal Header -->
+        <div class="flex items-center justify-between px-2">
+            <a href="{{ route('smartroom.portal') }}" class="group flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all">
+                <span class="w-7 h-7 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center group-hover:border-slate-700 transition-all">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </span>
+                Quay lại Trang Chủ
+            </a>
+            <div class="text-right">
+                <span class="text-[10px] uppercase font-bold tracking-widest text-slate-500">Hệ thống hợp đồng online</span>
+            </div>
+        </div>
+
+        <!-- Success notification toast -->
+        @if(session('success'))
+        <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center gap-3 animate-bounce">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-300">
+                <i class="fa-solid fa-circle-check text-lg"></i>
+            </div>
+            <div>
+                <strong class="block text-sm font-bold">Ký kết thành công!</strong>
+                <span class="text-xs text-emerald-400/80">{{ session('success') }}</span>
+            </div>
+        </div>
+        @endif
+
+        <!-- Main legal document container -->
+        <div class="glass-card rounded-[32px] p-8 md:p-10 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-80 h-80 bg-indigo-500/5 rounded-full blur-3xl -z-10"></div>
+
+            <!-- Decorative corner lights -->
+            <div class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent"></div>
+
+            <!-- Document Title Header -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800/80 pb-6 mb-8 gap-4">
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-0.5 rounded-md text-[9px] font-bold tracking-wider uppercase bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                            E-Contract
+                        </span>
+                        <span class="text-xs text-slate-400 font-medium">Hợp đồng thuê căn hộ dịch vụ</span>
+                    </div>
+                    <h1 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
+                        Số: <span class="bg-gradient-to-r from-indigo-200 to-slate-200 bg-clip-text text-transparent">{{ $contract->contract_code }}</span>
+                    </h1>
+                </div>
+                <div>
+                    @if($contract->status === 'active')
+                        <span class="px-4 py-2 rounded-2xl text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> 
+                            <span>Đã Ký Hiệu Lực</span>
+                        </span>
+                    @else
+                        <span class="px-4 py-2 rounded-2xl text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-amber-500"></span> 
+                            <span>Chờ Cư Dân Ký</span>
+                        </span>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Fast-glance details ribbon -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 bg-slate-900/60 p-6 rounded-2xl border border-slate-800/60 mb-8">
+                <div class="space-y-1">
+                    <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">Căn Hộ</span>
+                    <strong class="text-slate-200 text-sm font-semibold flex items-center gap-1.5">
+                        <i class="fa-solid fa-door-open text-indigo-400"></i> Phòng {{ $contract->room->room_number }}
+                    </strong>
+                </div>
+                <div class="space-y-1">
+                    <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">Người Thuê</span>
+                    <strong class="text-slate-200 text-sm font-semibold flex items-center gap-1.5">
+                        <i class="fa-solid fa-user text-indigo-400"></i> {{ $contract->resident->name }}
+                    </strong>
+                </div>
+                <div class="space-y-1">
+                    <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">Đặt Cọc</span>
+                    <strong class="text-emerald-400 text-sm font-bold">
+                        {{ number_format($contract->deposit) }}đ
+                    </strong>
+                </div>
+                <div class="space-y-1">
+                    <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">Thời Hạn Thuê</span>
+                    <strong class="text-slate-300 text-xs font-semibold block">
+                        {{ date('d/m/Y', strtotime($contract->start_date)) }} - {{ date('d/m/Y', strtotime($contract->end_date)) }}
+                    </strong>
+                </div>
+            </div>
+
+            <!-- Document terms viewer -->
+            <div class="space-y-3 mb-8">
+                <label class="text-xs font-bold uppercase text-slate-400 tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-file-invoice text-indigo-400"></i> Nội dung điều khoản chi tiết
+                </label>
+                <div class="bg-slate-950/80 border border-slate-900 rounded-2xl p-6 h-96 overflow-y-auto text-sm text-slate-300 whitespace-pre-wrap leading-relaxed custom-scroll">
+{{ $contract->terms }}
+                </div>
+            </div>
+
+            <!-- Signing area with signature pad guides -->
+            <div class="border-t border-slate-800/80 pt-8">
+                @if($contract->status === 'active')
+                    <div class="flex flex-col items-center justify-center space-y-4">
+                        <span class="text-xs text-slate-500 uppercase font-bold tracking-wider">Chữ ký điện tử xác nhận</span>
+                        <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 w-full max-w-sm flex items-center justify-center h-40 relative">
+                            <img src="{{ $contract->signature }}" alt="Tenant Signature" class="max-h-28 invert opacity-90 transition-all hover:scale-105 duration-300">
+                            <!-- Background watermark -->
+                            <div class="absolute bottom-2 right-4 text-[9px] text-slate-600 font-bold uppercase tracking-widest pointer-events-none">
+                                Verified Secure
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-500 flex items-center gap-1.5">
+                            <i class="fa-solid fa-shield-halved text-emerald-400 animate-pulse"></i> 
+                            Ký số bảo mật vào lúc: {{ $contract->updated_at->format('H:i d/m/Y') }}
+                        </p>
+                    </div>
+                @else
+                    <form id="sign-form" action="{{ route('smartroom.contract.sign', $contract->id) }}" method="POST" class="space-y-6">
+                        @csrf
+                        <input type="hidden" name="signature" id="signature-input">
+
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold uppercase text-slate-400 tracking-wider flex items-center gap-2">
+                                    <i class="fa-solid fa-signature text-indigo-400"></i> Vẽ chữ ký điện tử của bạn
+                                </span>
+                                <button type="button" onclick="clearSignature()" class="text-xs text-rose-400 hover:text-rose-300 font-bold flex items-center gap-1 transition-all bg-rose-500/5 hover:bg-rose-500/10 px-3 py-1 rounded-xl border border-rose-500/10">
+                                    <i class="fa-solid fa-eraser"></i> Xóa vẽ lại
+                                </button>
+                            </div>
+                            
+                            <!-- Drawing Pad Canvas with interactive helpers -->
+                            <div class="bg-slate-950 border border-slate-800/80 rounded-2xl overflow-hidden relative group" style="height: 220px;">
+                                <!-- Sign baseline guide line -->
+                                <div class="absolute bottom-12 left-8 right-8 h-[1px] border-b border-dashed border-slate-800/60 pointer-events-none"></div>
+                                <div class="absolute bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-slate-600 uppercase tracking-widest font-bold pointer-events-none select-none">
+                                    Vẽ chữ ký của bạn vào khung này
+                                </div>
+                                <canvas id="signature-pad" class="w-full h-full cursor-crosshair z-10 relative"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="pt-4">
+                            <button type="submit" onclick="submitSignature(event)" class="w-full py-4 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-500 font-bold text-white shadow-lg shadow-indigo-600/30 hover:shadow-indigo-500/40 transition-all duration-300 flex items-center justify-center gap-2 hover:-translate-y-0.5">
+                                <i class="fa-solid fa-pen-nib text-sm"></i>
+                                <span>Xác Nhận Ký & Khởi Tạo Hợp Đồng</span>
+                            </button>
+                        </div>
+                    </form>
+                @endif
+            </div>
+
+        </div>
+    </div>
+
+    @if($contract->status !== 'active')
+    <script>
+        const canvas = document.getElementById('signature-pad');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            ctx.lineWidth = 3.5;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = '#ffffff';
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        // Wait briefly for container layouts
+        setTimeout(resizeCanvas, 100);
+
+        // Coordinates corrector for custom DPI scale
+        function getCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const coords = getCoords(e);
+            ctx.beginPath();
+            ctx.moveTo(coords.x, coords.y);
+            e.preventDefault();
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const coords = getCoords(e);
+            ctx.lineTo(coords.x, coords.y);
+            ctx.stroke();
+            e.preventDefault();
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseleave', stopDrawing);
+
+        canvas.addEventListener('touchstart', startDrawing);
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+
+        function clearSignature() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function submitSignature(e) {
+            e.preventDefault();
+            
+            // Check image data buffer contents
+            const buffer = new Uint32Array(ctx.getImageData(0, 0, canvas.width, canvas.height).data.buffer);
+            const isCanvasEmpty = !buffer.some(color => color !== 0);
+
+            if (isCanvasEmpty) {
+                alert('Vui lòng vẽ chữ ký của bạn trước khi xác nhận ký kết!');
+                return;
+            }
+
+            const dataURL = canvas.toDataURL('image/png');
+            document.getElementById('signature-input').value = dataURL;
+            document.getElementById('sign-form').submit();
+        }
+    </script>
+    @endif
+</body>
+</html>

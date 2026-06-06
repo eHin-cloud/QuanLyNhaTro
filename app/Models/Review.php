@@ -5,19 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Resident extends Model
+class Review extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['room_id', 'name', 'phone', 'email', 'start_date', 'status'];
+    protected $fillable = [
+        'room_id',
+        'rating',
+        'comment',
+        'author_name'
+    ];
 
     public function room()
     {
         return $this->belongsTo(Room::class);
-    }
-
-    public function contracts()
-    {
-        return $this->hasMany(Contract::class);
     }
 }

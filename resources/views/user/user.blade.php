@@ -51,8 +51,8 @@
             
             <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-400">
                 <a href="#" class="text-emerald-400 hover:text-emerald-300">Khám Phá Phòng</a>
-                <a href="#" class="hover:text-slate-200">Khu Vực Hot</a>
-                <a href="#" class="hover:text-slate-200">Đánh Giá Mới</a>
+                <a href="javascript:void(0)" onclick="openHotAreasModal()" class="hover:text-slate-205 transition-colors">Khu Vực Hot</a>
+                <a href="javascript:void(0)" onclick="openNewReviewsModal()" class="hover:text-slate-205 transition-colors">Đánh Giá Mới</a>
                 <a href="{{ route('smartroom.admin') }}" class="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-slate-100 transition-all flex items-center gap-2">
                     <i class="fa-solid fa-chart-line text-indigo-400"></i> Chủ Trọ Đăng Nhập
                 </a>
@@ -134,177 +134,89 @@
     <!-- LIST OF ROOMS -->
     <main class="container mx-auto px-6 py-6 max-w-6xl flex-grow relative z-10">
         <div class="flex items-center justify-between mb-6">
-            <h2 class="text-lg font-bold text-slate-200" id="results-count">Danh sách phòng trọ (4 kết quả)</h2>
+            <h2 class="text-lg font-bold text-slate-200" id="results-count">Danh sách phòng trọ ({{ count($rooms) }} kết quả)</h2>
             <p class="text-xs text-slate-500">Tích chọn tối đa 3 phòng để so sánh</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16" id="rooms-grid">
-            <!-- Room 1 -->
+            @foreach($rooms as $room)
             <div class="room-item-card glass-card rounded-2xl overflow-hidden group flex flex-col justify-between" 
-                 data-price="3500000" data-rating="4.6" data-pets="true" data-loft="true" data-balcony="false" data-distance="0.8" data-title="SmartRoom Cầu Giấy - Phòng 301">
+                 data-price="{{ $room['price'] }}" 
+                 data-rating="{{ $room['rating'] }}" 
+                 data-pets="{{ $room['pets'] }}" 
+                 data-loft="{{ $room['loft'] }}" 
+                 data-balcony="{{ $room['balcony'] }}" 
+                 data-distance="{{ $room['distance'] }}" 
+                 data-title="{{ $room['title'] }}">
                 <div>
-                    <!-- Thumbnail image (CSS gradient placeholder) -->
-                    <div class="h-44 bg-gradient-to-tr from-indigo-900 to-indigo-950 relative overflow-hidden flex items-center justify-center border-b border-slate-900">
-                        <span class="absolute top-4 left-4 px-2 py-1 bg-emerald-500 text-white rounded text-[10px] font-extrabold uppercase shadow">Sẵn sàng</span>
-                        <div class="text-center">
-                            <i class="fa-solid fa-home text-slate-600 text-4xl mb-2 group-hover:scale-110 transition-all duration-300"></i>
-                            <span class="block text-xs font-bold text-slate-400">SmartRoom Cầu Giấy</span>
+                    <!-- Thumbnail image with ambient neon look -->
+                    <div class="h-44 bg-slate-950 relative overflow-hidden flex items-center justify-center border-b border-slate-900 group">
+                        <!-- Glowing circular backdrops -->
+                        <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-purple-500/5 to-emerald-500/5 opacity-55 transition-all group-hover:scale-110 duration-500"></div>
+                        <div class="absolute -top-12 -right-12 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl group-hover:bg-indigo-500/20 transition-all duration-500"></div>
+                        <div class="absolute -bottom-12 -left-12 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition-all duration-500"></div>
+
+                        @if($room['status'] === 'empty')
+                            <span class="absolute top-4 left-4 px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[9px] font-extrabold uppercase tracking-wider shadow-sm z-10 flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                Sẵn sàng
+                            </span>
+                        @else
+                            <span class="absolute top-4 left-4 px-2.5 py-1 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-lg text-[9px] font-extrabold uppercase tracking-wider shadow-sm z-10 flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+                                Đã thuê
+                            </span>
+                        @endif
+
+                        <div class="text-center relative z-10">
+                            <span class="inline-flex w-14 h-14 items-center justify-center rounded-2xl bg-slate-900/80 border border-slate-800 text-indigo-400 group-hover:text-emerald-400 group-hover:border-emerald-500/30 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-300 transform group-hover:scale-105">
+                                <i class="fa-solid fa-house-circle-check text-xl"></i>
+                            </span>
+                            <span class="block text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-2.5 group-hover:text-slate-400 transition-colors">SmartRoom Cầu Giấy</span>
                         </div>
                     </div>
                     <!-- Details -->
-                    <div class="p-5">
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-bold text-slate-200 text-sm group-hover:text-emerald-400 transition-all">SmartRoom Cầu Giấy - P. 301</h3>
-                            <div class="flex items-center gap-1 text-xs text-amber-400 font-bold">
-                                <i class="fa-solid fa-star"></i> 4.6
+                    <div class="p-5 flex-grow flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start mb-2 gap-2">
+                                <h3 class="font-bold text-slate-200 text-sm group-hover:text-emerald-400 transition-all line-clamp-1">{{ $room['title'] }}</h3>
+                                <div class="flex items-center gap-1 text-xs text-amber-400 font-bold shrink-0">
+                                    <i class="fa-solid fa-star text-[10px]"></i> <span>{{ $room['rating'] }}</span>
+                                </div>
+                            </div>
+                            <p class="text-xs text-slate-500 mb-4 flex items-center gap-1"><i class="fa-solid fa-map-marker-alt text-[10px] text-slate-650"></i> {{ $room['address'] }}</p>
+                            <!-- Prices and tags -->
+                            <div class="flex items-baseline gap-1.5 mb-4">
+                                <span class="text-xl font-extrabold text-emerald-400">{{ number_format($room['price'], 0, ',', '.') }}đ</span>
+                                <span class="text-[10px] text-slate-500 font-semibold">/ tháng</span>
                             </div>
                         </div>
-                        <p class="text-xs text-slate-500 mb-4 flex items-center gap-1"><i class="fa-solid fa-location-dot text-slate-600"></i> Số 12 Ngõ 105 Xuân Thủy, Cầu Giấy (Cách ĐH Sư Phạm 0.8km)</p>
-                        <!-- Prices and tags -->
-                        <div class="flex items-baseline gap-1.5 mb-4">
-                            <span class="text-lg font-extrabold text-emerald-400">3.500.000đ</span>
-                            <span class="text-[10px] text-slate-500 font-semibold">/ tháng</span>
-                        </div>
-                        <div class="flex flex-wrap gap-1 mb-4">
-                            <span class="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 text-[10px] font-bold">Có gác lửng</span>
-                            <span class="px-2 py-0.5 rounded bg-teal-500/10 text-teal-400 text-[10px] font-bold">Nuôi thú cưng</span>
-                            <span class="px-2 py-0.5 rounded bg-slate-900 text-slate-500 text-[10px] font-bold">Vệ sinh khép kín</span>
+                        <div class="flex flex-wrap gap-1.5">
+                            @if($room['loft'] === 'true')
+                                <span class="px-2.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 text-[9px] font-bold border border-indigo-500/20">Có gác lửng</span>
+                            @endif
+                            @if($room['pets'] === 'true')
+                                <span class="px-2.5 py-0.5 rounded-md bg-teal-500/10 text-teal-400 text-[9px] font-bold border border-teal-500/20">Nuôi thú cưng</span>
+                            @endif
+                            @if($room['balcony'] === 'true')
+                                <span class="px-2.5 py-0.5 rounded-md bg-sky-500/10 text-sky-400 text-[9px] font-bold border border-sky-500/20">Ban công</span>
+                            @endif
+                            <span class="px-2.5 py-0.5 rounded-md bg-slate-900 text-slate-500 text-[9px] font-bold border border-slate-800/40">WC khép kín</span>
                         </div>
                     </div>
                 </div>
                 <!-- Card footer action -->
                 <div class="px-5 pb-5 pt-3 border-t border-slate-900/50 flex justify-between items-center bg-slate-950/20">
-                    <label class="flex items-center gap-2 text-xs font-bold text-slate-400 cursor-pointer">
-                        <input type="checkbox" onchange="toggleCompare('room1', this)" class="compare-checkbox w-4.5 h-4.5 rounded border-slate-800 text-emerald-600 focus:ring-0">
+                    <label class="flex items-center gap-2 text-xs font-bold text-slate-400 cursor-pointer hover:text-slate-355 transition-colors">
+                        <input type="checkbox" onchange="toggleCompare('{{ $room['id'] }}', this)" class="compare-checkbox w-4 h-4 rounded border-slate-800 bg-slate-900 text-emerald-600 focus:ring-0 focus:ring-offset-0">
                         <span>So sánh</span>
                     </label>
-                    <button class="text-xs text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1">
-                        Xem chi tiết <i class="fa-solid fa-angle-right"></i>
+                    <button onclick="openRoomDetailModal('{{ $room['id'] }}')" class="text-xs text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                        <span>Chi tiết review</span> <i class="fa-solid fa-angle-right"></i>
                     </button>
                 </div>
             </div>
-
-            <!-- Room 2 -->
-            <div class="room-item-card glass-card rounded-2xl overflow-hidden group flex flex-col justify-between" 
-                 data-price="3800000" data-rating="4.2" data-pets="false" data-loft="true" data-balcony="true" data-distance="1.2" data-title="Chung Cư Mini Trần Thái Tông - Phòng 201">
-                <div>
-                    <div class="h-44 bg-gradient-to-tr from-slate-900 to-slate-950 relative overflow-hidden flex items-center justify-center border-b border-slate-900">
-                        <span class="absolute top-4 left-4 px-2 py-1 bg-emerald-500 text-white rounded text-[10px] font-extrabold uppercase shadow">Sẵn sàng</span>
-                        <div class="text-center">
-                            <i class="fa-solid fa-home text-slate-600 text-4xl mb-2 group-hover:scale-110 transition-all duration-300"></i>
-                            <span class="block text-xs font-bold text-slate-400">CCMN Trần Thái Tông</span>
-                        </div>
-                    </div>
-                    <div class="p-5">
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-bold text-slate-200 text-sm group-hover:text-emerald-400 transition-all">CCMN Trần Thái Tông - P. 201</h3>
-                            <div class="flex items-center gap-1 text-xs text-amber-400 font-bold">
-                                <i class="fa-solid fa-star"></i> 4.2
-                            </div>
-                        </div>
-                        <p class="text-xs text-slate-500 mb-4 flex items-center gap-1"><i class="fa-solid fa-location-dot text-slate-600"></i> Số 5 Ngõ 45 Trần Thái Tông, Cầu Giấy (Cách ĐH Bách Khoa 1.2km)</p>
-                        <div class="flex items-baseline gap-1.5 mb-4">
-                            <span class="text-lg font-extrabold text-emerald-400">3.800.000đ</span>
-                            <span class="text-[10px] text-slate-500 font-semibold">/ tháng</span>
-                        </div>
-                        <div class="flex flex-wrap gap-1 mb-4">
-                            <span class="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 text-[10px] font-bold">Có gác lửng</span>
-                            <span class="px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 text-[10px] font-bold">Ban công</span>
-                            <span class="px-2 py-0.5 rounded bg-slate-900 text-slate-500 text-[10px] font-bold">Khoá vân tay</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="px-5 pb-5 pt-3 border-t border-slate-900/50 flex justify-between items-center bg-slate-950/20">
-                    <label class="flex items-center gap-2 text-xs font-bold text-slate-400 cursor-pointer">
-                        <input type="checkbox" onchange="toggleCompare('room2', this)" class="compare-checkbox w-4.5 h-4.5 rounded border-slate-800 text-emerald-600 focus:ring-0">
-                        <span>So sánh</span>
-                    </label>
-                    <button class="text-xs text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1">
-                        Xem chi tiết <i class="fa-solid fa-angle-right"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Room 3 -->
-            <div class="room-item-card glass-card rounded-2xl overflow-hidden group flex flex-col justify-between" 
-                 data-price="4200000" data-rating="4.8" data-pets="true" data-loft="false" data-balcony="true" data-distance="0.5" data-title="Căn Hộ Dịch Vụ Hồ Tùng Mậu - Phòng 104">
-                <div>
-                    <div class="h-44 bg-gradient-to-tr from-teal-950 to-slate-950 relative overflow-hidden flex items-center justify-center border-b border-slate-900">
-                        <span class="absolute top-4 left-4 px-2 py-1 bg-emerald-500 text-white rounded text-[10px] font-extrabold uppercase shadow">Sẵn sàng</span>
-                        <div class="text-center">
-                            <i class="fa-solid fa-home text-slate-600 text-4xl mb-2 group-hover:scale-110 transition-all duration-300"></i>
-                            <span class="block text-xs font-bold text-slate-400">CHDV Hồ Tùng Mậu</span>
-                        </div>
-                    </div>
-                    <div class="p-5">
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-bold text-slate-200 text-sm group-hover:text-emerald-400 transition-all">CHDV Hồ Tùng Mậu - P. 104</h3>
-                            <div class="flex items-center gap-1 text-xs text-amber-400 font-bold">
-                                <i class="fa-solid fa-star"></i> 4.8
-                            </div>
-                        </div>
-                        <p class="text-xs text-slate-500 mb-4 flex items-center gap-1"><i class="fa-solid fa-location-dot text-slate-600"></i> Số 88 Hồ Tùng Mậu, Cầu Giấy (Cách ĐH Thương Mại 0.5km)</p>
-                        <div class="flex items-baseline gap-1.5 mb-4">
-                            <span class="text-lg font-extrabold text-emerald-400">4.200.000đ</span>
-                            <span class="text-[10px] text-slate-500 font-semibold">/ tháng</span>
-                        </div>
-                        <div class="flex flex-wrap gap-1 mb-4">
-                            <span class="px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 text-[10px] font-bold">Ban công</span>
-                            <span class="px-2 py-0.5 rounded bg-teal-500/10 text-teal-400 text-[10px] font-bold">Nuôi thú cưng</span>
-                            <span class="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 text-[10px] font-bold">Đủ nội thất</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="px-5 pb-5 pt-3 border-t border-slate-900/50 flex justify-between items-center bg-slate-950/20">
-                    <label class="flex items-center gap-2 text-xs font-bold text-slate-400 cursor-pointer">
-                        <input type="checkbox" onchange="toggleCompare('room3', this)" class="compare-checkbox w-4.5 h-4.5 rounded border-slate-800 text-emerald-600 focus:ring-0">
-                        <span>So sánh</span>
-                    </label>
-                    <button class="text-xs text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1">
-                        Xem chi tiết <i class="fa-solid fa-angle-right"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Room 4 -->
-            <div class="room-item-card glass-card rounded-2xl overflow-hidden group flex flex-col justify-between" 
-                 data-price="2800000" data-rating="3.9" data-pets="false" data-loft="false" data-balcony="false" data-distance="1.5" data-title="Phòng Trọ Giá Rẻ Phạm Văn Đồng">
-                <div>
-                    <div class="h-44 bg-gradient-to-tr from-slate-900 to-slate-950 relative overflow-hidden flex items-center justify-center border-b border-slate-900">
-                        <span class="absolute top-4 left-4 px-2 py-1 bg-emerald-500 text-white rounded text-[10px] font-extrabold uppercase shadow">Sẵn sàng</span>
-                        <div class="text-center">
-                            <i class="fa-solid fa-home text-slate-600 text-4xl mb-2 group-hover:scale-110 transition-all duration-300"></i>
-                            <span class="block text-xs font-bold text-slate-400">Nhà trọ Phạm Văn Đồng</span>
-                        </div>
-                    </div>
-                    <div class="p-5">
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-bold text-slate-200 text-sm group-hover:text-emerald-400 transition-all">Nhà Trọ Phạm Văn Đồng</h3>
-                            <div class="flex items-center gap-1 text-xs text-amber-400 font-bold">
-                                <i class="fa-solid fa-star"></i> 3.9
-                            </div>
-                        </div>
-                        <p class="text-xs text-slate-500 mb-4 flex items-center gap-1"><i class="fa-solid fa-location-dot text-slate-600"></i> Ngõ 23 Phạm Văn Đồng, Bắc Từ Liêm (Cách ĐH Ngoại Ngữ 1.5km)</p>
-                        <div class="flex items-baseline gap-1.5 mb-4">
-                            <span class="text-lg font-extrabold text-emerald-400">2.800.000đ</span>
-                            <span class="text-[10px] text-slate-500 font-semibold">/ tháng</span>
-                        </div>
-                        <div class="flex flex-wrap gap-1 mb-4">
-                            <span class="px-2 py-0.5 rounded bg-slate-900 text-slate-500 text-[10px] font-bold">Tự do giờ giấc</span>
-                            <span class="px-2 py-0.5 rounded bg-slate-900 text-slate-500 text-[10px] font-bold">Vệ sinh khép kín</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="px-5 pb-5 pt-3 border-t border-slate-900/50 flex justify-between items-center bg-slate-950/20">
-                    <label class="flex items-center gap-2 text-xs font-bold text-slate-400 cursor-pointer">
-                        <input type="checkbox" onchange="toggleCompare('room4', this)" class="compare-checkbox w-4.5 h-4.5 rounded border-slate-800 text-emerald-600 focus:ring-0">
-                        <span>So sánh</span>
-                    </label>
-                    <button class="text-xs text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1">
-                        Xem chi tiết <i class="fa-solid fa-angle-right"></i>
-                    </button>
-                </div>
-            </div>
+            @endforeach
         </div>
     </main>
 
@@ -420,6 +332,102 @@
         </div>
     </div>
 
+    <!-- ROOM DETAIL & REVIEWS MODAL -->
+    <div id="room-detail-modal" class="fixed inset-0 z-50 bg-[#04060b]/90 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-2xl bg-[#0a0f1d] border border-slate-800 rounded-3xl p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto animate-fade-in">
+            <button onclick="closeRoomDetailModal()" class="absolute top-6 right-6 w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-all">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <h2 class="text-xl font-bold mb-2 text-slate-100" id="detail-room-title">SmartRoom Cầu Giấy - Phòng 101</h2>
+            <p class="text-xs text-slate-500 mb-6 flex items-center gap-1">
+                <i class="fa-solid fa-location-dot text-slate-600"></i> <span id="detail-room-address">Số 12 Ngõ 105 Xuân Thủy, Cầu Giấy</span>
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <!-- Info Left -->
+                <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800/40 space-y-3">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">Giá thuê:</span>
+                        <strong class="text-emerald-400 font-extrabold" id="detail-room-price">3.200.000đ/tháng</strong>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">Đánh giá trung bình:</span>
+                        <strong class="text-amber-400 font-bold" id="detail-room-rating">4.5 ⭐</strong>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">Chủ nhà & Dịch vụ:</span>
+                        <span class="text-slate-300 text-xs" id="detail-room-owner">⭐⭐⭐⭐⭐</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">An ninh & Khóa:</span>
+                        <span class="text-slate-300 text-xs" id="detail-room-sec">⭐⭐⭐⭐⭐</span>
+                    </div>
+                </div>
+
+                <!-- Info Right -->
+                <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800/40 space-y-3">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">Nuôi thú cưng:</span>
+                        <strong class="text-slate-200" id="detail-room-pets">Có</strong>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">Có gác lửng:</span>
+                        <strong class="text-slate-200" id="detail-room-loft">Có</strong>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">Có ban công:</span>
+                        <strong class="text-slate-200" id="detail-room-balcony">Có</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Existing Reviews List -->
+            <div class="border-t border-slate-800/60 pt-6 mb-6">
+                <h3 class="text-sm font-bold text-slate-300 mb-4">Đánh giá thực tế từ người ở trước</h3>
+                <div class="space-y-4 max-h-[200px] overflow-y-auto pr-2" id="detail-reviews-container">
+                    <!-- Dynamic list of reviews -->
+                </div>
+            </div>
+
+            <!-- Write Review Form -->
+            <div class="border-t border-slate-800/60 pt-6">
+                <h3 class="text-sm font-bold text-slate-300 mb-3">Gửi đánh giá của bạn</h3>
+                <form id="write-review-form" action="" method="POST" class="space-y-4">
+                    @csrf
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Tên của bạn</label>
+                            <input type="text" name="author_name" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-emerald-500 focus:outline-none" placeholder="Nguyễn Văn A">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Điểm đánh giá (1-5)</label>
+                            <select name="rating" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-emerald-500 focus:outline-none">
+                                <option value="5">5 ⭐⭐⭐⭐⭐ (Xuất sắc)</option>
+                                <option value="4">4 ⭐⭐⭐⭐ (Tốt)</option>
+                                <option value="3">3 ⭐⭐⭐ (Trung bình)</option>
+                                <option value="2">2 ⭐⭐ (Kém)</option>
+                                <option value="1">1 ⭐ (Rất kém)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Bình luận trải nghiệm thực tế</label>
+                        <textarea name="comment" required rows="3" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-emerald-500 focus:outline-none" placeholder="Hãy chia sẻ trải nghiệm về chủ nhà, an ninh, phòng ốc..."></textarea>
+                    </div>
+                    <div class="flex justify-end gap-3">
+                        <button type="button" onclick="closeRoomDetailModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 bg-transparent hover:bg-slate-900 border border-transparent hover:border-slate-800 transition-all">
+                            Hủy bỏ
+                        </button>
+                        <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-600/20 transition-all">
+                            Gửi Đánh Giá
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- FOOTER -->
     <footer class="border-t border-slate-900 bg-slate-950/80 py-8 mt-12 relative z-10">
         <div class="container mx-auto px-6 max-w-6xl flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
@@ -440,53 +448,61 @@
             drawer.classList.toggle('hidden');
         }
 
-        // Room lists mock database object for comparison
-        const mockRooms = {
-            room1: {
-                title: "SmartRoom Cầu Giấy - Phòng 301",
-                price: 3500000,
-                rating: 4.6,
-                distance: "0.8km",
-                pets: "Có",
-                loft: "Có",
-                balcony: "Không",
-                owner: "⭐⭐⭐⭐⭐ (5/5)",
-                sec: "⭐⭐⭐⭐☆ (4/5)"
-            },
-            room2: {
-                title: "CCMN Trần Thái Tông - Phòng 201",
-                price: 3800000,
-                rating: 4.2,
-                distance: "1.2km",
-                pets: "Không",
-                loft: "Có",
-                balcony: "Có",
-                owner: "⭐⭐⭐⭐☆ (4/5)",
-                sec: "⭐⭐⭐⭐⭐ (5/5)"
-            },
-            room3: {
-                title: "CHDV Hồ Tùng Mậu - Phòng 104",
-                price: 4200000,
-                rating: 4.8,
-                distance: "0.5km",
-                pets: "Có",
-                loft: "Không",
-                balcony: "Có",
-                owner: "⭐⭐⭐⭐⭐ (5/5)",
-                sec: "⭐⭐⭐⭐⭐ (5/5)"
-            },
-            room4: {
-                title: "Nhà trọ giá rẻ Phạm Văn Đồng",
-                price: 2800000,
-                rating: 3.9,
-                distance: "1.5km",
-                pets: "Không",
-                loft: "Không",
-                balcony: "Không",
-                owner: "⭐⭐⭐☆☆ (3/5)",
-                sec: "⭐⭐⭐⭐☆ (4/5)"
+        // Room details modal
+        function openRoomDetailModal(roomId) {
+            const data = mockRooms[roomId];
+            if (!data) return;
+
+            document.getElementById('detail-room-title').textContent = data.title;
+            document.getElementById('detail-room-address').textContent = data.address;
+            document.getElementById('detail-room-price').textContent = data.price.toLocaleString('vi-VN') + "đ/tháng";
+            document.getElementById('detail-room-rating').textContent = data.rating + " ⭐";
+            document.getElementById('detail-room-owner').textContent = data.owner;
+            document.getElementById('detail-room-sec').textContent = data.sec;
+            document.getElementById('detail-room-pets').textContent = data.pets_txt;
+            document.getElementById('detail-room-loft').textContent = data.loft_txt;
+            document.getElementById('detail-room-balcony').textContent = data.balcony_txt;
+
+            // Set form action route
+            const form = document.getElementById('write-review-form');
+            form.action = `/renty/room/${roomId}/review`;
+
+            // Populate reviews
+            const container = document.getElementById('detail-reviews-container');
+            container.innerHTML = '';
+
+            if (data.reviews && data.reviews.length > 0) {
+                data.reviews.forEach(rev => {
+                    const stars = '⭐'.repeat(rev.rating) + '☆'.repeat(5 - rev.rating);
+                    const item = document.createElement('div');
+                    item.className = 'p-3 rounded-xl bg-slate-900/60 border border-slate-800/50 space-y-1.5';
+                    item.innerHTML = `
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-bold text-slate-300">${rev.author_name}</span>
+                            <span class="text-amber-400 font-semibold">${stars}</span>
+                        </div>
+                        <p class="text-xs text-slate-400 leading-relaxed">${rev.comment}</p>
+                        <span class="block text-[9px] text-slate-600">${rev.created_at}</span>
+                    `;
+                    container.appendChild(item);
+                });
+            } else {
+                container.innerHTML = `
+                    <div class="py-4 text-center text-xs text-slate-500 italic">
+                        Chưa có đánh giá thực tế nào cho phòng này. Hãy là người đầu tiên đánh giá!
+                    </div>
+                `;
             }
-        };
+
+            document.getElementById('room-detail-modal').classList.remove('hidden');
+        }
+
+        function closeRoomDetailModal() {
+            document.getElementById('room-detail-modal').classList.add('hidden');
+        }
+
+        // Room lists mock database object for comparison
+        const mockRooms = {!! json_encode($rooms->keyBy('id')) !!};
 
         // Track selected comparison rooms
         let selectedRooms = [];
@@ -549,23 +565,23 @@
                 
                 document.getElementById(`compare-col-${col}-title`).textContent = data.title;
                 document.getElementById(`compare-val-${col}-price`).textContent = data.price.toLocaleString('vi-VN') + "đ";
-                document.getElementById(`compare-val-${col}-dist`).textContent = data.distance;
+                document.getElementById(`compare-val-${col}-dist`).textContent = data.distance + "km";
                 document.getElementById(`compare-val-${col}-rating`).textContent = data.rating + " ⭐";
                 document.getElementById(`compare-val-${col}-owner`).textContent = data.owner;
                 document.getElementById(`compare-val-${col}-sec`).textContent = data.sec;
                 
                 // Set green text for positive checkmarks
                 const petsElem = document.getElementById(`compare-val-${col}-pets`);
-                petsElem.textContent = data.pets;
-                petsElem.className = data.pets === 'Có' ? 'px-4 py-4 text-xs font-bold text-emerald-400' : 'px-4 py-4 text-xs text-slate-500';
+                petsElem.textContent = data.pets_txt;
+                petsElem.className = data.pets_txt === 'Có' ? 'px-4 py-4 text-xs font-bold text-emerald-400' : 'px-4 py-4 text-xs text-slate-500';
 
                 const loftElem = document.getElementById(`compare-val-${col}-loft`);
-                loftElem.textContent = data.loft;
-                loftElem.className = data.loft === 'Có' ? 'px-4 py-4 text-xs font-bold text-emerald-400' : 'px-4 py-4 text-xs text-slate-500';
+                loftElem.textContent = data.loft_txt;
+                loftElem.className = data.loft_txt === 'Có' ? 'px-4 py-4 text-xs font-bold text-emerald-400' : 'px-4 py-4 text-xs text-slate-500';
 
                 const balconyElem = document.getElementById(`compare-val-${col}-balcony`);
-                balconyElem.textContent = data.balcony;
-                balconyElem.className = data.balcony === 'Có' ? 'px-4 py-4 text-xs font-bold text-emerald-400' : 'px-4 py-4 text-xs text-slate-500';
+                balconyElem.textContent = data.balcony_txt;
+                balconyElem.className = data.balcony_txt === 'Có' ? 'px-4 py-4 text-xs font-bold text-emerald-400' : 'px-4 py-4 text-xs text-slate-500';
             });
 
             modal.classList.remove('hidden');
@@ -622,6 +638,130 @@
 
             document.getElementById('results-count').textContent = `Danh sách phòng trọ (${matchesCount} kết quả)`;
         }
+
+        function openHotAreasModal() {
+            document.getElementById('hot-areas-modal').classList.remove('hidden');
+        }
+
+        function closeHotAreasModal() {
+            document.getElementById('hot-areas-modal').classList.add('hidden');
+        }
+
+        function selectHotArea(areaQuery) {
+            document.getElementById('search-input').value = areaQuery;
+            filterItems();
+            closeHotAreasModal();
+            // Highlight search input briefly
+            const input = document.getElementById('search-input');
+            input.focus();
+            input.classList.add('ring-2', 'ring-emerald-500');
+            setTimeout(() => {
+                input.classList.remove('ring-2', 'ring-emerald-500');
+            }, 1000);
+        }
+
+        function openNewReviewsModal() {
+            document.getElementById('new-reviews-modal').classList.remove('hidden');
+        }
+
+        function closeNewReviewsModal() {
+            document.getElementById('new-reviews-modal').classList.add('hidden');
+        }
     </script>
+
+    <!-- HOT AREAS MODAL -->
+    <div id="hot-areas-modal" class="fixed inset-0 z-50 bg-[#04060b]/90 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-2xl bg-[#0a0f1d] border border-slate-800 rounded-3xl p-8 shadow-2xl relative max-h-[85vh] overflow-y-auto animate-fade-in">
+            <button onclick="closeHotAreasModal()" class="absolute top-6 right-6 w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-all">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h2 class="text-xl font-bold mb-2 text-slate-100 flex items-center gap-2">
+                <i class="fa-solid fa-fire text-amber-500 animate-pulse"></i> Khu Vực Tìm Kiếm Hot
+            </h2>
+            <p class="text-xs text-slate-500 mb-6 font-semibold">Chọn nhanh khu vực để lọc danh sách phòng trọ tốt nhất quanh các khu đại học lớn.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Area 1 -->
+                <div onclick="selectHotArea('Sư Phạm')" class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-emerald-500/50 cursor-pointer transition-all hover:-translate-y-0.5 group relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 w-20 h-20 bg-emerald-500/5 rounded-full blur-xl group-hover:bg-emerald-500/10 transition-all"></div>
+                    <h3 class="font-bold text-slate-200 text-sm group-hover:text-emerald-400 transition-colors">ĐH Sư Phạm Hà Nội</h3>
+                    <p class="text-[11px] text-slate-505 mt-1 leading-relaxed">Khu vực Xuân Thủy đông đúc sinh viên, đi bộ ra trạm tàu điện Nhổn - Cát Linh rất gần.</p>
+                    <div class="mt-4 flex justify-between items-center text-[10px] text-slate-400 font-bold">
+                        <span>Bán kính: ~0.5 km</span>
+                        <span class="text-emerald-400 flex items-center gap-1">Lọc nhanh <i class="fa-solid fa-arrow-right text-[8px]"></i></span>
+                    </div>
+                </div>
+                
+                <!-- Area 2 -->
+                <div onclick="selectHotArea('Quốc Gia')" class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-emerald-500/50 cursor-pointer transition-all hover:-translate-y-0.5 group relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 w-20 h-20 bg-emerald-500/5 rounded-full blur-xl group-hover:bg-emerald-500/10 transition-all"></div>
+                    <h3 class="font-bold text-slate-200 text-sm group-hover:text-emerald-400 transition-colors">ĐH Quốc Gia Hà Nội</h3>
+                    <p class="text-[11px] text-slate-505 mt-1 leading-relaxed">Trung tâm Cầu Giấy, các ngõ rộng thoáng khí, an ninh an toàn và nhiều phòng trọ cao cấp.</p>
+                    <div class="mt-4 flex justify-between items-center text-[10px] text-slate-400 font-bold">
+                        <span>Bán kính: ~0.8 km</span>
+                        <span class="text-emerald-400 flex items-center gap-1">Lọc nhanh <i class="fa-solid fa-arrow-right text-[8px]"></i></span>
+                    </div>
+                </div>
+
+                <!-- Area 3 -->
+                <div onclick="selectHotArea('Cầu Giấy')" class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-emerald-500/50 cursor-pointer transition-all hover:-translate-y-0.5 group relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 w-20 h-20 bg-emerald-500/5 rounded-full blur-xl group-hover:bg-emerald-500/10 transition-all"></div>
+                    <h3 class="font-bold text-slate-200 text-sm group-hover:text-emerald-400 transition-colors">Quận Cầu Giấy</h3>
+                    <p class="text-[11px] text-slate-505 mt-1 leading-relaxed">Khu vực trung tâm đắc địa tập trung nhiều trường đại học lớn, di chuyển cực kì nhanh chóng.</p>
+                    <div class="mt-4 flex justify-between items-center text-[10px] text-slate-400 font-bold">
+                        <span>Bán kính: Mọi khoảng cách</span>
+                        <span class="text-emerald-400 flex items-center gap-1">Lọc nhanh <i class="fa-solid fa-arrow-right text-[8px]"></i></span>
+                    </div>
+                </div>
+
+                <!-- Area 4 -->
+                <div onclick="selectHotArea('Xuân Thủy')" class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-emerald-500/50 cursor-pointer transition-all hover:-translate-y-0.5 group relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 w-20 h-20 bg-emerald-500/5 rounded-full blur-xl group-hover:bg-emerald-500/10 transition-all"></div>
+                    <h3 class="font-bold text-slate-200 text-sm group-hover:text-emerald-400 transition-colors">Đường Xuân Thủy</h3>
+                    <p class="text-[11px] text-slate-505 mt-1 leading-relaxed">Trục đường chính sầm uất, di chuyển thuận tiện tới các trường đại học xung quanh.</p>
+                    <div class="mt-4 flex justify-between items-center text-[10px] text-slate-400 font-bold">
+                        <span>Bán kính: ~0.2 km</span>
+                        <span class="text-emerald-400 flex items-center gap-1">Lọc nhanh <i class="fa-solid fa-arrow-right text-[8px]"></i></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW REVIEWS MODAL -->
+    <div id="new-reviews-modal" class="fixed inset-0 z-50 bg-[#04060b]/90 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-xl bg-[#0a0f1d] border border-slate-800 rounded-3xl p-8 shadow-2xl relative max-h-[85vh] overflow-y-auto animate-fade-in">
+            <button onclick="closeNewReviewsModal()" class="absolute top-6 right-6 w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-all">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h2 class="text-xl font-bold mb-2 text-slate-100 flex items-center gap-2">
+                <i class="fa-solid fa-comments text-emerald-400 animate-pulse"></i> Đánh Giá Mới Nhất
+            </h2>
+            <p class="text-xs text-slate-500 mb-6 font-semibold">Tổng hợp 5 bình luận đánh giá không gian sống thực tế mới được cập nhật trên hệ thống.</p>
+            
+            <div class="space-y-4">
+                @forelse($recentReviews as $rev)
+                <div class="p-4 rounded-xl bg-slate-900 border border-slate-800/80 space-y-2 relative overflow-hidden group">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-xs font-bold text-slate-200 block"><i class="fa-solid fa-user-circle text-emerald-400 mr-1.5"></i>{{ $rev->author_name }}</span>
+                            <span class="text-[9px] text-indigo-400 font-extrabold uppercase mt-0.5 tracking-wider block">Phòng {{ $rev->room ? $rev->room->room_number : 'N/A' }}</span>
+                        </div>
+                        <span class="text-xs text-amber-400 font-bold flex items-center gap-1 bg-amber-500/5 border border-amber-500/10 px-2 py-0.5 rounded-lg shrink-0">
+                            <i class="fa-solid fa-star text-[10px]"></i> {{ $rev->rating }}/5
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-300 italic pl-1 leading-relaxed border-l-2 border-slate-800">"{{ $rev->comment }}"</p>
+                    <span class="text-[9px] text-slate-600 block text-right"><i class="fa-regular fa-clock mr-1"></i>{{ $rev->created_at->format('d/m/Y H:i') }}</span>
+                </div>
+                @empty
+                <div class="text-center text-xs text-slate-500 py-8">
+                    <i class="fa-solid fa-comment-slash text-2xl mb-2 text-slate-700 block"></i>
+                    <span>Chưa có đánh giá thực tế nào trên hệ thống.</span>
+                </div>
+                @endforelse
+            </div>
+        </div>
+    </div>
 </body>
 </html>

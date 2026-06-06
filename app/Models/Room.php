@@ -20,4 +20,14 @@ class Room extends Model
     {
         return $this->hasMany(UtilityRecord::class);
     }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function contracts()
+    {
+        return $this->hasMany(Contract::class);
+    }
 }
