@@ -717,6 +717,9 @@
                                                 <button onclick="copySignLink('{{ route('smartroom.contract.sign_view', $c->id) }}', this)" class="px-3 py-2 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-400 hover:text-white rounded-xl text-xs font-bold border border-indigo-500/20 transition-all flex items-center gap-1.5">
                                                     <i class="fa-solid fa-link"></i> Link ký
                                                 </button>
+                                                <button onclick="openSendMsgModal('{{ $c->resident ? $c->resident->phone : '' }}', '{{ $c->resident ? $c->resident->name : '' }}', 'Kính gửi anh/chị {{ $c->resident ? $c->resident->name : '' }}, vui lòng truy cập đường link sau để hoàn tất ký kết hợp đồng thuê phòng {{ $c->room ? $c->room->room_number : '' }}: {{ route('smartroom.contract.sign_view', $c->id) }}', 'contract')" class="px-3 py-2 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-xl text-xs font-bold border border-emerald-500/20 transition-all flex items-center gap-1.5">
+                                                    <i class="fa-solid fa-paper-plane"></i> Gửi Zalo/SMS
+                                                </button>
                                             @endif
                                             <a href="{{ route('smartroom.contract.sign_view', $c->id) }}" target="_blank" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold border border-slate-750 transition-all flex items-center gap-1.5">
                                                 <i class="fa-solid fa-arrow-up-right-from-square"></i> Xem HĐ
@@ -1091,7 +1094,11 @@
                 
                 if (qrBtn) {
                     qrBtn.onclick = function() {
-                        window.open(`https://img.vietqr.io/image/970422-1234567890-compact2.jpg?amount=${rawAmount}&addInfo=Thanh%20toan%20tien%20phong%20${roomNum}&accountName=NGUYEN%20THANH%20HIEN`, '_blank');
+                        if (latestBillId && latestBillId !== 'null') {
+                            showVietQR(latestBillId);
+                        } else {
+                            showVietQRFallback(roomNum, rawAmount);
+                        }
                     };
                 }
 
@@ -1114,7 +1121,7 @@
                         document.getElementById('modal-pay-form').action = `/smartroom/admin/utility/${latestBillId}/pay`;
                         document.getElementById('modal-notify-form').action = `/smartroom/admin/utility/${latestBillId}/notify`;
                         actionBtn.onclick = function() {
-                            document.getElementById('modal-notify-form').submit();
+                            openSendMsgModal(phone, name, `Kính gửi anh/chị ${name}, ban quản lý thông báo hóa đơn dịch vụ tháng 06 phòng ${roomNum} chưa được thanh toán với tổng số tiền là ${total}. Vui lòng thanh toán sớm nhất có thể. Trân trọng!`, 'debt');
                         };
                     } else {
                         payBtn.classList.add('hidden');
@@ -1463,6 +1470,399 @@
                 }
             });
         });
+
+        function showVietQR(billId) {
+            const qrModal = document.getElementById('vietqr-modal');
+            document.getElementById('qr-modal-loading').classList.remove('hidden');
+            document.getElementById('qr-modal-content').classList.add('hidden');
+            qrModal.classList.remove('hidden');
+
+            fetch(`/api/utility-bill/${billId}/qr`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('qr-modal-room').textContent = `Phòng ${data.room_number}`;
+                        document.getElementById('qr-modal-tenant').textContent = data.resident_name;
+                        document.getElementById('qr-modal-amount').textContent = data.amount.toLocaleString('vi-VN') + "đ";
+                        document.getElementById('qr-modal-bank').textContent = `${data.bank_id} - ${data.account_no}`;
+                        document.getElementById('qr-modal-name').textContent = data.account_name;
+                        document.getElementById('qr-modal-desc').textContent = decodeURIComponent(data.description);
+                        document.getElementById('qr-modal-image').src = data.qr_url;
+                        
+                        document.getElementById('qr-modal-download').href = data.qr_url;
+                        
+                        document.getElementById('qr-modal-loading').classList.add('hidden');
+                        document.getElementById('qr-modal-content').classList.remove('hidden');
+                    } else {
+                        alert("Không thể tải mã QR: " + (data.error || "Lỗi không xác định"));
+                        qrModal.classList.add('hidden');
+                    }
+                })
+                .catch(err => {
+                    alert("Có lỗi xảy ra khi kết nối API!");
+                    console.error(err);
+                    qrModal.classList.add('hidden');
+                });
+        }
+
+        function showVietQRFallback(roomNum, amount) {
+            const qrModal = document.getElementById('vietqr-modal');
+            document.getElementById('qr-modal-loading').classList.add('hidden');
+            document.getElementById('qr-modal-content').classList.remove('hidden');
+            qrModal.classList.remove('hidden');
+
+            const amt = parseInt(amount) || 0;
+            const bankId = 'MB';
+            const accountNo = '9999888889999';
+            const accountName = 'NGUYEN VAN CHU NHA';
+            const desc = `Thanh toan Phong ${roomNum} coc hoac tien phong`;
+            const qrUrl = `https://img.vietqr.io/image/${bankId}-${accountNo}-compact.png?amount=${amt}&addInfo=${encodeURIComponent(desc)}&accountName=${encodeURIComponent(accountName)}`;
+
+            document.getElementById('qr-modal-room').textContent = `Phòng ${roomNum}`;
+            document.getElementById('qr-modal-tenant').textContent = 'Khách mới / Cư dân';
+            document.getElementById('qr-modal-amount').textContent = amt.toLocaleString('vi-VN') + "đ";
+            document.getElementById('qr-modal-bank').textContent = `${bankId} - ${accountNo}`;
+            document.getElementById('qr-modal-name').textContent = accountName;
+            document.getElementById('qr-modal-desc').textContent = desc;
+            document.getElementById('qr-modal-image').src = qrUrl;
+            document.getElementById('qr-modal-download').href = qrUrl;
+        }
+
+        let activeMessageType = 'zalo';
+        let currentRecipientPhone = '';
+        let currentRecipientName = '';
+        let currentMsgType = 'contract'; // 'contract' or 'debt'
+        
+        function openSendMsgModal(phone, name, messageText, msgType) {
+            currentRecipientPhone = phone;
+            currentRecipientName = name;
+            currentMsgType = msgType;
+            activeMessageType = 'zalo'; 
+            
+            document.getElementById('msg-phone-input').value = phone;
+            document.getElementById('msg-text-input').value = messageText;
+            document.getElementById('phone-screen-title').textContent = name || 'Khách thuê';
+            
+            updateMessagePreview();
+            switchMsgTypeTab('zalo');
+            
+            document.getElementById('msg-success-overlay').classList.add('hidden');
+            document.getElementById('msg-send-btn').disabled = false;
+            document.getElementById('msg-send-btn').innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i> Gửi Tin Ngay';
+            
+            document.getElementById('send-msg-modal').classList.remove('hidden');
+        }
+        
+        function closeSendMsgModal() {
+            document.getElementById('send-msg-modal').classList.add('hidden');
+        }
+        
+        function switchMsgTypeTab(type) {
+            activeMessageType = type;
+            const tabZalo = document.getElementById('msg-tab-zalo');
+            const tabSms = document.getElementById('msg-tab-sms');
+            const previewContainer = document.getElementById('msg-preview-container');
+            const phoneHeader = document.getElementById('phone-header');
+            
+            if (type === 'zalo') {
+                tabZalo.className = "flex-1 py-2 text-center text-xs font-bold text-indigo-400 bg-indigo-500/10 border-b-2 border-indigo-500 transition-all cursor-pointer";
+                tabSms.className = "flex-1 py-2 text-center text-xs font-medium text-slate-500 hover:text-slate-300 transition-all cursor-pointer";
+                previewContainer.className = "flex-1 p-4 overflow-y-auto space-y-3 bg-[#0f172a] rounded-2xl border border-slate-800/80 flex flex-col justify-end";
+                phoneHeader.className = "flex items-center justify-between px-4 py-3 bg-[#1e293b] border-b border-slate-800 rounded-t-3xl text-slate-200";
+                document.getElementById('phone-app-name').textContent = "Zalo Messenger";
+                document.getElementById('preview-bubble').className = "max-w-[85%] rounded-2xl px-4 py-2 text-xs bg-indigo-600 text-white self-end ml-auto shadow-md";
+            } else {
+                tabSms.className = "flex-1 py-2 text-center text-xs font-bold text-emerald-400 bg-emerald-500/10 border-b-2 border-emerald-500 transition-all cursor-pointer";
+                tabZalo.className = "flex-1 py-2 text-center text-xs font-medium text-slate-500 hover:text-slate-300 transition-all cursor-pointer";
+                previewContainer.className = "flex-1 p-4 overflow-y-auto space-y-3 bg-[#0b0f19] rounded-2xl border border-slate-800/80 flex flex-col justify-end";
+                phoneHeader.className = "flex items-center justify-between px-4 py-3 bg-[#111827] border-b border-slate-800 rounded-t-3xl text-slate-200";
+                document.getElementById('phone-app-name').textContent = "Tin nhắn SMS";
+                document.getElementById('preview-bubble').className = "max-w-[85%] rounded-2xl px-4 py-2 text-xs bg-emerald-600 text-white self-end ml-auto shadow-md";
+            }
+        }
+        
+        function updateMessagePreview() {
+            const val = document.getElementById('msg-text-input').value;
+            document.getElementById('preview-bubble-text').textContent = val || "(Trống)";
+        }
+        
+        function selectMsgTemplate(templateIndex) {
+            let msg = '';
+            if (currentMsgType === 'contract') {
+                if (templateIndex === 1) {
+                    msg = `Kính gửi anh/chị ${currentRecipientName}, hợp đồng thuê phòng của anh/chị đã được ban quản lý khởi tạo. Vui lòng ký trực tuyến tại đây: [Link ký]`;
+                } else if (templateIndex === 2) {
+                    msg = `Chào ${currentRecipientName}, vui lòng kiểm tra và thực hiện ký hợp đồng online sớm nhất để hoàn tất thủ tục nhận phòng nhé.`;
+                } else {
+                    msg = `Thông báo: Link ký hợp đồng thuê phòng của anh/chị đã sẵn sàng. Truy cập ngay: [Link ký]`;
+                }
+            } else {
+                if (templateIndex === 1) {
+                    msg = `Kính gửi anh/chị ${currentRecipientName}, ban quản lý thông báo tiền phòng tháng này chưa thanh toán. Vui lòng nộp trước ngày 10. Trân trọng!`;
+                } else if (templateIndex === 2) {
+                    msg = `Nhắc nhở: Phòng của anh/chị còn dư nợ hóa đơn dịch vụ điện nước. Vui lòng thanh toán qua ứng dụng SmartRoom.`;
+                } else {
+                    msg = `Ban quản lý nhà trọ thông báo nhắc nợ tiền phòng tháng này đối với anh/chị ${currentRecipientName}. Liên hệ chủ nhà để biết thêm chi tiết.`;
+                }
+            }
+            
+            const originalVal = document.getElementById('msg-text-input').value;
+            const linkMatch = originalVal.match(/https?:\/\/[^\s]+/);
+            if (linkMatch && linkMatch[0]) {
+                msg = msg.replace('[Link ký]', linkMatch[0]);
+            }
+            
+            document.getElementById('msg-text-input').value = msg;
+            updateMessagePreview();
+        }
+        
+        function triggerSendMessage() {
+            const phone = document.getElementById('msg-phone-input').value;
+            const messageText = document.getElementById('msg-text-input').value;
+            const btn = document.getElementById('msg-send-btn');
+            
+            if (!phone || !messageText) {
+                alert("Vui lòng điền đầy đủ số điện thoại và nội dung tin nhắn!");
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.innerHTML = '<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>';
+            
+            fetch('/api/send-message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                },
+                body: JSON.stringify({
+                    phone: phone,
+                    message: messageText,
+                    type: activeMessageType
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('msg-success-overlay').classList.remove('hidden');
+                    
+                    if (navigator.vibrate) {
+                        navigator.vibrate([100, 50, 100]);
+                    }
+                    
+                    setTimeout(() => {
+                        closeSendMsgModal();
+                        alert(`Đã gửi tin nhắn nhắc nhở đến ${data.phone} qua kênh ${data.type.toUpperCase()} thành công!`);
+                    }, 2200);
+                } else {
+                    alert("Có lỗi xảy ra: " + (data.error || "Gửi tin thất bại"));
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i> Gửi Tin Ngay';
+                }
+            })
+            .catch(err => {
+                alert("Không thể kết nối đến máy chủ!");
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i> Gửi Tin Ngay';
+                console.error(err);
+            });
+        }
+
+        function closeVietQRModal() {
+            document.getElementById('vietqr-modal').classList.add('hidden');
+        }
+
+        function copyBankAccount() {
+            navigator.clipboard.writeText('9999888889999').then(() => {
+                const btn = document.getElementById('qr-modal-copy');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check text-emerald-450"></i> Đã sao chép!';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                }, 2000);
+            });
+        }
     </script>
+
+    <!-- VIETQR POPUP MODAL -->
+    <div id="vietqr-modal" class="fixed inset-0 z-50 bg-[#04060b]/90 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-md bg-[#0a0f1d] border border-slate-800 rounded-3xl p-6 shadow-2xl relative animate-fade-in">
+            <button onclick="closeVietQRModal()" class="absolute top-4 right-4 w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-all">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div class="text-center mb-4">
+                <span class="text-xs px-2.5 py-1 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-bold uppercase tracking-wider">Mã VietQR Hóa Đơn</span>
+                <h3 class="text-lg font-bold text-slate-100 mt-2" id="qr-modal-room">Phòng 101</h3>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div id="qr-modal-loading" class="flex flex-col items-center justify-center py-12 gap-3">
+                <div class="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                <span class="text-xs text-slate-400 font-semibold">Đang tạo mã thanh toán...</span>
+            </div>
+
+            <!-- Content -->
+            <div id="qr-modal-content" class="space-y-4 hidden">
+                <!-- QR Image Display -->
+                <div class="flex justify-center p-4 bg-white rounded-2xl relative overflow-hidden group">
+                    <img id="qr-modal-image" class="w-60 h-60 object-contain transition-transform group-hover:scale-105 duration-300" src="" alt="Mã VietQR">
+                </div>
+
+                <!-- Payment Details -->
+                <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2.5 text-xs">
+                    <div class="flex justify-between"><span class="text-slate-500">Khách thuê:</span> <strong class="text-slate-200" id="qr-modal-tenant">N/A</strong></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Số tiền cần đóng:</span> <strong class="text-emerald-400 font-bold text-sm" id="qr-modal-amount">0đ</strong></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Ngân hàng:</span> <strong class="text-slate-200" id="qr-modal-bank">MB - 9999888889999</strong></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Chủ tài khoản:</span> <strong class="text-slate-200" id="qr-modal-name">NGUYEN VAN CHU NHA</strong></div>
+                    <div class="flex justify-between items-start"><span class="text-slate-500">Nội dung chuyển:</span> <strong class="text-slate-200 text-right shrink-0 max-w-[180px] break-words" id="qr-modal-desc">N/A</strong></div>
+                </div>
+
+                <!-- Actions -->
+                <div class="grid grid-cols-2 gap-3 pt-2">
+                    <button id="qr-modal-copy" onclick="copyBankAccount()" class="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-all">
+                        <i class="fa-solid fa-copy text-indigo-400"></i> Sao chép STK
+                    </button>
+                    <a id="qr-modal-download" download="VietQR_Payment.png" target="_blank" class="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20 transition-all">
+                        <i class="fa-solid fa-download"></i> Tải ảnh QR
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ZALO / SMS SEND MESSAGE PHONE MODAL -->
+    <div id="send-msg-modal" class="fixed inset-0 z-50 bg-[#04060b]/90 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-3xl bg-[#0a0f1d] border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl relative animate-fade-in">
+            <button onclick="closeSendMsgModal()" class="absolute top-6 right-6 w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-all z-30">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="flex flex-col md:flex-row gap-8 items-stretch justify-center">
+                <!-- LEFT SIDE: PHONE SIMULATOR -->
+                <div class="flex justify-center items-center shrink-0">
+                    <div class="w-[280px] h-[480px] bg-slate-950 rounded-[36px] border-[5px] border-slate-800 relative shadow-2xl flex flex-col overflow-hidden">
+                        <!-- iPhone Notch & Status Bar -->
+                        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-4 bg-slate-950 rounded-b-xl z-20 flex justify-between items-center px-4 text-[7px] text-slate-500 font-bold">
+                            <span>16:40</span>
+                            <div class="w-8 h-1 bg-slate-800 rounded-full"></div>
+                            <div class="flex items-center gap-1">
+                                <i class="fa-solid fa-wifi"></i>
+                                <i class="fa-solid fa-battery-three-quarters"></i>
+                            </div>
+                        </div>
+
+                        <!-- Chat Header -->
+                        <div id="phone-header" class="flex items-center justify-between px-3 py-2 bg-[#1e293b] border-b border-slate-800 rounded-t-2xl text-slate-200 mt-3 shrink-0">
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-6 h-6 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-[10px] text-indigo-400 font-bold">
+                                    <i class="fa-solid fa-user text-[9px]"></i>
+                                </div>
+                                <div>
+                                    <div class="text-[9px] font-bold" id="phone-screen-title">Khách thuê</div>
+                                    <div class="text-[7px] text-emerald-400 font-bold" id="phone-app-name">Zalo Messenger</div>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-ellipsis-vertical text-[10px] text-slate-500"></i>
+                        </div>
+
+                        <!-- Chat Area -->
+                        <div id="msg-preview-container" class="flex-1 p-3 overflow-y-auto space-y-3 bg-[#0f172a] flex flex-col justify-end">
+                            <div class="max-w-[85%] rounded-2xl px-3 py-1.5 text-[10px] bg-slate-900 text-slate-400 border border-slate-800 self-start">
+                                Xin chào ban quản lý. Tôi cần nhận thông báo phòng.
+                            </div>
+                            <!-- Live Preview Bubble -->
+                            <div id="preview-bubble" class="max-w-[85%] rounded-2xl px-3 py-1.5 text-[10px] bg-indigo-600 text-white self-end ml-auto shadow-md">
+                                <p id="preview-bubble-text" class="break-words leading-relaxed">(Trống)</p>
+                            </div>
+                        </div>
+
+                        <!-- Message Input Mock -->
+                        <div class="p-2 bg-slate-900/60 border-t border-slate-800 shrink-0 flex items-center gap-2">
+                            <div class="flex-1 bg-slate-950 border border-slate-800 rounded-full px-3 py-1 text-[8px] text-slate-500">
+                                Tin nhắn...
+                            </div>
+                            <div class="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center text-white text-[8px]">
+                                <i class="fa-solid fa-microphone"></i>
+                            </div>
+                        </div>
+
+                        <!-- Success Broadcast Overlay -->
+                        <div id="msg-success-overlay" class="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center text-center space-y-4 p-4 z-10 hidden">
+                            <div class="relative flex items-center justify-center">
+                                <div class="absolute w-16 h-16 bg-emerald-500/10 rounded-full animate-ping"></div>
+                                <div class="absolute w-24 h-24 bg-emerald-500/5 rounded-full animate-pulse"></div>
+                                <div class="w-12 h-12 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-lg">
+                                    <i class="fa-solid fa-paper-plane animate-bounce"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-slate-200">ĐANG TRUYỀN TIN</h4>
+                                <p class="text-[9px] text-slate-500 mt-1">Kết nối cổng Zalo & SMS API thành công...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT SIDE: MESSAGE EDITING & CONTROL -->
+                <div class="flex-1 flex flex-col justify-between space-y-4">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-100 flex items-center gap-2">
+                            <i class="fa-solid fa-envelope-open-text text-indigo-400 animate-pulse"></i> Trình Gửi Tin Nhắn Điện Tử
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Hệ thống tích hợp cổng API Zalo ZNS và SMS Brandname để tự động gửi thông báo đến cư dân.</p>
+                    </div>
+
+                    <!-- Channel Switch Tabs -->
+                    <div class="flex border-b border-slate-800">
+                        <div id="msg-tab-zalo" onclick="switchMsgTypeTab('zalo')" class="flex-1 py-2 text-center text-xs font-bold text-indigo-400 bg-indigo-500/10 border-b-2 border-indigo-500 transition-all cursor-pointer">
+                            <i class="fa-solid fa-message mr-1.5"></i> Cổng Zalo ZNS
+                        </div>
+                        <div id="msg-tab-sms" onclick="switchMsgTypeTab('sms')" class="flex-1 py-2 text-center text-xs font-medium text-slate-500 hover:text-slate-300 transition-all cursor-pointer">
+                            <i class="fa-solid fa-comment-sms mr-1.5"></i> Cổng SMS Brandname
+                        </div>
+                    </div>
+
+                    <!-- Recipient details -->
+                    <div class="grid grid-cols-1 gap-2">
+                        <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Số điện thoại nhận tin</label>
+                        <input type="text" id="msg-phone-input" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-bold" placeholder="Nhập số điện thoại...">
+                    </div>
+
+                    <!-- Template Selectors -->
+                    <div>
+                        <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2">Mẫu tin nhắn nhanh</label>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="selectMsgTemplate(1)" class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-[10px] text-slate-300 hover:text-slate-100 hover:border-slate-700 transition-all">
+                                <i class="fa-solid fa-paste text-slate-500 mr-1"></i> Mẫu 1
+                            </button>
+                            <button onclick="selectMsgTemplate(2)" class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-[10px] text-slate-300 hover:text-slate-100 hover:border-slate-700 transition-all">
+                                <i class="fa-solid fa-paste text-slate-500 mr-1"></i> Mẫu 2
+                            </button>
+                            <button onclick="selectMsgTemplate(3)" class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-[10px] text-slate-300 hover:text-slate-100 hover:border-slate-700 transition-all">
+                                <i class="fa-solid fa-paste text-slate-500 mr-1"></i> Mẫu 3
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Message text input -->
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Nội dung tin nhắn</label>
+                        <textarea id="msg-text-input" oninput="updateMessagePreview()" rows="4" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-slate-300 focus:outline-none focus:border-indigo-500 resize-none leading-relaxed" placeholder="Soạn nội dung tin nhắn..."></textarea>
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div class="flex items-center gap-3 pt-2">
+                        <button onclick="closeSendMsgModal()" class="flex-1 py-3 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-slate-200 rounded-xl text-xs font-bold transition-all">
+                            Hủy bỏ
+                        </button>
+                        <button id="msg-send-btn" onclick="triggerSendMessage()" class="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/25 transition-all flex items-center justify-center">
+                            <i class="fa-solid fa-paper-plane mr-2"></i> Gửi Tin Ngay
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
