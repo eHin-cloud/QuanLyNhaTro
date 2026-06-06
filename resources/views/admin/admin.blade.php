@@ -529,8 +529,19 @@
                                     @php
                                         $resident = $room->residents->first();
                                         $latestBill = $room->utilityRecords->first();
-                                        $oldElec = $latestBill ? $latestBill->new_electricity : 0;
-                                        $oldWater = $latestBill ? $latestBill->new_water : 0;
+                                        $currentMonth = \Carbon\Carbon::now()->format('Y-m');
+                                        
+                                        if ($latestBill && $latestBill->billing_month === $currentMonth) {
+                                            $oldElec = $latestBill->old_electricity;
+                                            $oldWater = $latestBill->old_water;
+                                            $newElec = $latestBill->new_electricity;
+                                            $newWater = $latestBill->new_water;
+                                        } else {
+                                            $oldElec = $latestBill ? $latestBill->new_electricity : 0;
+                                            $oldWater = $latestBill ? $latestBill->new_water : 0;
+                                            $newElec = '';
+                                            $newWater = '';
+                                        }
                                         $statusColor = $room->status === 'overdue' ? 'bg-amber-500' : ($room->status === 'empty' ? 'bg-emerald-500' : 'bg-red-500');
                                     @endphp
                                     <tr class="hover:bg-slate-900/10 transition-all" data-room="{{ $room->room_number }}" data-price="{{ $room->price }}">
@@ -540,11 +551,11 @@
                                         </td>
                                         <td class="px-6 py-4 text-xs text-slate-500" data-field="old-elec">{{ $oldElec }}</td>
                                         <td class="px-6 py-4">
-                                            <input type="number" name="utilities[{{ $room->id }}][new_electricity]" oninput="calculateRowCost(this)" class="new-elec-input w-28 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="Nhập số mới">
+                                            <input type="number" name="utilities[{{ $room->id }}][new_electricity]" value="{{ $newElec }}" oninput="calculateRowCost(this)" class="new-elec-input w-28 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="Nhập số mới">
                                         </td>
                                         <td class="px-6 py-4 text-xs text-slate-500" data-field="old-water">{{ $oldWater }}</td>
                                         <td class="px-6 py-4">
-                                            <input type="number" name="utilities[{{ $room->id }}][new_water]" oninput="calculateRowCost(this)" class="new-water-input w-28 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="Nhập số mới">
+                                            <input type="number" name="utilities[{{ $room->id }}][new_water]" value="{{ $newWater }}" oninput="calculateRowCost(this)" class="new-water-input w-28 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="Nhập số mới">
                                         </td>
                                         <td class="px-6 py-4 text-xs text-slate-400">
                                             <div>⚡ Điện: <strong data-field="used-elec">0</strong> kWh</div>
@@ -1728,6 +1739,29 @@
                     }
                 }
             });
+
+            // Trigger calculation for any pre-populated utility inputs
+            document.querySelectorAll('.new-elec-input').forEach(input => {
+                if (input.value) {
+                    calculateRowCost(input);
+                }
+            });
+
+            // Auto-switch to tab from query param if provided (e.g. ?tab=utility-section)
+            const urlParams = new URLSearchParams(window.location.search);
+            const tabParam = urlParams.get('tab');
+            if (tabParam) {
+                const targetBtn = Array.from(document.querySelectorAll('.nav-btn')).find(btn => {
+                    const onclickStr = btn.getAttribute('onclick') || '';
+                    return onclickStr.includes(tabParam);
+                });
+                if (targetBtn) {
+                    switchTab(tabParam, targetBtn);
+                }
+                // Clean the URL parameter without reloading the page
+                const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                window.history.replaceState({ path: newUrl }, '', newUrl);
+            }
         });
 
         function showVietQR(billId) {

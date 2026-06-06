@@ -105,7 +105,26 @@ class AdminDashboardController extends Controller
         ]);
 
         $room = Room::findOrFail($request->room_id);
-        
+        $currentMonth = Carbon::now()->format('Y-m');
+
+        // Check if there is already a record for this month
+        $existing = UtilityRecord::where('room_id', $room->id)
+            ->where('billing_month', $currentMonth)
+            ->first();
+
+        if ($existing) {
+            if ($request->new_electricity < $existing->old_electricity || $request->new_water < $existing->old_water) {
+                return redirect()->route('smartroom.admin', ['tab' => 'utility-section'])->with('error', 'Chỉ số mới không được nhỏ hơn chỉ số cũ!');
+            }
+            $existing->update([
+                'new_electricity' => $request->new_electricity,
+                'new_water' => $request->new_water,
+                'status' => 'sent'
+            ]);
+            $room->update(['status' => 'overdue']);
+            return redirect()->route('smartroom.admin', ['tab' => 'utility-section'])->with('success', 'Đã cập nhật chỉ số điện nước & gửi hóa đơn thành công!');
+        }
+
         // Find latest utility record to verify indices
         $latest = UtilityRecord::where('room_id', $room->id)
             ->orderBy('billing_month', 'desc')
@@ -115,12 +134,12 @@ class AdminDashboardController extends Controller
         $oldWater = $latest ? $latest->new_water : 0;
 
         if ($request->new_electricity < $oldElec || $request->new_water < $oldWater) {
-            return back()->with('error', 'Chỉ số mới không được nhỏ hơn chỉ số cũ!');
+            return redirect()->route('smartroom.admin', ['tab' => 'utility-section'])->with('error', 'Chỉ số mới không được nhỏ hơn chỉ số cũ!');
         }
 
         UtilityRecord::create([
             'room_id' => $room->id,
-            'billing_month' => Carbon::now()->format('Y-m'),
+            'billing_month' => $currentMonth,
             'old_electricity' => $oldElec,
             'new_electricity' => $request->new_electricity,
             'old_water' => $oldWater,
@@ -133,12 +152,13 @@ class AdminDashboardController extends Controller
         // Mark room status as overdue until paid
         $room->update(['status' => 'overdue']);
 
-        return back()->with('success', 'Đã lưu chỉ số điện nước & gửi hóa đơn thành công!');
+        return redirect()->route('smartroom.admin', ['tab' => 'utility-section'])->with('success', 'Đã lưu chỉ số điện nước & gửi hóa đơn thành công!');
     }
 
     public function storeUtilityBulk(Request $request)
     {
         $utilities = $request->input('utilities', []);
+        $currentMonth = Carbon::now()->format('Y-m');
         
         $savedCount = 0;
         foreach ($utilities as $roomId => $data) {
@@ -148,37 +168,53 @@ class AdminDashboardController extends Controller
             if ($newElec !== null && $newWater !== null && $newElec !== '' && $newWater !== '') {
                 $room = Room::findOrFail($roomId);
                 
-                $latest = UtilityRecord::where('room_id', $room->id)
-                    ->orderBy('billing_month', 'desc')
+                $existing = UtilityRecord::where('room_id', $room->id)
+                    ->where('billing_month', $currentMonth)
                     ->first();
+                    
+                if ($existing) {
+                    if (intval($newElec) >= $existing->old_electricity && intval($newWater) >= $existing->old_water) {
+                        $existing->update([
+                            'new_electricity' => $newElec,
+                            'new_water' => $newWater,
+                            'status' => 'sent'
+                        ]);
+                        $room->update(['status' => 'overdue']);
+                        $savedCount++;
+                    }
+                } else {
+                    $latest = UtilityRecord::where('room_id', $room->id)
+                        ->orderBy('billing_month', 'desc')
+                        ->first();
 
-                $oldElec = $latest ? $latest->new_electricity : 0;
-                $oldWater = $latest ? $latest->new_water : 0;
+                    $oldElec = $latest ? $latest->new_electricity : 0;
+                    $oldWater = $latest ? $latest->new_water : 0;
 
-                if (intval($newElec) >= $oldElec && intval($newWater) >= $oldWater) {
-                    UtilityRecord::create([
-                        'room_id' => $room->id,
-                        'billing_month' => Carbon::now()->format('Y-m'),
-                        'old_electricity' => $oldElec,
-                        'new_electricity' => $newElec,
-                        'old_water' => $oldWater,
-                        'new_water' => $newWater,
-                        'electricity_price' => 3500,
-                        'water_price' => 15000,
-                        'status' => 'sent'
-                    ]);
+                    if (intval($newElec) >= $oldElec && intval($newWater) >= $oldWater) {
+                        UtilityRecord::create([
+                            'room_id' => $room->id,
+                            'billing_month' => $currentMonth,
+                            'old_electricity' => $oldElec,
+                            'new_electricity' => $newElec,
+                            'old_water' => $oldWater,
+                            'new_water' => $newWater,
+                            'electricity_price' => 3500,
+                            'water_price' => 15000,
+                            'status' => 'sent'
+                        ]);
 
-                    $room->update(['status' => 'overdue']);
-                    $savedCount++;
+                        $room->update(['status' => 'overdue']);
+                        $savedCount++;
+                    }
                 }
             }
         }
 
         if ($savedCount > 0) {
-            return back()->with('success', "Đã chốt nhanh chỉ số điện nước và gửi hóa đơn cho {$savedCount} phòng thành công!");
+            return redirect()->route('smartroom.admin', ['tab' => 'utility-section'])->with('success', "Đã chốt nhanh chỉ số điện nước và gửi hóa đơn cho {$savedCount} phòng thành công!");
         }
 
-        return back()->with('error', 'Không có chỉ số hợp lệ nào được cập nhật hoặc các chỉ số mới nhỏ hơn chỉ số cũ!');
+        return redirect()->route('smartroom.admin', ['tab' => 'utility-section'])->with('error', 'Không có chỉ số hợp lệ nào được cập nhật hoặc các chỉ số mới nhỏ hơn chỉ số cũ!');
     }
 
     public function storeResident(Request $request)
@@ -205,7 +241,7 @@ class AdminDashboardController extends Controller
         $room = Room::findOrFail($request->room_id);
         $room->update(['status' => 'occupied']);
 
-        return back()->with('success', 'Đã thêm mới cư dân và kích hoạt trạng thái phòng thành công!');
+        return redirect()->route('smartroom.admin', ['tab' => 'resident-section'])->with('success', 'Đã thêm mới cư dân và kích hoạt trạng thái phòng thành công!');
     }
 
     public function updateResident(Request $request, $id)
@@ -241,7 +277,7 @@ class AdminDashboardController extends Controller
             $newRoom->update(['status' => 'occupied']);
         }
 
-        return back()->with('success', 'Cập nhật thông tin cư dân thành công!');
+        return redirect()->route('smartroom.admin', ['tab' => 'resident-section'])->with('success', 'Cập nhật thông tin cư dân thành công!');
     }
 
     public function deleteResident($id)
@@ -257,7 +293,7 @@ class AdminDashboardController extends Controller
             $room->update(['status' => 'empty']);
         }
 
-        return back()->with('success', 'Đã xóa cư dân và trả trạng thái phòng về trống!');
+        return redirect()->route('smartroom.admin', ['tab' => 'resident-section'])->with('success', 'Đã xóa cư dân và trả trạng thái phòng về trống!');
     }
 
     public function payUtility($id)
@@ -277,7 +313,7 @@ class AdminDashboardController extends Controller
             }
         }
 
-        return back()->with('success', 'Xác nhận thanh toán hóa đơn điện nước thành công!');
+        return redirect()->route('smartroom.admin', ['tab' => 'utility-section'])->with('success', 'Xác nhận thanh toán hóa đơn điện nước thành công!');
     }
 
     public function printUtility($id)
@@ -319,7 +355,7 @@ class AdminDashboardController extends Controller
 
         \Illuminate\Support\Facades\Log::info("Telegram Notification Sent:\n" . $message);
 
-        return back()->with('success', 'Đã tự động gửi thông báo chi tiết hóa đơn qua Telegram & Zalo thành công!');
+        return redirect()->route('smartroom.admin', ['tab' => 'utility-section'])->with('success', 'Đã tự động gửi thông báo chi tiết hóa đơn qua Telegram & Zalo thành công!');
     }
 
     public function storeContract(Request $request)
@@ -349,7 +385,7 @@ class AdminDashboardController extends Controller
             'terms' => $request->terms,
         ]);
 
-        return back()->with('success', 'Tạo hợp đồng online thành công! Cư dân có thể ký qua liên kết.');
+        return redirect()->route('smartroom.admin', ['tab' => 'contract-section'])->with('success', 'Tạo hợp đồng online thành công! Cư dân có thể ký qua liên kết.');
     }
 
     public function deleteContract($id)
@@ -357,7 +393,7 @@ class AdminDashboardController extends Controller
         $contract = \App\Models\Contract::findOrFail($id);
         $contract->delete();
 
-        return back()->with('success', 'Xóa hợp đồng thành công!');
+        return redirect()->route('smartroom.admin', ['tab' => 'contract-section'])->with('success', 'Xóa hợp đồng thành công!');
     }
 
     public function signContractView($id)
