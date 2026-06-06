@@ -223,26 +223,47 @@ class AdminDashboardController extends Controller
 
     public function storeResident(Request $request)
     {
+        // 1. Trim & Sanitize input chống XSS & khoảng trắng 2-bytes
+        $input = $request->all();
+        foreach ($input as $key => $value) {
+            if (is_string($value)) {
+                $trimmed = preg_replace('/^[ -   　\s]+|[ -   　\s]+$/u', '', $value);
+                $input[$key] = strip_tags($trimmed);
+            }
+        }
+        $request->merge($input);
+
         $request->validate([
             'room_id' => 'required|exists:rooms,id',
             'name' => 'required|string|max:255',
+            'dob' => 'nullable|date',
             'phone' => 'required|string|max:20',
             'email' => 'nullable|email|max:255',
+            'cccd' => 'nullable|string|max:20',
+            'hometown' => 'nullable|string|max:255',
             'start_date' => 'required|date',
+            'temporary_residence_status' => 'required|in:none,registered,absent',
         ]);
+
+        $room = Room::findOrFail($request->room_id);
 
         // Create resident
         Resident::create([
+            'tenant_id' => $room->tenant_id ?? (\App\Models\Tenant::first()->id ?? 1),
             'room_id' => $request->room_id,
             'name' => $request->name,
+            'dob' => $request->dob,
             'phone' => $request->phone,
-            'email' => $request->email ?? ($request->name . '@gmail.com'),
+            'email' => $request->email ?? (str_replace(' ', '', strtolower($request->name)) . '@gmail.com'),
+            'cccd' => $request->cccd,
+            'hometown' => $request->hometown,
             'start_date' => $request->start_date,
-            'status' => 'active'
+            'status' => 'active',
+            'temporary_residence_status' => $request->temporary_residence_status,
+            'version' => 1
         ]);
 
         // Update room status
-        $room = Room::findOrFail($request->room_id);
         $room->update(['status' => 'occupied']);
 
         return redirect()->route('smartroom.admin', ['tab' => 'resident-section'])->with('success', 'Đã thêm mới cư dân và kích hoạt trạng thái phòng thành công!');
@@ -250,24 +271,58 @@ class AdminDashboardController extends Controller
 
     public function updateResident(Request $request, $id)
     {
+        // 1. Kiểm tra ID không hợp lệ hoặc sai định dạng
+        if (!is_numeric($id) || intval($id) <= 0 || intval($id) > 999999999) {
+            abort(404);
+        }
+
+        $resident = Resident::find($id);
+        if (!$resident) {
+            abort(404);
+        }
+
+        // Trim & Sanitize input chống XSS & khoảng trắng 2-bytes
+        $input = $request->all();
+        foreach ($input as $key => $value) {
+            if (is_string($value)) {
+                $trimmed = preg_replace('/^[ -   　\s]+|[ -   　\s]+$/u', '', $value);
+                $input[$key] = strip_tags($trimmed);
+            }
+        }
+        $request->merge($input);
+
         $request->validate([
             'room_id' => 'required|exists:rooms,id',
             'name' => 'required|string|max:255',
+            'dob' => 'nullable|date',
             'phone' => 'required|string|max:20',
             'email' => 'nullable|email|max:255',
+            'cccd' => 'nullable|string|max:20',
+            'hometown' => 'nullable|string|max:255',
             'start_date' => 'required|date',
+            'temporary_residence_status' => 'required|in:none,registered,absent',
+            'version' => 'required|integer', // Optimistic locking
         ]);
 
-        $resident = Resident::findOrFail($id);
+        // 2. Chặn ghi đè ghi nhận xung đột (Optimistic locking)
+        if ($resident->version != $request->version) {
+            return redirect()->route('smartroom.admin', ['tab' => 'resident-section'])->with('error', 'Dữ liệu đã thay đổi, vui lòng tải lại trang trước khi cập nhật!');
+        }
+
         $oldRoomId = $resident->room_id;
         $newRoomId = $request->room_id;
 
         $resident->update([
             'room_id' => $newRoomId,
             'name' => $request->name,
+            'dob' => $request->dob,
             'phone' => $request->phone,
-            'email' => $request->email ?? ($request->name . '@gmail.com'),
+            'email' => $request->email ?? (str_replace(' ', '', strtolower($request->name)) . '@gmail.com'),
+            'cccd' => $request->cccd,
+            'hometown' => $request->hometown,
             'start_date' => $request->start_date,
+            'temporary_residence_status' => $request->temporary_residence_status,
+            'version' => $resident->version + 1,
         ]);
 
         if ($oldRoomId != $newRoomId) {
@@ -286,10 +341,19 @@ class AdminDashboardController extends Controller
 
     public function deleteResident($id)
     {
-        $resident = Resident::findOrFail($id);
-        $room = $resident->room;
+        // 1. Kiểm tra ID không hợp lệ hoặc sai định dạng
+        if (!is_numeric($id) || intval($id) <= 0 || intval($id) > 999999999) {
+            abort(404);
+        }
 
-        // Soft delete/hard delete resident, for simplicity hard delete and update room status
+        $resident = Resident::find($id);
+
+        // 2. Kiểm tra xung đột xóa trùng (Concurrency)
+        if (!$resident) {
+            return redirect()->route('smartroom.admin', ['tab' => 'resident-section'])->with('error', 'Mục này đã bị xóa trước đó hoặc không tồn tại!');
+        }
+
+        $room = $resident->room;
         $resident->delete();
 
         if ($room) {
@@ -298,6 +362,162 @@ class AdminDashboardController extends Controller
         }
 
         return redirect()->route('smartroom.admin', ['tab' => 'resident-section'])->with('success', 'Đã xóa cư dân và trả trạng thái phòng về trống!');
+    }
+
+    // --- Resident Relative Management APIs ---
+
+    public function getRelatives($residentId)
+    {
+        if (!is_numeric($residentId) || intval($residentId) <= 0) {
+            return response()->json(['success' => false, 'message' => 'ID cư dân không hợp lệ!'], 400);
+        }
+
+        $resident = Resident::find($residentId);
+        if (!$resident) {
+            return response()->json(['success' => false, 'message' => 'Không tìm thấy cư dân!'], 404);
+        }
+
+        $relatives = $resident->relatives()->orderBy('id', 'desc')->get();
+
+        return response()->json([
+            'success' => true,
+            'resident_name' => $resident->name,
+            'relatives' => $relatives
+        ]);
+    }
+
+    public function storeRelative(Request $request, $residentId)
+    {
+        if (!is_numeric($residentId) || intval($residentId) <= 0) {
+            return response()->json(['success' => false, 'message' => 'ID cư dân không hợp lệ!'], 400);
+        }
+
+        $resident = Resident::find($residentId);
+        if (!$resident) {
+            return response()->json(['success' => false, 'message' => 'Không tìm thấy cư dân!'], 404);
+        }
+
+        // Sanitize inputs
+        $input = $request->all();
+        foreach ($input as $key => $value) {
+            if (is_string($value)) {
+                $trimmed = preg_replace('/^[ -   　\s]+|[ -   　\s]+$/u', '', $value);
+                $input[$key] = strip_tags($trimmed);
+            }
+        }
+        $request->merge($input);
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'dob' => 'nullable|date',
+            'cccd' => 'nullable|string|max:20',
+            'phone' => 'nullable|string|max:20',
+            'hometown' => 'nullable|string|max:255',
+            'relationship' => 'nullable|string|max:100',
+            'temporary_residence_status' => 'required|in:none,registered,absent',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+        ]);
+
+        $relative = $resident->relatives()->create([
+            'name' => $request->name,
+            'dob' => $request->dob,
+            'cccd' => $request->cccd,
+            'phone' => $request->phone,
+            'hometown' => $request->hometown,
+            'relationship' => $request->relationship,
+            'temporary_residence_status' => $request->temporary_residence_status,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'version' => 1
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Đã thêm thông tin người thân tạm trú thành công!',
+            'relative' => $relative
+        ]);
+    }
+
+    public function updateRelative(Request $request, $id)
+    {
+        if (!is_numeric($id) || intval($id) <= 0) {
+            return response()->json(['success' => false, 'message' => 'ID không hợp lệ!'], 400);
+        }
+
+        $relative = \App\Models\ResidentRelative::find($id);
+        if (!$relative) {
+            return response()->json(['success' => false, 'message' => 'Mục này đã bị xóa trước đó hoặc không tồn tại!'], 404);
+        }
+
+        // Sanitize inputs
+        $input = $request->all();
+        foreach ($input as $key => $value) {
+            if (is_string($value)) {
+                $trimmed = preg_replace('/^[ -   　\s]+|[ -   　\s]+$/u', '', $value);
+                $input[$key] = strip_tags($trimmed);
+            }
+        }
+        $request->merge($input);
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'dob' => 'nullable|date',
+            'cccd' => 'nullable|string|max:20',
+            'phone' => 'nullable|string|max:20',
+            'hometown' => 'nullable|string|max:255',
+            'relationship' => 'nullable|string|max:100',
+            'temporary_residence_status' => 'required|in:none,registered,absent',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'version' => 'required|integer'
+        ]);
+
+        // Optimistic locking
+        if ($relative->version != $request->version) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Dữ liệu đã thay đổi, vui lòng tải lại danh sách trước khi cập nhật!'
+            ], 409);
+        }
+
+        $relative->update([
+            'name' => $request->name,
+            'dob' => $request->dob,
+            'cccd' => $request->cccd,
+            'phone' => $request->phone,
+            'hometown' => $request->hometown,
+            'relationship' => $request->relationship,
+            'temporary_residence_status' => $request->temporary_residence_status,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'version' => $relative->version + 1
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cập nhật thông tin người thân thành công!',
+            'relative' => $relative
+        ]);
+    }
+
+    public function deleteRelative($id)
+    {
+        if (!is_numeric($id) || intval($id) <= 0) {
+            return response()->json(['success' => false, 'message' => 'ID không hợp lệ!'], 400);
+        }
+
+        $relative = \App\Models\ResidentRelative::find($id);
+        if (!$relative) {
+            return response()->json(['success' => false, 'message' => 'Mục này đã bị xóa trước đó hoặc không tồn tại!'], 404);
+        }
+
+        $relative->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Đã xóa người thân tạm trú thành công!'
+        ]);
     }
 
     public function payUtility($id)

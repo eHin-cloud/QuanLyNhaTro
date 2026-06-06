@@ -14,11 +14,15 @@ class Resident extends Model
         'room_id',
         'user_id',
         'name',
+        'dob',
         'phone',
         'email',
         'cccd',
+        'hometown',
         'start_date',
-        'status'
+        'status',
+        'temporary_residence_status',
+        'version'
     ];
 
     public function tenant(): BelongsTo
@@ -44,5 +48,10 @@ class Resident extends Model
     public function tickets(): HasMany
     {
         return $this->hasMany(Ticket::class);
+    }
+
+    public function relatives(): HasMany
+    {
+        return $this->hasMany(ResidentRelative::class);
     }
 }
