@@ -45,8 +45,22 @@
             </div>
             <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">SmartRoom <span class="text-indigo-400">&</span> Renty</span>
         </div>
-        <div>
-            <span class="text-xs px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-semibold uppercase tracking-wider">Phiên bản 1.0</span>
+        <div class="flex items-center gap-4">
+            @auth
+                <div class="flex items-center gap-3 bg-slate-900/40 backdrop-blur-xl border border-slate-800/80 px-3.5 py-1.5 rounded-full text-xs">
+                    <span class="font-bold text-indigo-400">
+                        <i class="fa-solid fa-user-circle mr-1"></i> {{ Auth::user()->name }} ({{ Auth::user()->role === 'admin' ? 'Chủ trọ' : 'Người thuê' }})
+                    </span>
+                    <a href="{{ route('signout') }}" class="font-semibold text-rose-400 hover:text-rose-300 transition-colors">
+                        Đăng xuất
+                    </a>
+                </div>
+            @else
+                <a href="{{ route('login') }}" class="px-4 py-1.5 rounded-full bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-semibold text-slate-300 hover:text-slate-100 transition-all">
+                    Đăng Nhập
+                </a>
+            @endauth
+            <span class="text-xs px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-semibold uppercase tracking-wider hidden sm:inline-block">Phiên bản 1.0</span>
         </div>
     </header>
 
@@ -118,9 +132,7 @@
             <div>
                 © 2026 SmartRoom & Renty Review. Đồ án xây dựng hệ thống quản lý & số hóa nhà trọ.
             </div>
-            <div class="flex items-center gap-2">
-                <span>Thực hiện bởi: <strong class="text-slate-400">Thành viên 1</strong> (Frontend Developer)</span>
-            </div>
+
         </div>
     </footer>
 

@@ -63,4 +63,9 @@ class Room extends Model
     {
         return $this->hasMany(Review::class);
     }
+
+    public function contactRequests()
+    {
+        return $this->hasMany(ContactRequest::class);
+    }
 }

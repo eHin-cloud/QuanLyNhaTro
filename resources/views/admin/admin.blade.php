@@ -75,6 +75,15 @@
                     <i class="fa-solid fa-file-signature text-lg"></i>
                     <span>Hợp Đồng Online</span>
                 </button>
+                <button onclick="switchTab('contact-section', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
+                    <i class="fa-solid fa-phone-volume text-lg"></i>
+                    <span>Yêu Cầu Tư Vấn</span>
+                    @if($contactRequests->where('status', 'pending')->count() > 0)
+                        <span class="ml-auto bg-rose-500 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full animate-pulse">
+                            {{ $contactRequests->where('status', 'pending')->count() }}
+                        </span>
+                    @endif
+                </button>
             </nav>
         </div>
 
@@ -89,8 +98,8 @@
                     <p class="text-[10px] text-slate-500 truncate">Chủ chung cư mini</p>
                 </div>
             </div>
-            <a href="{{ route('smartroom.portal') }}" class="mt-3 w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-semibold text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 transition-all duration-200">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i> Thoát Cổng Admin
+            <a href="{{ route('signout') }}" class="mt-3 w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-semibold text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 transition-all duration-200">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng Xuất (Thoát Admin)
             </a>
         </div>
     </aside>
@@ -201,17 +210,54 @@
 
                 <!-- Charts Section -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Revenue Line Chart -->
+                    <!-- Revenue Line & Doughnut Split Chart -->
                     <div class="glass-card rounded-2xl p-6 lg:col-span-2 flex flex-col justify-between">
-                        <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center justify-between mb-4 border-b border-slate-900/60 pb-3">
                             <div>
-                                <h3 class="text-base font-bold text-slate-200">Xu Hướng Doanh Thu</h3>
-                                <p class="text-xs text-slate-500">So sánh doanh thu các tháng gần nhất</p>
+                                <h3 class="text-base font-bold text-slate-200">Phân Tích Doanh Thu Hệ Thống</h3>
+                                <p class="text-xs text-slate-500">Báo cáo xu hướng cột và cơ cấu nguồn thu từ điện, nước, phòng</p>
                             </div>
-                            <span class="text-xs px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-semibold">Doanh thu phòng trọ (VND)</span>
+                            <span class="text-[10px] px-2.5 py-1 rounded bg-indigo-500/10 text-indigo-400 font-bold border border-indigo-500/20 uppercase tracking-wider">Doanh thu tháng 06</span>
                         </div>
-                        <div class="h-64 w-full">
-                            <canvas id="revenueChart"></canvas>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+                            <!-- Left: Trend Bar Chart -->
+                            <div class="md:col-span-3 flex flex-col justify-between">
+                                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2">Xu Hướng Doanh Thu</span>
+                                <div class="h-56 w-full">
+                                    <canvas id="revenueChart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <!-- Right: Doughnut Breakdown Chart -->
+                            <div class="md:col-span-2 flex flex-col justify-between border-t md:border-t-0 md:border-l border-slate-800/50 pt-4 md:pt-0 md:pl-6">
+                                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2">Cơ Cấu Nguồn Thu</span>
+                                <div class="h-36 w-full flex items-center justify-center relative">
+                                    <canvas id="revenueBreakdownChart"></canvas>
+                                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-2">
+                                        <span class="text-[8px] text-slate-500 font-bold uppercase tracking-wider">Tổng thu</span>
+                                        <span class="text-xs font-black text-indigo-400" id="breakdown-total-txt">--M</span>
+                                    </div>
+                                </div>
+                                <div class="space-y-1.5 mt-3 text-[10px]">
+                                    <div class="flex items-center justify-between">
+                                        <span class="flex items-center gap-1.5 text-slate-450"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>Tiền phòng</span>
+                                        <strong class="text-slate-200" id="breakdown-room-pct">--%</strong>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="flex items-center gap-1.5 text-slate-450"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Tiền điện</span>
+                                        <strong class="text-slate-200" id="breakdown-elec-pct">--%</strong>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="flex items-center gap-1.5 text-slate-450"><span class="w-1.5 h-1.5 rounded-full bg-cyan-500"></span>Tiền nước</span>
+                                        <strong class="text-slate-200" id="breakdown-water-pct">--%</strong>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="flex items-center gap-1.5 text-slate-450"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Dịch vụ</span>
+                                        <strong class="text-slate-200" id="breakdown-service-pct">--%</strong>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <!-- Doughnut Room Status Chart -->
@@ -462,6 +508,9 @@
                             <p class="text-xs text-slate-500">Nhập chỉ số điện nước tháng 06/2026. Đơn giá: Điện 3.500đ/kWh, Nước 15.000đ/m3.</p>
                         </div>
                         <div class="flex items-center gap-2">
+                            <button type="button" onclick="triggerAutoRemind(this)" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-rose-600/20 transition-all flex items-center gap-2">
+                                <i class="fa-solid fa-bell animate-bounce"></i> Tự Động Nhắc Nợ Zalo Hàng Loạt
+                            </button>
                             <button type="submit" form="bulk-utility-form" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2">
                                 <i class="fa-solid fa-check-double"></i> Lưu & Xuất Hóa Đơn Hàng Loạt
                             </button>
@@ -489,8 +538,19 @@
                                     @php
                                         $resident = $room->residents->first();
                                         $latestBill = $room->utilityRecords->first();
-                                        $oldElec = $latestBill ? $latestBill->new_electricity : 0;
-                                        $oldWater = $latestBill ? $latestBill->new_water : 0;
+                                        $currentMonth = \Carbon\Carbon::now()->format('Y-m');
+                                        
+                                        if ($latestBill && $latestBill->billing_month === $currentMonth) {
+                                            $oldElec = $latestBill->old_electricity;
+                                            $oldWater = $latestBill->old_water;
+                                            $newElec = $latestBill->new_electricity;
+                                            $newWater = $latestBill->new_water;
+                                        } else {
+                                            $oldElec = $latestBill ? $latestBill->new_electricity : 0;
+                                            $oldWater = $latestBill ? $latestBill->new_water : 0;
+                                            $newElec = '';
+                                            $newWater = '';
+                                        }
                                         $statusColor = $room->status === 'overdue' ? 'bg-amber-500' : ($room->status === 'empty' ? 'bg-emerald-500' : 'bg-red-500');
                                     @endphp
                                     <tr class="hover:bg-slate-900/10 transition-all" data-room="{{ $room->room_number }}" data-price="{{ $room->price }}">
@@ -500,11 +560,11 @@
                                         </td>
                                         <td class="px-6 py-4 text-xs text-slate-500" data-field="old-elec">{{ $oldElec }}</td>
                                         <td class="px-6 py-4">
-                                            <input type="number" name="utilities[{{ $room->id }}][new_electricity]" oninput="calculateRowCost(this)" class="new-elec-input w-28 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="Nhập số mới">
+                                            <input type="number" name="utilities[{{ $room->id }}][new_electricity]" value="{{ $newElec }}" oninput="calculateRowCost(this)" class="new-elec-input w-28 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="Nhập số mới">
                                         </td>
                                         <td class="px-6 py-4 text-xs text-slate-500" data-field="old-water">{{ $oldWater }}</td>
                                         <td class="px-6 py-4">
-                                            <input type="number" name="utilities[{{ $room->id }}][new_water]" oninput="calculateRowCost(this)" class="new-water-input w-28 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="Nhập số mới">
+                                            <input type="number" name="utilities[{{ $room->id }}][new_water]" value="{{ $newWater }}" oninput="calculateRowCost(this)" class="new-water-input w-28 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="Nhập số mới">
                                         </td>
                                         <td class="px-6 py-4 text-xs text-slate-400">
                                             <div>⚡ Điện: <strong data-field="used-elec">0</strong> kWh</div>
@@ -714,10 +774,10 @@
                                     <td class="px-6 py-4 text-center">
                                         <div class="flex items-center justify-center gap-2">
                                             @if($c->status === 'pending')
-                                                <button onclick="copySignLink('{{ route('smartroom.contract.sign_view', $c->id) }}', this)" class="px-3 py-2 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-400 hover:text-white rounded-xl text-xs font-bold border border-indigo-500/20 transition-all flex items-center gap-1.5">
+                                                <button onclick="copySignLink('{{ route('smartroom.contract.sign_view', $c->id, false) }}', this)" class="px-3 py-2 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-400 hover:text-white rounded-xl text-xs font-bold border border-indigo-500/20 transition-all flex items-center gap-1.5">
                                                     <i class="fa-solid fa-link"></i> Link ký
                                                 </button>
-                                                <button onclick="openSendMsgModal('{{ $c->resident ? $c->resident->phone : '' }}', '{{ $c->resident ? $c->resident->name : '' }}', 'Kính gửi anh/chị {{ $c->resident ? $c->resident->name : '' }}, vui lòng truy cập đường link sau để hoàn tất ký kết hợp đồng thuê phòng {{ $c->room ? $c->room->room_number : '' }}: {{ route('smartroom.contract.sign_view', $c->id) }}', 'contract')" class="px-3 py-2 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-xl text-xs font-bold border border-emerald-500/20 transition-all flex items-center gap-1.5">
+                                                <button onclick="openSendMsgModal('{{ $c->resident ? $c->resident->phone : '' }}', '{{ $c->resident ? $c->resident->name : '' }}', 'Kính gửi anh/chị {{ $c->resident ? $c->resident->name : '' }}, vui lòng truy cập đường link sau để hoàn tất ký kết hợp đồng thuê phòng {{ $c->room ? $c->room->room_number : '' }}: ' + window.location.origin + '{{ route('smartroom.contract.sign_view', $c->id, false) }}', 'contract')" class="px-3 py-2 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-xl text-xs font-bold border border-emerald-500/20 transition-all flex items-center gap-1.5">
                                                     <i class="fa-solid fa-paper-plane"></i> Gửi Zalo/SMS
                                                 </button>
                                             @endif
@@ -748,6 +808,141 @@
                         </table>
                     </div>
                 </div>
+            </section>
+
+            <!-- SECTION 6: CONTACT REQUESTS -->
+            <section id="contact-section" class="tab-content hidden space-y-8 animate-fade-in">
+                <!-- Stat Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="glass-card rounded-2xl p-6 relative overflow-hidden group hover:shadow-[0_0_30px_rgba(16,185,129,0.1)] transition-all duration-300">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-600/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500"></div>
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Tổng số yêu cầu</p>
+                                <h3 class="text-3xl font-extrabold text-white mt-2 tracking-tight">{{ $contactRequests->count() }}</h3>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                                <i class="fa-solid fa-phone-volume text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-2xl p-6 relative overflow-hidden group hover:shadow-[0_0_30px_rgba(245,158,11,0.1)] transition-all duration-300">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-amber-600/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500"></div>
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Chưa xử lý</p>
+                                <h3 class="text-3xl font-extrabold text-amber-400 mt-2 tracking-tight">{{ $contactRequests->where('status', 'pending')->count() }}</h3>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400">
+                                <i class="fa-solid fa-clock-rotate-left text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-2xl p-6 relative overflow-hidden group hover:shadow-[0_0_30px_rgba(99,102,241,0.1)] transition-all duration-300">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-600/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500"></div>
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Đã liên hệ</p>
+                                <h3 class="text-3xl font-extrabold text-indigo-400 mt-2 tracking-tight">{{ $contactRequests->where('status', 'processed')->count() }}</h3>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                                <i class="fa-solid fa-square-check text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Consultation Requests Table -->
+                <div class="glass-card rounded-3xl border border-slate-900 overflow-hidden shadow-2xl">
+                    <div class="p-6 border-b border-slate-900 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-200">Danh sách đăng ký tư vấn</h2>
+                            <p class="text-xs text-slate-500 mt-1">Các yêu cầu xem phòng và đăng ký tư vấn từ khách thuê trên Renty Hub</p>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-slate-300">
+                            <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] font-bold tracking-wider border-b border-slate-900">
+                                <tr>
+                                    <th class="px-6 py-4">Khách hàng</th>
+                                    <th class="px-6 py-4">Số điện thoại</th>
+                                    <th class="px-6 py-4">Phòng quan tâm</th>
+                                    <th class="px-6 py-4">Lời nhắn</th>
+                                    <th class="px-6 py-4">Ngày đăng ký</th>
+                                    <th class="px-6 py-4">Trạng thái</th>
+                                    <th class="px-6 py-4 text-right">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-900">
+                                @forelse($contactRequests as $req)
+                                <tr class="hover:bg-slate-900/40 transition-colors">
+                                    <td class="px-6 py-4 font-semibold text-slate-250">{{ $req->name }}</td>
+                                    <td class="px-6 py-4 font-mono text-xs text-indigo-300">{{ $req->phone }}</td>
+                                    <td class="px-6 py-4">
+                                        <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300">
+                                            Phòng {{ $req->room->room_number }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-xs max-w-xs truncate" title="{{ $req->message }}">
+                                        {{ $req->message ?? '-' }}
+                                    </td>
+                                    <td class="px-6 py-4 text-xs text-slate-500">{{ $req->created_at->format('d/m/Y H:i') }}</td>
+                                    <td class="px-6 py-4">
+                                        @if($req->status === 'pending')
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                                                Chờ xử lý
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                                Đã liên hệ
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 text-right font-semibold">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <a href="tel:{{ $req->phone }}" class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center hover:bg-emerald-500 hover:text-white transition-all text-xs" title="Gọi điện">
+                                                <i class="fa-solid fa-phone"></i>
+                                            </a>
+                                            <a href="https://zalo.me/{{ $req->phone }}" target="_blank" class="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all text-xs" title="Chat Zalo">
+                                                <i class="fa-solid fa-comment-sms"></i>
+                                            </a>
+                                            <form action="{{ route('smartroom.admin.contact_request.status', $req->id) }}" method="POST" class="inline">
+                                                @csrf
+                                                <input type="hidden" name="status" value="{{ $req->status === 'pending' ? 'processed' : 'pending' }}">
+                                                <button type="submit" class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center hover:bg-indigo-500 hover:text-white transition-all text-xs" title="Đổi trạng thái">
+                                                    <i class="fa-solid {{ $req->status === 'pending' ? 'fa-check' : 'fa-rotate-left' }}"></i>
+                                                </button>
+                                            </form>
+                                            <form action="{{ route('smartroom.admin.contact_request.delete', $req->id) }}" method="POST" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa yêu cầu tư vấn này?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all text-xs" title="Xóa">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="7" class="px-6 py-12 text-center text-xs text-slate-500">
+                                        <div class="flex flex-col items-center justify-center gap-3">
+                                            <i class="fa-solid fa-phone-slash text-2xl text-slate-700"></i>
+                                            <span>Chưa có yêu cầu tư vấn hay đăng ký xem phòng nào.</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
 
         </main>
     </div>
@@ -959,6 +1154,169 @@
 
     <!-- JS Logic -->
     <script>
+        // Setup custom toast notification override for alert()
+        (function() {
+            const toastStyle = document.createElement('style');
+            toastStyle.innerHTML = `
+                .custom-toast-container {
+                    position: fixed;
+                    top: 24px;
+                    right: 24px;
+                    z-index: 9999;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                    pointer-events: none;
+                }
+                .custom-toast {
+                    min-width: 320px;
+                    max-width: 450px;
+                    background: rgba(15, 23, 42, 0.9);
+                    backdrop-filter: blur(12px);
+                    -webkit-backdrop-filter: blur(12px);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 16px;
+                    padding: 16px 20px;
+                    color: #f1f5f9;
+                    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3), 0 0 1px 1px rgba(255, 255, 255, 0.05);
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 14px;
+                    pointer-events: auto;
+                    transform: translateX(120%);
+                    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                }
+                .custom-toast.show {
+                    transform: translateX(0);
+                }
+                .custom-toast.hide {
+                    transform: translateX(120%);
+                    opacity: 0;
+                    margin-top: -60px;
+                }
+                .custom-toast-icon {
+                    flex-shrink: 0;
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 13px;
+                }
+                .custom-toast-success .custom-toast-icon {
+                    background: rgba(16, 185, 129, 0.15);
+                    color: #10b981;
+                    border: 1px solid rgba(16, 185, 129, 0.2);
+                }
+                .custom-toast-warning .custom-toast-icon {
+                    background: rgba(245, 158, 11, 0.15);
+                    color: #f59e0b;
+                    border: 1px solid rgba(245, 158, 11, 0.2);
+                }
+                .custom-toast-error .custom-toast-icon {
+                    background: rgba(239, 68, 68, 0.15);
+                    color: #ef4444;
+                    border: 1px solid rgba(239, 68, 68, 0.2);
+                }
+                .custom-toast-info .custom-toast-icon {
+                    background: rgba(59, 130, 246, 0.15);
+                    color: #3b82f6;
+                    border: 1px solid rgba(59, 130, 246, 0.2);
+                }
+                .custom-toast-content {
+                    flex-grow: 1;
+                }
+                .custom-toast-title {
+                    font-size: 13px;
+                    font-weight: 700;
+                    margin-bottom: 3px;
+                    letter-spacing: 0.3px;
+                }
+                .custom-toast-message {
+                    font-size: 12px;
+                    color: #94a3b8;
+                    line-height: 1.5;
+                    white-space: pre-wrap;
+                }
+                .custom-toast-close {
+                    color: #64748b;
+                    cursor: pointer;
+                    font-size: 14px;
+                    transition: color 0.2s;
+                    margin-top: 1px;
+                }
+                .custom-toast-close:hover {
+                    color: #94a3b8;
+                }
+            `;
+            document.head.appendChild(toastStyle);
+
+            window.alert = function(message) {
+                let type = 'success';
+                let title = 'Thông Báo';
+                
+                const lowerMsg = message.toLowerCase();
+                if (lowerMsg.includes('lỗi') || 
+                    lowerMsg.includes('không thể') || 
+                    lowerMsg.includes('thất bại') || 
+                    lowerMsg.includes('chưa') || 
+                    lowerMsg.includes('không được') || 
+                    lowerMsg.includes('chỉ được') || 
+                    lowerMsg.includes('nhỏ hơn') ||
+                    lowerMsg.includes('vui lòng')) {
+                    type = 'warning';
+                    title = 'Cảnh Báo';
+                } else if (lowerMsg.includes('thành công') || 
+                           lowerMsg.includes('tuyệt vời') || 
+                           lowerMsg.includes('đã') || 
+                           lowerMsg.includes('sao chép')) {
+                    type = 'success';
+                    title = 'Thành Công';
+                } else {
+                    type = 'info';
+                    title = 'Thông Tin';
+                }
+                
+                let container = document.querySelector('.custom-toast-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.className = 'custom-toast-container';
+                    document.body.appendChild(container);
+                }
+                
+                const toast = document.createElement('div');
+                toast.className = `custom-toast custom-toast-${type}`;
+                
+                let iconHtml = '';
+                if (type === 'success') iconHtml = '<i class="fa-solid fa-check"></i>';
+                else if (type === 'warning') iconHtml = '<i class="fa-solid fa-triangle-exclamation"></i>';
+                else if (type === 'error') iconHtml = '<i class="fa-solid fa-circle-xmark"></i>';
+                else iconHtml = '<i class="fa-solid fa-info"></i>';
+                
+                toast.innerHTML = `
+                    <div class="custom-toast-icon">${iconHtml}</div>
+                    <div class="custom-toast-content">
+                        <div class="custom-toast-title">${title}</div>
+                        <div class="custom-toast-message">${message}</div>
+                    </div>
+                    <div class="custom-toast-close" onclick="this.parentElement.classList.add('hide'); setTimeout(() => this.parentElement.remove(), 400);"><i class="fa-solid fa-xmark"></i></div>
+                `;
+                
+                container.appendChild(toast);
+                
+                setTimeout(() => toast.classList.add('show'), 10);
+                
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.classList.remove('show');
+                        toast.classList.add('hide');
+                        setTimeout(() => toast.remove(), 400);
+                    }
+                }, 4500);
+            };
+        })();
+
         // Tab switching
         function switchTab(tabId, btn) {
             // Hide all sections
@@ -985,6 +1343,7 @@
             else if(tabId === 'utility-section') title = "Chốt Chỉ Số Điện Nước";
             else if(tabId === 'resident-section') title = "Quản Lý Cư Dân";
             else if(tabId === 'contract-section') title = "Quản Lý Hợp Đồng Online";
+            else if(tabId === 'contact-section') title = "Yêu Cầu Tư Vấn & Xem Phòng";
             document.getElementById('section-title').textContent = title;
         }
 
@@ -1022,7 +1381,8 @@
         }
 
         function copySignLink(url, btn) {
-            navigator.clipboard.writeText(url).then(() => {
+            const fullUrl = url.startsWith('http') ? url : (window.location.origin + url);
+            navigator.clipboard.writeText(fullUrl).then(() => {
                 const originalText = btn.innerHTML;
                 btn.innerHTML = '<i class="fa-solid fa-check"></i> Đã sao chép!';
                 btn.classList.remove('text-indigo-400', 'bg-indigo-600/20');
@@ -1399,25 +1759,21 @@
             // Revenue Chart
             const ctxRevenue = document.getElementById('revenueChart').getContext('2d');
             const gradRev = ctxRevenue.createLinearGradient(0, 0, 0, 300);
-            gradRev.addColorStop(0, 'rgba(99, 102, 241, 0.4)');
-            gradRev.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
+            gradRev.addColorStop(0, '#6366f1');
+            gradRev.addColorStop(1, '#4f46e5');
 
             new Chart(ctxRevenue, {
-                type: 'line',
+                type: 'bar',
                 data: {
                     labels: {!! json_encode($chartMonths) !!},
                     datasets: [{
-                        label: 'Doanh thu phòng trọ (VND)',
+                        label: 'Doanh thu (VND)',
                         data: {!! json_encode($chartRevenue) !!},
-                        borderColor: '#6366f1',
-                        borderWidth: 3,
-                        pointBackgroundColor: '#818cf8',
-                        pointBorderColor: '#6366f1',
-                        pointRadius: 6,
-                        pointHoverRadius: 8,
-                        fill: true,
                         backgroundColor: gradRev,
-                        tension: 0.35
+                        hoverBackgroundColor: '#818cf8',
+                        borderRadius: 6,
+                        borderSkipped: false,
+                        barThickness: 16
                     }]
                 },
                 options: {
@@ -1446,6 +1802,65 @@
                 }
             });
 
+            // Revenue Breakdown Doughnut Chart
+            const ctxBreakdown = document.getElementById('revenueBreakdownChart').getContext('2d');
+            let breakdownChart = new Chart(ctxBreakdown, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Tiền phòng', 'Tiền điện', 'Tiền nước', 'Dịch vụ'],
+                    datasets: [{
+                        data: [0, 0, 0, 0],
+                        backgroundColor: [
+                            '#6366f1',
+                            '#f59e0b',
+                            '#06b6d4',
+                            '#10b981'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#0a0f1d',
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) label += ': ';
+                                    if (context.parsed !== null) {
+                                        label += new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(context.parsed);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            fetch('/api/revenue-breakdown')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const b = data.breakdown;
+                        const p = data.percentages;
+                        breakdownChart.data.datasets[0].data = [b.room, b.electric, b.water, b.service];
+                        breakdownChart.update();
+                        
+                        document.getElementById('breakdown-total-txt').textContent = (data.total / 1000000).toFixed(1) + 'M';
+                        document.getElementById('breakdown-room-pct').textContent = p.room + '%';
+                        document.getElementById('breakdown-elec-pct').textContent = p.electric + '%';
+                        document.getElementById('breakdown-water-pct').textContent = p.water + '%';
+                        document.getElementById('breakdown-service-pct').textContent = p.service + '%';
+                    }
+                })
+                .catch(err => console.error("Error loading revenue breakdown:", err));
+
             // Status Pie Chart
             const ctxStatus = document.getElementById('statusChart').getContext('2d');
             new Chart(ctxStatus, {
@@ -1469,6 +1884,29 @@
                     }
                 }
             });
+
+            // Trigger calculation for any pre-populated utility inputs
+            document.querySelectorAll('.new-elec-input').forEach(input => {
+                if (input.value) {
+                    calculateRowCost(input);
+                }
+            });
+
+            // Auto-switch to tab from query param if provided (e.g. ?tab=utility-section)
+            const urlParams = new URLSearchParams(window.location.search);
+            const tabParam = urlParams.get('tab');
+            if (tabParam) {
+                const targetBtn = Array.from(document.querySelectorAll('.nav-btn')).find(btn => {
+                    const onclickStr = btn.getAttribute('onclick') || '';
+                    return onclickStr.includes(tabParam);
+                });
+                if (targetBtn) {
+                    switchTab(tabParam, targetBtn);
+                }
+                // Clean the URL parameter without reloading the page
+                const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                window.history.replaceState({ path: newUrl }, '', newUrl);
+            }
         });
 
         function showVietQR(billId) {
@@ -1680,6 +2118,46 @@
                 setTimeout(() => {
                     btn.innerHTML = originalText;
                 }, 2000);
+            });
+        }
+
+        function triggerAutoRemind(btn) {
+            if (!confirm('Hệ thống sẽ tự động quét các hóa đơn chưa đóng trong tháng này và gửi tin nhắn nhắc nợ qua Zalo hàng loạt. Bạn có chắc chắn muốn thực hiện?')) {
+                return;
+            }
+
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang tự động gửi...';
+
+            fetch('/api/utility-bills/auto-remind', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+
+                if (data.success) {
+                    if (data.sent_count > 0) {
+                        let roomList = data.sent_rooms.map(r => `Phòng ${r.room_number} (${r.resident_name}): ${r.total_amount_formatted}`).join('\n');
+                        alert(`🚀 Tự động nhắc nợ thành công!\nĐã gửi tin nhắn nhắc nợ Zalo tới ${data.sent_count} phòng chưa đóng tiền:\n\n${roomList}`);
+                    } else {
+                        alert(`✨ Tuyệt vời! Tất cả các phòng đã hoàn thành đóng tiền trọ tháng này.`);
+                    }
+                } else {
+                    alert("Có lỗi xảy ra khi gửi nhắc nợ tự động.");
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+                alert("Không thể kết nối đến máy chủ để thực hiện gửi nhắc nợ hàng loạt!");
+                console.error(err);
             });
         }
     </script>

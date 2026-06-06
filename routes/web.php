@@ -39,21 +39,28 @@ Route::get('/', function () {
 })->name('smartroom.portal');
 
 
-Route::get('/smartroom/admin', [AdminDashboardController::class, 'index'])->name('smartroom.admin');
-Route::post('/smartroom/admin/utility', [AdminDashboardController::class, 'storeUtility'])->name('smartroom.admin.utility.store');
-Route::post('/smartroom/admin/utility/bulk', [AdminDashboardController::class, 'storeUtilityBulk'])->name('smartroom.admin.utility.bulk_store');
-Route::post('/smartroom/admin/resident', [AdminDashboardController::class, 'storeResident'])->name('smartroom.admin.resident.store');
-Route::put('/smartroom/admin/resident/{id}', [AdminDashboardController::class, 'updateResident'])->name('smartroom.admin.resident.update');
-Route::delete('/smartroom/admin/resident/{id}', [AdminDashboardController::class, 'deleteResident'])->name('smartroom.admin.resident.delete');
-Route::post('/smartroom/admin/utility/{id}/pay', [AdminDashboardController::class, 'payUtility'])->name('smartroom.admin.utility.pay');
-Route::get('/smartroom/admin/utility/{id}/print', [AdminDashboardController::class, 'printUtility'])->name('smartroom.admin.utility.print');
-Route::post('/smartroom/admin/utility/{id}/notify', [AdminDashboardController::class, 'notifyUtility'])->name('smartroom.admin.utility.notify');
+Route::middleware('admin')->group(function () {
+    Route::get('/smartroom/admin', [AdminDashboardController::class, 'index'])->name('smartroom.admin');
+    Route::post('/smartroom/admin/utility', [AdminDashboardController::class, 'storeUtility'])->name('smartroom.admin.utility.store');
+    Route::post('/smartroom/admin/utility/bulk', [AdminDashboardController::class, 'storeUtilityBulk'])->name('smartroom.admin.utility.bulk_store');
+    Route::post('/smartroom/admin/resident', [AdminDashboardController::class, 'storeResident'])->name('smartroom.admin.resident.store');
+    Route::put('/smartroom/admin/resident/{id}', [AdminDashboardController::class, 'updateResident'])->name('smartroom.admin.resident.update');
+    Route::delete('/smartroom/admin/resident/{id}', [AdminDashboardController::class, 'deleteResident'])->name('smartroom.admin.resident.delete');
+    Route::post('/smartroom/admin/utility/{id}/pay', [AdminDashboardController::class, 'payUtility'])->name('smartroom.admin.utility.pay');
+    Route::get('/smartroom/admin/utility/{id}/print', [AdminDashboardController::class, 'printUtility'])->name('smartroom.admin.utility.print');
+    Route::post('/smartroom/admin/utility/{id}/notify', [AdminDashboardController::class, 'notifyUtility'])->name('smartroom.admin.utility.notify');
 
-// Online Contracts
-Route::post('/smartroom/admin/contract', [AdminDashboardController::class, 'storeContract'])->name('smartroom.admin.contract.store');
-Route::delete('/smartroom/admin/contract/{id}', [AdminDashboardController::class, 'deleteContract'])->name('smartroom.admin.contract.delete');
+    // Online Contracts
+    Route::post('/smartroom/admin/contract', [AdminDashboardController::class, 'storeContract'])->name('smartroom.admin.contract.store');
+    Route::delete('/smartroom/admin/contract/{id}', [AdminDashboardController::class, 'deleteContract'])->name('smartroom.admin.contract.delete');
+
+    // Contact Requests Management
+    Route::post('/smartroom/admin/contact-request/{id}/status', [AdminDashboardController::class, 'updateContactRequestStatus'])->name('smartroom.admin.contact_request.status');
+    Route::delete('/smartroom/admin/contact-request/{id}', [AdminDashboardController::class, 'deleteContactRequest'])->name('smartroom.admin.contact_request.delete');
+});
 Route::get('/smartroom/contract/{id}/sign', [AdminDashboardController::class, 'signContractView'])->name('smartroom.contract.sign_view');
 Route::post('/smartroom/contract/{id}/sign', [AdminDashboardController::class, 'signContract'])->name('smartroom.contract.sign');
+Route::post('/renty/contact-request', [AdminDashboardController::class, 'storeContactRequest'])->name('renty.contact_request.store');
 
 Route::get('/renty/user', function () {
     $rooms = \App\Models\Room::with(['residents', 'reviews'])->get();

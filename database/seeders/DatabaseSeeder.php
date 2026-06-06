@@ -15,6 +15,25 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
+        User::create([
+            'name' => 'Admin SmartRoom',
+            'username' => 'admin',
+            'phone' => '0987654321',
+            'email' => 'admin@smartroom.com',
+            'password' => \Hash::make('admin123'),
+            'role' => 'admin',
+            'like' => 'Chủ chung cư mini'
+        ]);
+
+        User::create([
+            'name' => 'Test Tenant',
+            'username' => 'tenant',
+            'phone' => '0123456789',
+            'email' => 'tenant@example.com',
+            'password' => \Hash::make('password'),
+            'role' => 'user',
+            'like' => 'Khách thuê phòng'
+        ]);
         $this->call(SmartRoomSeeder::class);
     }
 }

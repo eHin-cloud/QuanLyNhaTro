@@ -28,6 +28,9 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 </head>
@@ -53,9 +56,25 @@
                 <a href="#" class="text-emerald-400 hover:text-emerald-300">Khám Phá Phòng</a>
                 <a href="javascript:void(0)" onclick="openHotAreasModal()" class="hover:text-slate-205 transition-colors">Khu Vực Hot</a>
                 <a href="javascript:void(0)" onclick="openNewReviewsModal()" class="hover:text-slate-205 transition-colors">Đánh Giá Mới</a>
-                <a href="{{ route('smartroom.admin') }}" class="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-slate-100 transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-chart-line text-indigo-400"></i> Chủ Trọ Đăng Nhập
-                </a>
+                @auth
+                    <div class="flex items-center gap-3 bg-slate-900/60 border border-slate-800/80 px-3.5 py-1.5 rounded-xl">
+                        <span class="text-xs font-bold text-emerald-400">
+                            <i class="fa-solid fa-user-circle mr-1"></i> {{ Auth::user()->name }}
+                        </span>
+                        <a href="{{ route('signout') }}" class="text-xs font-semibold text-rose-400 hover:text-rose-300 transition-colors">
+                            Đăng xuất
+                        </a>
+                    </div>
+                    @if(Auth::user()->role === 'admin')
+                        <a href="{{ route('smartroom.admin') }}" class="px-4 py-2 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white shadow-lg shadow-indigo-600/15 transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-gauge"></i> Cổng Admin
+                        </a>
+                    @endif
+                @else
+                    <a href="{{ route('login') }}" class="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-slate-100 transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-right-to-bracket text-emerald-400"></i> Đăng Nhập
+                    </a>
+                @endauth
             </nav>
         </div>
     </header>
@@ -244,7 +263,7 @@
 
     <!-- ROOM COMPARISON MODAL -->
     <div id="compare-modal" class="fixed inset-0 z-50 bg-[#04060b]/90 backdrop-blur-md hidden flex items-center justify-center p-4">
-        <div class="w-full max-w-4xl bg-[#0a0f1d] border border-slate-800 rounded-3xl p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto animate-fade-in">
+        <div class="w-full max-w-5xl bg-[#0a0f1d] border border-slate-800 rounded-3xl p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto animate-fade-in">
             <button onclick="closeCompareModal()" class="absolute top-6 right-6 w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-all">
                 <i class="fa-solid fa-xmark"></i>
             </button>
@@ -253,78 +272,94 @@
                 <i class="fa-solid fa-code-compare text-emerald-400"></i> Bảng So Sánh Các Phòng Trọ Đã Chọn
             </h2>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-slate-300 border-collapse">
-                    <thead>
-                        <tr class="border-b border-slate-900">
-                            <th class="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Tiêu chí</th>
-                            <th class="px-4 py-3 font-bold text-xs text-emerald-400" id="compare-col-1-title">Phòng 1</th>
-                            <th class="px-4 py-3 font-bold text-xs text-emerald-400" id="compare-col-2-title">Phòng 2</th>
-                            <th class="px-4 py-3 font-bold text-xs text-emerald-400" id="compare-col-3-title">Phòng 3</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-900">
-                        <!-- Rent price -->
-                        <tr>
-                            <td class="px-4 py-4 text-xs font-semibold text-slate-500">Giá thuê tháng</td>
-                            <td class="px-4 py-4 text-sm font-extrabold text-slate-200" id="compare-val-1-price">-</td>
-                            <td class="px-4 py-4 text-sm font-extrabold text-slate-200" id="compare-val-2-price">-</td>
-                            <td class="px-4 py-4 text-sm font-extrabold text-slate-200" id="compare-val-3-price">-</td>
-                        </tr>
-                        <!-- Distance to campus -->
-                        <tr>
-                            <td class="px-4 py-4 text-xs font-semibold text-slate-500">Khoảng cách trường</td>
-                            <td class="px-4 py-4 text-xs text-slate-300" id="compare-val-1-dist">-</td>
-                            <td class="px-4 py-4 text-xs text-slate-300" id="compare-val-2-dist">-</td>
-                            <td class="px-4 py-4 text-xs text-slate-300" id="compare-val-3-dist">-</td>
-                        </tr>
-                        <!-- Overall score -->
-                        <tr>
-                            <td class="px-4 py-4 text-xs font-semibold text-slate-500">Đánh giá chung</td>
-                            <td class="px-4 py-4 text-xs font-bold text-amber-400" id="compare-val-1-rating">-</td>
-                            <td class="px-4 py-4 text-xs font-bold text-amber-400" id="compare-val-2-rating">-</td>
-                            <td class="px-4 py-4 text-xs font-bold text-amber-400" id="compare-val-3-rating">-</td>
-                        </tr>
-                        <!-- Owner Score -->
-                        <tr>
-                            <td class="px-4 py-4 text-xs font-semibold text-slate-500">Điểm chủ nhà</td>
-                            <td class="px-4 py-4 text-xs text-slate-300" id="compare-val-1-owner">⭐⭐⭐⭐⭐ (5/5)</td>
-                            <td class="px-4 py-4 text-xs text-slate-300" id="compare-val-2-owner">⭐⭐⭐⭐☆ (4/5)</td>
-                            <td class="px-4 py-4 text-xs text-slate-300" id="compare-val-3-owner">⭐⭐⭐⭐⭐ (5/5)</td>
-                        </tr>
-                        <!-- Security Score -->
-                        <tr>
-                            <td class="px-4 py-4 text-xs font-semibold text-slate-500">An ninh & Khóa</td>
-                            <td class="px-4 py-4 text-xs text-slate-300" id="compare-val-1-sec">⭐⭐⭐⭐☆ (4/5)</td>
-                            <td class="px-4 py-4 text-xs text-slate-300" id="compare-val-2-sec">⭐⭐⭐⭐⭐ (5/5)</td>
-                            <td class="px-4 py-4 text-xs text-slate-300" id="compare-val-3-sec">⭐⭐⭐⭐⭐ (5/5)</td>
-                        </tr>
-                        <!-- Pets allowed -->
-                        <tr>
-                            <td class="px-4 py-4 text-xs font-semibold text-slate-500">Cho nuôi thú cưng</td>
-                            <td class="px-4 py-4 text-xs" id="compare-val-1-pets">-</td>
-                            <td class="px-4 py-4 text-xs" id="compare-val-2-pets">-</td>
-                            <td class="px-4 py-4 text-xs" id="compare-val-3-pets">-</td>
-                        </tr>
-                        <!-- Has loft -->
-                        <tr>
-                            <td class="px-4 py-4 text-xs font-semibold text-slate-500">Có gác lửng</td>
-                            <td class="px-4 py-4 text-xs" id="compare-val-1-loft">-</td>
-                            <td class="px-4 py-4 text-xs" id="compare-val-2-loft">-</td>
-                            <td class="px-4 py-4 text-xs" id="compare-val-3-loft">-</td>
-                        </tr>
-                        <!-- Has balcony -->
-                        <tr>
-                            <td class="px-4 py-4 text-xs font-semibold text-slate-500">Có ban công thoáng</td>
-                            <td class="px-4 py-4 text-xs" id="compare-val-1-balcony">-</td>
-                            <td class="px-4 py-4 text-xs" id="compare-val-2-balcony">-</td>
-                            <td class="px-4 py-4 text-xs" id="compare-val-3-balcony">-</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+                <!-- Left: Radar Chart (5/12 cols) -->
+                <div class="lg:col-span-5 p-6 rounded-2xl bg-[#0e1424]/60 border border-slate-800/80 flex flex-col justify-between items-center min-h-[360px]">
+                    <div class="w-full text-center">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Biểu Đồ Radar Chỉ Số</span>
+                        <span class="text-[9px] text-slate-500 block leading-tight">So sánh trực quan thang điểm 10 (càng xa tâm càng tốt)</span>
+                    </div>
+                    <div class="w-full h-72 flex items-center justify-center mt-4 relative">
+                        <canvas id="compareRadarChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Right: Detailed Table (7/12 cols) -->
+                <div class="lg:col-span-7 flex flex-col justify-between">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-300 border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-900 pb-2">
+                                    <th class="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase">Tiêu chí</th>
+                                    <th class="px-3 py-3 font-bold text-xs text-emerald-400 max-w-[120px] truncate" id="compare-col-1-title">Phòng 1</th>
+                                    <th class="px-3 py-3 font-bold text-xs text-indigo-400 max-w-[120px] truncate" id="compare-col-2-title">Phòng 2</th>
+                                    <th class="px-3 py-3 font-bold text-xs text-cyan-400 max-w-[120px] truncate" id="compare-col-3-title">Phòng 3</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-900/60">
+                                <!-- Rent price -->
+                                <tr>
+                                    <td class="px-3 py-3 font-bold text-slate-400">Giá thuê / tháng</td>
+                                    <td class="px-3 py-3 font-extrabold text-slate-200" id="compare-val-1-price">-</td>
+                                    <td class="px-3 py-3 font-extrabold text-slate-200" id="compare-val-2-price">-</td>
+                                    <td class="px-3 py-3 font-extrabold text-slate-200" id="compare-val-3-price">-</td>
+                                </tr>
+                                <!-- Distance to campus -->
+                                <tr>
+                                    <td class="px-3 py-3 font-bold text-slate-400">Khoảng cách trường</td>
+                                    <td class="px-3 py-3 text-slate-300" id="compare-val-1-dist">-</td>
+                                    <td class="px-3 py-3 text-slate-300" id="compare-val-2-dist">-</td>
+                                    <td class="px-3 py-3 text-slate-300" id="compare-val-3-dist">-</td>
+                                </tr>
+                                <!-- Overall score -->
+                                <tr>
+                                    <td class="px-3 py-3 font-bold text-slate-400">Đánh giá chung</td>
+                                    <td class="px-3 py-3 font-bold text-amber-400" id="compare-val-1-rating">-</td>
+                                    <td class="px-3 py-3 font-bold text-amber-400" id="compare-val-2-rating">-</td>
+                                    <td class="px-3 py-3 font-bold text-amber-400" id="compare-val-3-rating">-</td>
+                                </tr>
+                                <!-- Owner Score -->
+                                <tr>
+                                    <td class="px-3 py-3 font-bold text-slate-400">Điểm chủ nhà</td>
+                                    <td class="px-3 py-3 text-slate-300" id="compare-val-1-owner">-</td>
+                                    <td class="px-3 py-3 text-slate-300" id="compare-val-2-owner">-</td>
+                                    <td class="px-3 py-3 text-slate-300" id="compare-val-3-owner">-</td>
+                                </tr>
+                                <!-- Security Score -->
+                                <tr>
+                                    <td class="px-3 py-3 font-bold text-slate-400">An ninh & Khóa</td>
+                                    <td class="px-3 py-3 text-slate-300" id="compare-val-1-sec">-</td>
+                                    <td class="px-3 py-3 text-slate-300" id="compare-val-2-sec">-</td>
+                                    <td class="px-3 py-3 text-slate-300" id="compare-val-3-sec">-</td>
+                                </tr>
+                                <!-- Pets allowed -->
+                                <tr>
+                                    <td class="px-3 py-3 font-bold text-slate-400">Cho nuôi thú cưng</td>
+                                    <td class="px-3 py-3" id="compare-val-1-pets">-</td>
+                                    <td class="px-3 py-3" id="compare-val-2-pets">-</td>
+                                    <td class="px-3 py-3" id="compare-val-3-pets">-</td>
+                                </tr>
+                                <!-- Has loft -->
+                                <tr>
+                                    <td class="px-3 py-3 font-bold text-slate-400">Có gác lửng</td>
+                                    <td class="px-3 py-3" id="compare-val-1-loft">-</td>
+                                    <td class="px-3 py-3" id="compare-val-2-loft">-</td>
+                                    <td class="px-3 py-3" id="compare-val-3-loft">-</td>
+                                </tr>
+                                <!-- Has balcony -->
+                                <tr>
+                                    <td class="px-3 py-3 font-bold text-slate-400">Ban công thoáng</td>
+                                    <td class="px-3 py-3" id="compare-val-1-balcony">-</td>
+                                    <td class="px-3 py-3" id="compare-val-2-balcony">-</td>
+                                    <td class="px-3 py-3" id="compare-val-3-balcony">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
-            <div class="mt-6 pt-4 flex justify-end">
+            <div class="mt-8 pt-4 border-t border-slate-900 flex justify-end">
                 <button onclick="closeCompareModal()" class="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-slate-800 hover:bg-slate-700 transition-all">
                     Đóng bảng so sánh
                 </button>
@@ -382,11 +417,66 @@
                 </div>
             </div>
 
-            <!-- Existing Reviews List -->
-            <div class="border-t border-slate-800/60 pt-6 mb-6">
-                <h3 class="text-sm font-bold text-slate-300 mb-4">Đánh giá thực tế từ người ở trước</h3>
-                <div class="space-y-4 max-h-[200px] overflow-y-auto pr-2" id="detail-reviews-container">
-                    <!-- Dynamic list of reviews -->
+            <!-- Contact landlord and request consultation -->
+            <div class="border-t border-slate-800/60 pt-6 mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-300 mb-3"><i class="fa-solid fa-phone-volume text-emerald-400 mr-1.5"></i>Liên hệ Chủ nhà</h3>
+                    <div class="p-4 rounded-xl bg-[#070b13] border border-slate-800/60 space-y-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400 font-bold">
+                                <i class="fa-solid fa-user-tie"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold text-slate-200 block">Chủ trọ SmartRoom</span>
+                                <span class="text-[10px] text-slate-400">Hỗ trợ tư vấn, xem phòng trực tiếp</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <a href="tel:0987654321" class="flex-1 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold text-center flex items-center justify-center gap-1.5 transition-all">
+                                <i class="fa-solid fa-phone"></i> Gọi điện
+                            </a>
+                            <a href="https://zalo.me/0987654321" target="_blank" class="flex-1 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold text-center flex items-center justify-center gap-1.5 transition-all">
+                                <i class="fa-solid fa-comments"></i> Chat Zalo
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Consultation Form -->
+                    <h3 class="text-sm font-bold text-slate-300 mt-6 mb-3"><i class="fa-solid fa-calendar-check text-indigo-400 mr-1.5"></i>Đăng ký Tư vấn & Xem phòng</h3>
+                    <form action="{{ route('renty.contact_request.store') }}" method="POST" class="p-4 rounded-xl bg-[#070b13] border border-slate-800/60 space-y-3.5">
+                        @csrf
+                        <input type="hidden" name="room_id" id="contact-room-id" value="">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Họ tên của bạn</label>
+                            @auth
+                                <input type="text" name="name" value="{{ Auth::user()->name }}" readonly class="w-full px-3 py-2 rounded-lg bg-[#0c1222] border border-slate-850 text-slate-400 text-xs cursor-not-allowed">
+                            @else
+                                <input type="text" name="name" required class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="Nguyễn Văn A">
+                            @endauth
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Số điện thoại liên hệ</label>
+                            @auth
+                                <input type="tel" name="phone" value="{{ Auth::user()->phone }}" readonly class="w-full px-3 py-2 rounded-lg bg-[#0c1222] border border-slate-855 text-slate-400 text-xs cursor-not-allowed">
+                            @else
+                                <input type="tel" name="phone" required class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="0901234567">
+                            @endauth
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Lời nhắn (Ví dụ: Thời gian muốn xem phòng...)</label>
+                            <textarea name="message" rows="2" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-slate-200 text-xs focus:border-indigo-500 focus:outline-none" placeholder="Tôi muốn xem phòng vào tối nay lúc 19h..."></textarea>
+                        </div>
+                        <button type="submit" class="w-full py-2.5 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-bold transition-all shadow-md shadow-indigo-500/10">
+                            Gửi Yêu Cầu Tư Vấn
+                        </button>
+                    </form>
+                </div>
+
+                <div>
+                    <h3 class="text-sm font-bold text-slate-300 mb-3"><i class="fa-solid fa-comments text-amber-400 mr-1.5"></i>Đánh giá thực tế từ người ở trước</h3>
+                    <div class="space-y-4 max-h-[460px] overflow-y-auto pr-2" id="detail-reviews-container">
+                        <!-- Dynamic list of reviews -->
+                    </div>
                 </div>
             </div>
 
@@ -398,7 +488,11 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Tên của bạn</label>
-                            <input type="text" name="author_name" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-emerald-500 focus:outline-none" placeholder="Nguyễn Văn A">
+                            @auth
+                                <input type="text" name="author_name" value="{{ Auth::user()->name }}" readonly class="w-full px-4 py-2.5 rounded-xl bg-[#0a0e17] border border-slate-800 text-slate-400 text-xs cursor-not-allowed">
+                            @else
+                                <input type="text" name="author_name" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-emerald-500 focus:outline-none" placeholder="Nguyễn Văn A">
+                            @endauth
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Điểm đánh giá (1-5)</label>
@@ -434,14 +528,187 @@
             <div>
                 © 2026 Renty Review. Hệ thống đánh giá không gian sống sinh viên Việt Nam.
             </div>
-            <div class="flex items-center gap-4">
-                <span>Thực hiện bởi: <strong class="text-slate-400">Thành viên 1</strong></span>
-            </div>
+
         </div>
     </footer>
 
     <!-- JS LOGIC -->
     <script>
+        // Setup custom toast notification override for alert()
+        (function() {
+            const toastStyle = document.createElement('style');
+            toastStyle.innerHTML = `
+                .custom-toast-container {
+                    position: fixed;
+                    top: 24px;
+                    right: 24px;
+                    z-index: 9999;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                    pointer-events: none;
+                }
+                .custom-toast {
+                    min-width: 320px;
+                    max-width: 450px;
+                    background: rgba(15, 23, 42, 0.9);
+                    backdrop-filter: blur(12px);
+                    -webkit-backdrop-filter: blur(12px);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 16px;
+                    padding: 16px 20px;
+                    color: #f1f5f9;
+                    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3), 0 0 1px 1px rgba(255, 255, 255, 0.05);
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 14px;
+                    pointer-events: auto;
+                    transform: translateX(120%);
+                    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                }
+                .custom-toast.show {
+                    transform: translateX(0);
+                }
+                .custom-toast.hide {
+                    transform: translateX(120%);
+                    opacity: 0;
+                    margin-top: -60px;
+                }
+                .custom-toast-icon {
+                    flex-shrink: 0;
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 13px;
+                }
+                .custom-toast-success .custom-toast-icon {
+                    background: rgba(16, 185, 129, 0.15);
+                    color: #10b981;
+                    border: 1px solid rgba(16, 185, 129, 0.2);
+                }
+                .custom-toast-warning .custom-toast-icon {
+                    background: rgba(245, 158, 11, 0.15);
+                    color: #f59e0b;
+                    border: 1px solid rgba(245, 158, 11, 0.2);
+                }
+                .custom-toast-error .custom-toast-icon {
+                    background: rgba(239, 68, 68, 0.15);
+                    color: #ef4444;
+                    border: 1px solid rgba(239, 68, 68, 0.2);
+                }
+                .custom-toast-info .custom-toast-icon {
+                    background: rgba(59, 130, 246, 0.15);
+                    color: #3b82f6;
+                    border: 1px solid rgba(59, 130, 246, 0.2);
+                }
+                .custom-toast-content {
+                    flex-grow: 1;
+                }
+                .custom-toast-title {
+                    font-size: 13px;
+                    font-weight: 700;
+                    margin-bottom: 3px;
+                    letter-spacing: 0.3px;
+                }
+                .custom-toast-message {
+                    font-size: 12px;
+                    color: #94a3b8;
+                    line-height: 1.5;
+                    white-space: pre-wrap;
+                }
+                .custom-toast-close {
+                    color: #64748b;
+                    cursor: pointer;
+                    font-size: 14px;
+                    transition: color 0.2s;
+                    margin-top: 1px;
+                }
+                .custom-toast-close:hover {
+                    color: #94a3b8;
+                }
+            `;
+            document.head.appendChild(toastStyle);
+
+            window.alert = function(message) {
+                let type = 'success';
+                let title = 'Thông Báo';
+                
+                const lowerMsg = message.toLowerCase();
+                if (lowerMsg.includes('lỗi') || 
+                    lowerMsg.includes('không thể') || 
+                    lowerMsg.includes('thất bại') || 
+                    lowerMsg.includes('chưa') || 
+                    lowerMsg.includes('không được') || 
+                    lowerMsg.includes('chỉ được') || 
+                    lowerMsg.includes('nhỏ hơn') ||
+                    lowerMsg.includes('vui lòng')) {
+                    type = 'warning';
+                    title = 'Cảnh Báo';
+                } else if (lowerMsg.includes('thành công') || 
+                           lowerMsg.includes('tuyệt vời') || 
+                           lowerMsg.includes('đã') || 
+                           lowerMsg.includes('sao chép')) {
+                    type = 'success';
+                    title = 'Thành Công';
+                } else {
+                    type = 'info';
+                    title = 'Thông Tin';
+                }
+                
+                let container = document.querySelector('.custom-toast-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.className = 'custom-toast-container';
+                    document.body.appendChild(container);
+                }
+                
+                const toast = document.createElement('div');
+                toast.className = `custom-toast custom-toast-${type}`;
+                
+                let iconHtml = '';
+                if (type === 'success') iconHtml = '<i class="fa-solid fa-check"></i>';
+                else if (type === 'warning') iconHtml = '<i class="fa-solid fa-triangle-exclamation"></i>';
+                else if (type === 'error') iconHtml = '<i class="fa-solid fa-circle-xmark"></i>';
+                else iconHtml = '<i class="fa-solid fa-info"></i>';
+                
+                toast.innerHTML = `
+                    <div class="custom-toast-icon">${iconHtml}</div>
+                    <div class="custom-toast-content">
+                        <div class="custom-toast-title">${title}</div>
+                        <div class="custom-toast-message">${message}</div>
+                    </div>
+                    <div class="custom-toast-close" onclick="this.parentElement.classList.add('hide'); setTimeout(() => this.parentElement.remove(), 400);"><i class="fa-solid fa-xmark"></i></div>
+                `;
+                
+                container.appendChild(toast);
+                
+                setTimeout(() => toast.classList.add('show'), 10);
+                
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.classList.remove('show');
+                        toast.classList.add('hide');
+                        setTimeout(() => toast.remove(), 400);
+                    }
+                }, 4500);
+            };
+        })();
+
+        // Show session success or error toasts
+        @if(session('success'))
+            window.addEventListener('DOMContentLoaded', () => {
+                alert("{{ session('success') }}");
+            });
+        @endif
+        @if(session('error'))
+            window.addEventListener('DOMContentLoaded', () => {
+                alert("{{ session('error') }}");
+            });
+        @endif
+
         // Toggle advanced filters
         function toggleFilterDrawer() {
             const drawer = document.getElementById('filter-drawer');
@@ -466,6 +733,9 @@
             // Set form action route
             const form = document.getElementById('write-review-form');
             form.action = `/renty/room/${roomId}/review`;
+
+            // Set contact request hidden input
+            document.getElementById('contact-room-id').value = roomId;
 
             // Populate reviews
             const container = document.getElementById('detail-reviews-container');
@@ -540,13 +810,16 @@
             updateCompareDock();
         }
 
+        // Track radar chart instance
+        let compareChartInstance = null;
+
         function openCompareModal() {
-            if(selectedRooms.length === 0) return;
+            if (selectedRooms.length === 0) return;
             
             const modal = document.getElementById('compare-modal');
             
             // Pre-clear table values
-            for(let col=1; col<=3; col++) {
+            for (let col = 1; col <= 3; col++) {
                 document.getElementById(`compare-col-${col}-title`).textContent = "-";
                 document.getElementById(`compare-val-${col}-price`).textContent = "-";
                 document.getElementById(`compare-val-${col}-dist`).textContent = "-";
@@ -558,31 +831,114 @@
                 document.getElementById(`compare-val-${col}-balcony`).textContent = "-";
             }
 
-            // Fill table values from selectedRooms
-            selectedRooms.forEach((roomId, idx) => {
-                const col = idx + 1;
-                const data = mockRooms[roomId];
-                
-                document.getElementById(`compare-col-${col}-title`).textContent = data.title;
-                document.getElementById(`compare-val-${col}-price`).textContent = data.price.toLocaleString('vi-VN') + "đ";
-                document.getElementById(`compare-val-${col}-dist`).textContent = data.distance + "km";
-                document.getElementById(`compare-val-${col}-rating`).textContent = data.rating + " ⭐";
-                document.getElementById(`compare-val-${col}-owner`).textContent = data.owner;
-                document.getElementById(`compare-val-${col}-sec`).textContent = data.sec;
-                
-                // Set green text for positive checkmarks
-                const petsElem = document.getElementById(`compare-val-${col}-pets`);
-                petsElem.textContent = data.pets_txt;
-                petsElem.className = data.pets_txt === 'Có' ? 'px-4 py-4 text-xs font-bold text-emerald-400' : 'px-4 py-4 text-xs text-slate-500';
+            // Construct query string with selected IDs
+            const queryParams = selectedRooms.map(id => `ids[]=${id}`).join('&');
+            
+            fetch(`/api/rooms/compare?${queryParams}`)
+                .then(res => res.json())
+                .then(response => {
+                    if (!response.success || !response.data) return;
+                    
+                    const roomsData = response.data;
+                    const datasets = [];
+                    const colors = [
+                        { stroke: '#10b981', fill: 'rgba(16, 185, 129, 0.15)' }, // Emerald
+                        { stroke: '#6366f1', fill: 'rgba(99, 102, 241, 0.15)' },  // Indigo
+                        { stroke: '#06b6d4', fill: 'rgba(6, 182, 212, 0.15)' }    // Cyan
+                    ];
 
-                const loftElem = document.getElementById(`compare-val-${col}-loft`);
-                loftElem.textContent = data.loft_txt;
-                loftElem.className = data.loft_txt === 'Có' ? 'px-4 py-4 text-xs font-bold text-emerald-400' : 'px-4 py-4 text-xs text-slate-500';
+                    roomsData.forEach((room, idx) => {
+                        const col = idx + 1;
+                        
+                        // Populate Table
+                        document.getElementById(`compare-col-${col}-title`).textContent = `Phòng ${room.room_number}`;
+                        document.getElementById(`compare-val-${col}-price`).textContent = room.price_formatted;
+                        document.getElementById(`compare-val-${col}-dist`).textContent = room.distance + " km";
+                        document.getElementById(`compare-val-${col}-rating`).textContent = room.rating + " ⭐";
+                        document.getElementById(`compare-val-${col}-owner`).textContent = "⭐".repeat(room.owner_stars) + "☆".repeat(5 - room.owner_stars) + ` (${room.owner_stars}/5)`;
+                        document.getElementById(`compare-val-${col}-sec`).textContent = "⭐".repeat(room.security_stars) + "☆".repeat(5 - room.security_stars) + ` (${room.security_stars}/5)`;
+                        
+                        const petsElem = document.getElementById(`compare-val-${col}-pets`);
+                        petsElem.textContent = room.pets;
+                        petsElem.className = room.pets === 'Có' ? 'px-3 py-3 text-xs font-bold text-emerald-400' : 'px-3 py-3 text-xs text-slate-500';
 
-                const balconyElem = document.getElementById(`compare-val-${col}-balcony`);
-                balconyElem.textContent = data.balcony_txt;
-                balconyElem.className = data.balcony_txt === 'Có' ? 'px-4 py-4 text-xs font-bold text-emerald-400' : 'px-4 py-4 text-xs text-slate-500';
-            });
+                        const loftElem = document.getElementById(`compare-val-${col}-loft`);
+                        loftElem.textContent = room.loft;
+                        loftElem.className = room.loft === 'Có' ? 'px-3 py-3 text-xs font-bold text-emerald-400' : 'px-3 py-3 text-xs text-slate-500';
+
+                        const balconyElem = document.getElementById(`compare-val-${col}-balcony`);
+                        balconyElem.textContent = room.balcony;
+                        balconyElem.className = room.balcony === 'Có' ? 'px-3 py-3 text-xs font-bold text-emerald-400' : 'px-3 py-3 text-xs text-slate-500';
+
+                        // Add to Radar Datasets
+                        datasets.push({
+                            label: `Phòng ${room.room_number}`,
+                            data: [
+                                room.scores.price,
+                                room.scores.distance,
+                                room.scores.security,
+                                room.scores.owner
+                            ],
+                            borderColor: colors[idx].stroke,
+                            backgroundColor: colors[idx].fill,
+                            borderWidth: 2.5,
+                            pointBackgroundColor: colors[idx].stroke,
+                            pointBorderColor: '#0a0f1d',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: colors[idx].stroke,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        });
+                    });
+
+                    // Render Radar Chart
+                    const ctxRadar = document.getElementById('compareRadarChart').getContext('2d');
+                    
+                    if (compareChartInstance) {
+                        compareChartInstance.destroy();
+                    }
+
+                    compareChartInstance = new Chart(ctxRadar, {
+                        type: 'radar',
+                        data: {
+                            labels: ['Giá cả', 'Khoảng cách', 'An ninh', 'Chủ nhà'],
+                            datasets: datasets
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    labels: {
+                                        color: '#cbd5e1',
+                                        font: { size: 10, weight: 'bold' }
+                                    }
+                                }
+                            },
+                            scales: {
+                                r: {
+                                    angleLines: {
+                                        color: 'rgba(255, 255, 255, 0.08)'
+                                    },
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.08)'
+                                    },
+                                    pointLabels: {
+                                        color: '#94a3b8',
+                                        font: { size: 10, weight: 'bold' }
+                                    },
+                                    ticks: {
+                                        display: false,
+                                        stepSize: 2
+                                    },
+                                    min: 0,
+                                    max: 10
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(err => console.error("Error loading comparison details:", err));
 
             modal.classList.remove('hidden');
         }
