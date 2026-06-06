@@ -145,8 +145,8 @@
                         </div>
                     </div>
 
-                    <!-- Tầng và Diện tích -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Tầng, Diện tích, Trạng thái, Loại phòng -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tầng <span class="text-rose-500">*</span></label>
                             <input type="text" name="floor" id="floor" required 
@@ -167,8 +167,16 @@
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Trạng Thái <span class="text-rose-500">*</span></label>
                             <select name="status" id="status" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-850 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
                                 <option value="empty" {{ $room->status === 'empty' ? 'selected' : '' }}>Trống</option>
-                                <option value="occupied" {{ $room->status === 'occupied' ? 'selected' : '' }}>Đang thuê</option>
+                                <option value="occupied" {{ $room->status === 'occupied' ? 'selected' : '' }}>Đầy (Đang thuê)</option>
+                                <option value="maintenance" {{ $room->status === 'maintenance' ? 'selected' : '' }}>Đang sửa chữa</option>
                                 <option value="overdue" {{ $room->status === 'overdue' ? 'selected' : '' }}>Nợ tiền</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Loại Phòng <span class="text-rose-500">*</span></label>
+                            <select name="room_type" id="room_type" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-850 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                                <option value="normal" {{ ($room->room_type ?? 'normal') === 'normal' ? 'selected' : '' }}>Thường</option>
+                                <option value="vip" {{ ($room->room_type ?? 'normal') === 'vip' ? 'selected' : '' }}>VIP</option>
                             </select>
                         </div>
                     </div>

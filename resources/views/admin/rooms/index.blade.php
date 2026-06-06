@@ -153,6 +153,7 @@
                             <tr>
                                 <th class="px-6 py-4 font-bold">Hình Ảnh</th>
                                 <th class="px-6 py-4 font-bold">Số Phòng</th>
+                                <th class="px-6 py-4 font-bold">Loại Phòng</th>
                                 <th class="px-6 py-4 font-bold">Tòa Nhà</th>
                                 <th class="px-6 py-4 font-bold">Tầng</th>
                                 <th class="px-6 py-4 font-bold">Diện Tích</th>
@@ -175,6 +176,13 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 font-bold text-slate-200">P. {{ $room->room_number }}</td>
+                                <td class="px-6 py-4 text-xs font-semibold text-slate-300">
+                                    @if(($room->room_type ?? 'normal') === 'vip')
+                                        <span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold uppercase text-[9px]">VIP</span>
+                                    @else
+                                        <span class="px-2 py-0.5 rounded bg-slate-500/10 text-slate-400 border border-slate-500/20 font-bold uppercase text-[9px]">Thường</span>
+                                    @endif
+                                </td>
                                 <td class="px-6 py-4 text-xs font-semibold text-indigo-400">{{ $room->building->name ?? 'N/A' }}</td>
                                 <td class="px-6 py-4 text-xs text-slate-400">Tầng {{ $room->floor }}</td>
                                 <td class="px-6 py-4 text-xs text-slate-400">{{ $room->area }} m²</td>
@@ -183,7 +191,9 @@
                                     @if($room->status === 'empty')
                                         <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Trống</span>
                                     @elseif($room->status === 'occupied')
-                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Đã thuê</span>
+                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Đầy (Đang thuê)</span>
+                                    @elseif($room->status === 'maintenance')
+                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">Đang sửa chữa</span>
                                     @else
                                         <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">Nợ tiền</span>
                                     @endif
@@ -207,7 +217,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="8" class="px-6 py-12 text-center text-xs text-slate-500">
+                                <td colspan="9" class="px-6 py-12 text-center text-xs text-slate-500">
                                     <div class="flex flex-col items-center justify-center gap-3">
                                         <i class="fa-solid fa-door-closed text-2xl text-slate-700"></i>
                                         <span>Chưa có phòng trọ nào được thêm. Hãy thêm phòng mới!</span>
