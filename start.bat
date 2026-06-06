@@ -16,4 +16,5 @@ start /b npm run dev
 
 echo.
 echo [3/3] Starting Laravel Development Server...
+start /b cmd /c "timeout /t 3 >nul && start http://127.0.0.1:8000/smartroom-renty"
 call php artisan serve
