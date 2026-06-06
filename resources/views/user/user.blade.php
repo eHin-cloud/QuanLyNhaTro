@@ -56,9 +56,25 @@
                 <a href="#" class="text-emerald-400 hover:text-emerald-300">Khám Phá Phòng</a>
                 <a href="javascript:void(0)" onclick="openHotAreasModal()" class="hover:text-slate-205 transition-colors">Khu Vực Hot</a>
                 <a href="javascript:void(0)" onclick="openNewReviewsModal()" class="hover:text-slate-205 transition-colors">Đánh Giá Mới</a>
-                <a href="{{ route('smartroom.admin') }}" class="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-slate-100 transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-chart-line text-indigo-400"></i> Chủ Trọ Đăng Nhập
-                </a>
+                @auth
+                    <div class="flex items-center gap-3 bg-slate-900/60 border border-slate-800/80 px-3.5 py-1.5 rounded-xl">
+                        <span class="text-xs font-bold text-emerald-400">
+                            <i class="fa-solid fa-user-circle mr-1"></i> {{ Auth::user()->name }}
+                        </span>
+                        <a href="{{ route('signout') }}" class="text-xs font-semibold text-rose-400 hover:text-rose-300 transition-colors">
+                            Đăng xuất
+                        </a>
+                    </div>
+                    @if(Auth::user()->role === 'admin')
+                        <a href="{{ route('smartroom.admin') }}" class="px-4 py-2 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white shadow-lg shadow-indigo-600/15 transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-gauge"></i> Cổng Admin
+                        </a>
+                    @endif
+                @else
+                    <a href="{{ route('login') }}" class="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-slate-100 transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-right-to-bracket text-emerald-400"></i> Đăng Nhập
+                    </a>
+                @endauth
             </nav>
         </div>
     </header>
@@ -417,7 +433,11 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Tên của bạn</label>
-                            <input type="text" name="author_name" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-emerald-500 focus:outline-none" placeholder="Nguyễn Văn A">
+                            @auth
+                                <input type="text" name="author_name" value="{{ Auth::user()->name }}" readonly class="w-full px-4 py-2.5 rounded-xl bg-[#0a0e17] border border-slate-800 text-slate-400 text-xs cursor-not-allowed">
+                            @else
+                                <input type="text" name="author_name" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-emerald-500 focus:outline-none" placeholder="Nguyễn Văn A">
+                            @endauth
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Điểm đánh giá (1-5)</label>
@@ -623,6 +643,18 @@
                 }, 4500);
             };
         })();
+
+        // Show session success or error toasts
+        @if(session('success'))
+            window.addEventListener('DOMContentLoaded', () => {
+                alert("{{ session('success') }}");
+            });
+        @endif
+        @if(session('error'))
+            window.addEventListener('DOMContentLoaded', () => {
+                alert("{{ session('error') }}");
+            });
+        @endif
 
         // Toggle advanced filters
         function toggleFilterDrawer() {
