@@ -1,7 +1,10 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\VisitorController;
+use App\Http\Controllers\Api\TenantAdminController;
+use App\Http\Controllers\Api\ResidentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -10,65 +13,85 @@ use Illuminate\Support\Facades\Route;
 |
 | Here is where you can register API routes for your application. These
 | routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
+| be assigned to the "api" middleware group.
 |
 */
 
-Route::middleware('crud_user:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+// ==========================================
+// 1. PUBLIC ROUTES (Khách vãng lai & Tìm trọ)
+// ==========================================
+Route::post('/auth/register', [AuthController::class, 'register']);
+Route::post('/auth/login', [AuthController::class, 'login']);
 
-use App\Models\UtilityRecord;
+Route::get('/renty/rooms', [VisitorController::class, 'index']);
+Route::get('/renty/rooms/map', [VisitorController::class, 'map']);
+Route::get('/renty/rooms/{id}/reviews', [VisitorController::class, 'reviews']);
+Route::post('/renty/rooms/compare', [VisitorController::class, 'compare']);
 
-Route::get('/utility-bill/{id}/qr', function ($id) {
-    $bill = UtilityRecord::with('room.residents')->find($id);
-    if (!$bill) {
-        return response()->json(['error' => 'Hóa đơn không tồn tại'], 404);
-    }
+// ==========================================
+// 2. AUTHENTICATED ROUTES (Đã đăng nhập)
+// ==========================================
+Route::middleware('auth:sanctum')->group(function () {
     
-    $room = $bill->room;
-    $elecUsed = max(0, $bill->new_electricity - $bill->old_electricity);
-    $waterUsed = max(0, $bill->new_water - $bill->old_water);
-    $totalAmount = $room->price + ($elecUsed * $bill->electricity_price) + ($waterUsed * $bill->water_price) + 150000;
-    
-    $bankId = 'MB'; // Ngân hàng Quân Đội
-    $accountNo = '9999888889999'; // Số tài khoản ngân hàng demo
-    $accountName = 'NGUYEN VAN CHU NHA'; // Tên chủ tài khoản
-    
-    $addInfo = rawurlencode("Thanh toan Phong " . $room->room_number . " thang 06");
-    $accNameEscaped = rawurlencode($accountName);
-    
-    $qrUrl = "https://img.vietqr.io/image/{$bankId}-{$accountNo}-compact.png?amount={$totalAmount}&addInfo={$addInfo}&accountName={$accNameEscaped}";
-    
-    return response()->json([
-        'success' => true,
-        'room_number' => $room->room_number,
-        'resident_name' => $room->residents->first() ? $room->residents->first()->name : 'N/A',
-        'amount' => $totalAmount,
-        'bank_id' => $bankId,
-        'account_no' => $accountNo,
-        'account_name' => $accountName,
-        'description' => "Thanh toan Phong " . $room->room_number . " thang 06",
-        'qr_url' => $qrUrl
-    ]);
-});
+    // Auth profile & logout
+    Route::get('/auth/profile', [AuthController::class, 'profile']);
+    Route::post('/auth/logout', [AuthController::class, 'logout']);
 
-Route::post('/send-message', function (Illuminate\Http\Request $request) {
-    $request->validate([
-        'phone' => 'required|string',
-        'message' => 'required|string',
-        'type' => 'required|in:zalo,sms'
-    ]);
-    
-    // Giả lập độ trễ truyền tải mạng 0.8s
-    usleep(800000);
-    
-    return response()->json([
-        'success' => true,
-        'status' => 'sent',
-        'phone' => $request->phone,
-        'message' => $request->message,
-        'type' => $request->type,
-        'sent_at' => now()->toIso8601String()
-    ]);
+    // Khách hàng / Cư dân đã đăng nhập viết đánh giá phòng trọ
+    Route::post('/renty/rooms/{id}/reviews', [VisitorController::class, 'storeReview']);
+
+    // ------------------------------------------
+    // A. PHÂN HỆ CHỦ TRỌ / QUẢN LÝ (Tenant Admin)
+    // ------------------------------------------
+    Route::middleware('role:landlord')->prefix('admin')->group(function () {
+        // Thống kê Dashboard
+        Route::get('/dashboard', [TenantAdminController::class, 'dashboard']);
+
+        // CRUD Tòa nhà (Buildings)
+        Route::get('/buildings', [TenantAdminController::class, 'listBuildings']);
+        Route::post('/buildings', [TenantAdminController::class, 'storeBuilding']);
+        Route::put('/buildings/{id}', [TenantAdminController::class, 'updateBuilding']);
+        Route::delete('/buildings/{id}', [TenantAdminController::class, 'deleteBuilding']);
+
+        // CRUD Phòng trọ (Rooms)
+        Route::get('/rooms', [TenantAdminController::class, 'listRooms']);
+        Route::post('/rooms', [TenantAdminController::class, 'storeRoom']);
+        Route::put('/rooms/{id}', [TenantAdminController::class, 'updateRoom']);
+        Route::delete('/rooms/{id}', [TenantAdminController::class, 'deleteRoom']);
+
+        // Sơ đồ phòng trực quan (Room Matrix)
+        Route::get('/rooms/matrix', [TenantAdminController::class, 'roomMatrix']);
+
+        // CRUD Cư dân (Residents)
+        Route::get('/residents', [TenantAdminController::class, 'listResidents']);
+        Route::post('/residents', [TenantAdminController::class, 'storeResident']);
+        Route::put('/residents/{id}', [TenantAdminController::class, 'updateResident']);
+        Route::delete('/residents/{id}', [TenantAdminController::class, 'deleteResident']);
+
+        // Hợp đồng online
+        Route::get('/contracts', [TenantAdminController::class, 'listContracts']);
+        Route::post('/contracts', [TenantAdminController::class, 'storeContract']);
+        Route::delete('/contracts/{id}', [TenantAdminController::class, 'deleteContract']);
+
+        // Chốt số & Tính tiền tự động
+        Route::post('/utility/record', [TenantAdminController::class, 'storeUtilityRecord']);
+
+        // Xuất hóa đơn PDF & Gửi thông báo
+        Route::get('/bills/{id}/pdf', [TenantAdminController::class, 'printPdf']);
+        Route::post('/bills/{id}/notify', [TenantAdminController::class, 'notifyResident']);
+
+        // Xử lý sự cố (Tickets)
+        Route::get('/tickets', [TenantAdminController::class, 'listTickets']);
+        Route::put('/tickets/{id}', [TenantAdminController::class, 'updateTicket']);
+    });
+
+    // ------------------------------------------
+    // B. PHÂN HỆ CƯ DÂN NỘI BỘ (Resident)
+    // ------------------------------------------
+    Route::middleware('role:resident')->prefix('resident')->group(function () {
+        Route::get('/dashboard', [ResidentController::class, 'dashboard']);
+        Route::get('/bills', [ResidentController::class, 'bills']);
+        Route::get('/bills/{id}/vietqr', [ResidentController::class, 'getBillQr']);
+        Route::post('/tickets', [ResidentController::class, 'storeTicket']);
+    });
 });

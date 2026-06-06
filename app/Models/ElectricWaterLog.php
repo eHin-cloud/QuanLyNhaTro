@@ -4,20 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class Contract extends Model
+class ElectricWaterLog extends Model
 {
     protected $fillable = [
         'tenant_id',
         'room_id',
-        'resident_id',
-        'contract_code',
-        'start_date',
-        'end_date',
-        'deposit',
-        'status',
-        'terms',
-        'signature'
+        'billing_month',
+        'old_electricity',
+        'new_electricity',
+        'old_water',
+        'new_water',
+        'electricity_price',
+        'water_price'
     ];
 
     public function tenant(): BelongsTo
@@ -30,8 +30,8 @@ class Contract extends Model
         return $this->belongsTo(Room::class);
     }
 
-    public function resident(): BelongsTo
+    public function bill(): HasOne
     {
-        return $this->belongsTo(Resident::class);
+        return $this->hasOne(Bill::class);
     }
 }

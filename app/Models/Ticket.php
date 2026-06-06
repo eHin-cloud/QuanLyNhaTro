@@ -5,19 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Contract extends Model
+class Ticket extends Model
 {
     protected $fillable = [
         'tenant_id',
         'room_id',
         'resident_id',
-        'contract_code',
-        'start_date',
-        'end_date',
-        'deposit',
+        'title',
+        'description',
+        'image_path',
+        'category',
         'status',
-        'terms',
-        'signature'
+        'assigned_to'
     ];
 
     public function tenant(): BelongsTo

@@ -3,35 +3,32 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Room extends Model
+class Tenant extends Model
 {
     protected $fillable = [
-        'building_id',
-        'tenant_id',
-        'room_number',
-        'floor',
-        'status',
-        'price',
-        'area',
-        'amenities',
-        'description'
+        'name',
+        'email',
+        'phone',
+        'bank_name',
+        'bank_account_no',
+        'bank_account_name'
     ];
 
-    protected $casts = [
-        'amenities' => 'array',
-    ];
-
-    public function building(): BelongsTo
+    public function users(): HasMany
     {
-        return $this->belongsTo(Building::class);
+        return $this->hasMany(User::class);
     }
 
-    public function tenant(): BelongsTo
+    public function buildings(): HasMany
     {
-        return $this->belongsTo(Tenant::class);
+        return $this->hasMany(Building::class);
+    }
+
+    public function rooms(): HasMany
+    {
+        return $this->hasMany(Room::class);
     }
 
     public function residents(): HasMany
@@ -57,10 +54,5 @@ class Room extends Model
     public function tickets(): HasMany
     {
         return $this->hasMany(Ticket::class);
-    }
-
-    public function reviews(): HasMany
-    {
-        return $this->hasMany(Review::class);
     }
 }
