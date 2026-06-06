@@ -499,6 +499,9 @@
                             <p class="text-xs text-slate-500">Nhập chỉ số điện nước tháng 06/2026. Đơn giá: Điện 3.500đ/kWh, Nước 15.000đ/m3.</p>
                         </div>
                         <div class="flex items-center gap-2">
+                            <button type="button" onclick="triggerAutoRemind()" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-rose-600/20 transition-all flex items-center gap-2">
+                                <i class="fa-solid fa-bell animate-bounce"></i> Tự Động Nhắc Nợ Zalo Hàng Loạt
+                            </button>
                             <button type="submit" form="bulk-utility-form" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2">
                                 <i class="fa-solid fa-check-double"></i> Lưu & Xuất Hóa Đơn Hàng Loạt
                             </button>
@@ -1772,6 +1775,47 @@
                 setTimeout(() => {
                     btn.innerHTML = originalText;
                 }, 2000);
+            });
+        }
+
+        function triggerAutoRemind() {
+            if (!confirm('Hệ thống sẽ tự động quét các hóa đơn chưa đóng trong tháng này và gửi tin nhắn nhắc nợ qua Zalo hàng loạt. Bạn có chắc chắn muốn thực hiện?')) {
+                return;
+            }
+
+            const btn = document.querySelector('button[onclick="triggerAutoRemind()"]');
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang tự động gửi...';
+
+            fetch('/api/utility-bills/auto-remind', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+
+                if (data.success) {
+                    if (data.sent_count > 0) {
+                        let roomList = data.sent_rooms.map(r => `Phòng ${r.room_number} (${r.resident_name}): ${r.total_amount_formatted}`).join('\n');
+                        alert(`🚀 Tự động nhắc nợ thành công!\nĐã gửi tin nhắn nhắc nợ Zalo tới ${data.sent_count} phòng chưa đóng tiền:\n\n${roomList}`);
+                    } else {
+                        alert(`✨ Tuyệt vời! Tất cả các phòng đã hoàn thành đóng tiền trọ tháng này.`);
+                    }
+                } else {
+                    alert("Có lỗi xảy ra khi gửi nhắc nợ tự động.");
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+                alert("Không thể kết nối đến máy chủ để thực hiện gửi nhắc nợ hàng loạt!");
+                console.error(err);
             });
         }
     </script>

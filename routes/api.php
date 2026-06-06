@@ -168,3 +168,63 @@ Route::get('/rooms/compare', function (Illuminate\Http\Request $request) {
         'data' => $mapped
     ]);
 });
+
+Route::post('/utility-bills/auto-remind', function () {
+    $currentMonth = now()->format('Y-m');
+    
+    $unpaidBills = \App\Models\UtilityRecord::with('room.residents')
+        ->where('status', '!=', 'paid')
+        ->where('billing_month', $currentMonth)
+        ->get();
+        
+    $sentRooms = [];
+    
+    foreach ($unpaidBills as $bill) {
+        $room = $bill->room;
+        if (!$room) continue;
+        
+        $resident = $room->residents->first();
+        if (!$resident) continue;
+        
+        $phone = $resident->phone ?? '0987654321';
+        $residentName = $resident->name;
+        
+        // Calculate Total
+        $elecUsed = max(0, $bill->new_electricity - $bill->old_electricity);
+        $waterUsed = max(0, $bill->new_water - $bill->old_water);
+        $totalAmount = $room->price + ($elecUsed * $bill->electricity_price) + ($waterUsed * $bill->water_price) + 150000;
+        $totalFormatted = number_format($totalAmount, 0, ',', '.') . 'đ';
+        
+        // QR payment URL
+        $bankId = 'MB';
+        $accountNo = '9999888889999';
+        $accountName = 'NGUYEN VAN CHU NHA';
+        $addInfo = rawurlencode("Thanh toan Phong " . $room->room_number . " thang " . now()->format('m'));
+        $accNameEscaped = rawurlencode($accountName);
+        $qrUrl = "https://img.vietqr.io/image/{$bankId}-{$accountNo}-compact.png?amount={$totalAmount}&addInfo={$addInfo}&accountName={$accNameEscaped}";
+        
+        // Build Zalo message template
+        $message = "📢 [SMARTROOM REMINDER] Kính gửi Anh/Chị {$residentName} (Phòng {$room->room_number}). Hệ thống nhận thấy hóa đơn tiền trọ tháng " . now()->format('m/Y') . " của phòng mình chưa được hoàn tất. Tổng số tiền cần thanh toán là {$totalFormatted}. Kính mong Anh/Chị thanh toán trước ngày 10 để tránh trễ hạn. Link quét QR VietQR thanh toán nhanh: {$qrUrl}. Trân trọng cảm ơn!";
+        
+        // Log to laravel log
+        \Illuminate\Support\Facades\Log::info("Auto Zalo Sent to Room {$room->room_number} ({$residentName}): {$message}");
+        
+        // Update bill status to 'sent'
+        $bill->update(['status' => 'sent']);
+        
+        $sentRooms[] = [
+            'room_number' => $room->room_number,
+            'resident_name' => $residentName,
+            'phone' => $phone,
+            'total_amount' => $totalAmount,
+            'total_amount_formatted' => $totalFormatted
+        ];
+    }
+    
+    return response()->json([
+        'success' => true,
+        'billing_month' => $currentMonth,
+        'sent_count' => count($sentRooms),
+        'sent_rooms' => $sentRooms
+    ]);
+});
