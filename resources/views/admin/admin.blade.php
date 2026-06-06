@@ -754,10 +754,10 @@
                                     <td class="px-6 py-4 text-center">
                                         <div class="flex items-center justify-center gap-2">
                                             @if($c->status === 'pending')
-                                                <button onclick="copySignLink('{{ route('smartroom.contract.sign_view', $c->id) }}', this)" class="px-3 py-2 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-400 hover:text-white rounded-xl text-xs font-bold border border-indigo-500/20 transition-all flex items-center gap-1.5">
+                                                <button onclick="copySignLink('{{ route('smartroom.contract.sign_view', $c->id, false) }}', this)" class="px-3 py-2 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-400 hover:text-white rounded-xl text-xs font-bold border border-indigo-500/20 transition-all flex items-center gap-1.5">
                                                     <i class="fa-solid fa-link"></i> Link ký
                                                 </button>
-                                                <button onclick="openSendMsgModal('{{ $c->resident ? $c->resident->phone : '' }}', '{{ $c->resident ? $c->resident->name : '' }}', 'Kính gửi anh/chị {{ $c->resident ? $c->resident->name : '' }}, vui lòng truy cập đường link sau để hoàn tất ký kết hợp đồng thuê phòng {{ $c->room ? $c->room->room_number : '' }}: {{ route('smartroom.contract.sign_view', $c->id) }}', 'contract')" class="px-3 py-2 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-xl text-xs font-bold border border-emerald-500/20 transition-all flex items-center gap-1.5">
+                                                <button onclick="openSendMsgModal('{{ $c->resident ? $c->resident->phone : '' }}', '{{ $c->resident ? $c->resident->name : '' }}', 'Kính gửi anh/chị {{ $c->resident ? $c->resident->name : '' }}, vui lòng truy cập đường link sau để hoàn tất ký kết hợp đồng thuê phòng {{ $c->room ? $c->room->room_number : '' }}: ' + window.location.origin + '{{ route('smartroom.contract.sign_view', $c->id, false) }}', 'contract')" class="px-3 py-2 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-xl text-xs font-bold border border-emerald-500/20 transition-all flex items-center gap-1.5">
                                                     <i class="fa-solid fa-paper-plane"></i> Gửi Zalo/SMS
                                                 </button>
                                             @endif
@@ -1062,7 +1062,8 @@
         }
 
         function copySignLink(url, btn) {
-            navigator.clipboard.writeText(url).then(() => {
+            const fullUrl = url.startsWith('http') ? url : (window.location.origin + url);
+            navigator.clipboard.writeText(fullUrl).then(() => {
                 const originalText = btn.innerHTML;
                 btn.innerHTML = '<i class="fa-solid fa-check"></i> Đã sao chép!';
                 btn.classList.remove('text-indigo-400', 'bg-indigo-600/20');
