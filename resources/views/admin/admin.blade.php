@@ -201,17 +201,54 @@
 
                 <!-- Charts Section -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Revenue Line Chart -->
+                    <!-- Revenue Line & Doughnut Split Chart -->
                     <div class="glass-card rounded-2xl p-6 lg:col-span-2 flex flex-col justify-between">
-                        <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center justify-between mb-4 border-b border-slate-900/60 pb-3">
                             <div>
-                                <h3 class="text-base font-bold text-slate-200">Xu Hướng Doanh Thu</h3>
-                                <p class="text-xs text-slate-500">So sánh doanh thu các tháng gần nhất</p>
+                                <h3 class="text-base font-bold text-slate-200">Phân Tích Doanh Thu Hệ Thống</h3>
+                                <p class="text-xs text-slate-500">Báo cáo xu hướng cột và cơ cấu nguồn thu từ điện, nước, phòng</p>
                             </div>
-                            <span class="text-xs px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-semibold">Doanh thu phòng trọ (VND)</span>
+                            <span class="text-[10px] px-2.5 py-1 rounded bg-indigo-500/10 text-indigo-400 font-bold border border-indigo-500/20 uppercase tracking-wider">Doanh thu tháng 06</span>
                         </div>
-                        <div class="h-64 w-full">
-                            <canvas id="revenueChart"></canvas>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+                            <!-- Left: Trend Bar Chart -->
+                            <div class="md:col-span-3 flex flex-col justify-between">
+                                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2">Xu Hướng Doanh Thu</span>
+                                <div class="h-56 w-full">
+                                    <canvas id="revenueChart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <!-- Right: Doughnut Breakdown Chart -->
+                            <div class="md:col-span-2 flex flex-col justify-between border-t md:border-t-0 md:border-l border-slate-800/50 pt-4 md:pt-0 md:pl-6">
+                                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2">Cơ Cấu Nguồn Thu</span>
+                                <div class="h-36 w-full flex items-center justify-center relative">
+                                    <canvas id="revenueBreakdownChart"></canvas>
+                                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-2">
+                                        <span class="text-[8px] text-slate-500 font-bold uppercase tracking-wider">Tổng thu</span>
+                                        <span class="text-xs font-black text-indigo-400" id="breakdown-total-txt">--M</span>
+                                    </div>
+                                </div>
+                                <div class="space-y-1.5 mt-3 text-[10px]">
+                                    <div class="flex items-center justify-between">
+                                        <span class="flex items-center gap-1.5 text-slate-450"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>Tiền phòng</span>
+                                        <strong class="text-slate-200" id="breakdown-room-pct">--%</strong>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="flex items-center gap-1.5 text-slate-450"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Tiền điện</span>
+                                        <strong class="text-slate-200" id="breakdown-elec-pct">--%</strong>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="flex items-center gap-1.5 text-slate-450"><span class="w-1.5 h-1.5 rounded-full bg-cyan-500"></span>Tiền nước</span>
+                                        <strong class="text-slate-200" id="breakdown-water-pct">--%</strong>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="flex items-center gap-1.5 text-slate-450"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Dịch vụ</span>
+                                        <strong class="text-slate-200" id="breakdown-service-pct">--%</strong>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <!-- Doughnut Room Status Chart -->
@@ -1399,25 +1436,21 @@
             // Revenue Chart
             const ctxRevenue = document.getElementById('revenueChart').getContext('2d');
             const gradRev = ctxRevenue.createLinearGradient(0, 0, 0, 300);
-            gradRev.addColorStop(0, 'rgba(99, 102, 241, 0.4)');
-            gradRev.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
+            gradRev.addColorStop(0, '#6366f1');
+            gradRev.addColorStop(1, '#4f46e5');
 
             new Chart(ctxRevenue, {
-                type: 'line',
+                type: 'bar',
                 data: {
                     labels: {!! json_encode($chartMonths) !!},
                     datasets: [{
-                        label: 'Doanh thu phòng trọ (VND)',
+                        label: 'Doanh thu (VND)',
                         data: {!! json_encode($chartRevenue) !!},
-                        borderColor: '#6366f1',
-                        borderWidth: 3,
-                        pointBackgroundColor: '#818cf8',
-                        pointBorderColor: '#6366f1',
-                        pointRadius: 6,
-                        pointHoverRadius: 8,
-                        fill: true,
                         backgroundColor: gradRev,
-                        tension: 0.35
+                        hoverBackgroundColor: '#818cf8',
+                        borderRadius: 6,
+                        borderSkipped: false,
+                        barThickness: 16
                     }]
                 },
                 options: {
@@ -1445,6 +1478,65 @@
                     }
                 }
             });
+
+            // Revenue Breakdown Doughnut Chart
+            const ctxBreakdown = document.getElementById('revenueBreakdownChart').getContext('2d');
+            let breakdownChart = new Chart(ctxBreakdown, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Tiền phòng', 'Tiền điện', 'Tiền nước', 'Dịch vụ'],
+                    datasets: [{
+                        data: [0, 0, 0, 0],
+                        backgroundColor: [
+                            '#6366f1',
+                            '#f59e0b',
+                            '#06b6d4',
+                            '#10b981'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#0a0f1d',
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) label += ': ';
+                                    if (context.parsed !== null) {
+                                        label += new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(context.parsed);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            fetch('/api/revenue-breakdown')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const b = data.breakdown;
+                        const p = data.percentages;
+                        breakdownChart.data.datasets[0].data = [b.room, b.electric, b.water, b.service];
+                        breakdownChart.update();
+                        
+                        document.getElementById('breakdown-total-txt').textContent = (data.total / 1000000).toFixed(1) + 'M';
+                        document.getElementById('breakdown-room-pct').textContent = p.room + '%';
+                        document.getElementById('breakdown-elec-pct').textContent = p.electric + '%';
+                        document.getElementById('breakdown-water-pct').textContent = p.water + '%';
+                        document.getElementById('breakdown-service-pct').textContent = p.service + '%';
+                    }
+                })
+                .catch(err => console.error("Error loading revenue breakdown:", err));
 
             // Status Pie Chart
             const ctxStatus = document.getElementById('statusChart').getContext('2d');

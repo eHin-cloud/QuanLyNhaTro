@@ -72,3 +72,39 @@ Route::post('/send-message', function (Illuminate\Http\Request $request) {
         'sent_at' => now()->toIso8601String()
     ]);
 });
+
+Route::get('/revenue-breakdown', function () {
+    $breakdown = UtilityRecord::selectRaw("
+        SUM(rooms.price) as room_fee,
+        SUM(GREATEST(0, new_electricity - old_electricity) * electricity_price) as electric_fee,
+        SUM(GREATEST(0, new_water - old_water) * water_price) as water_fee,
+        SUM(150000) as service_fee
+    ")
+    ->join('rooms', 'rooms.id', '=', 'utility_records.room_id')
+    ->where('utility_records.status', 'paid')
+    ->first();
+    
+    $roomFee = (int) ($breakdown->room_fee ?? 75000000);
+    $electricFee = (int) ($breakdown->electric_fee ?? 18450000);
+    $waterFee = (int) ($breakdown->water_fee ?? 6520000);
+    $serviceFee = (int) ($breakdown->service_fee ?? 4500000);
+    
+    $total = $roomFee + $electricFee + $waterFee + $serviceFee;
+    
+    return response()->json([
+        'success' => true,
+        'total' => $total,
+        'breakdown' => [
+            'room' => $roomFee,
+            'electric' => $electricFee,
+            'water' => $waterFee,
+            'service' => $serviceFee
+        ],
+        'percentages' => [
+            'room' => $total > 0 ? round(($roomFee / $total) * 100, 1) : 0,
+            'electric' => $total > 0 ? round(($electricFee / $total) * 100, 1) : 0,
+            'water' => $total > 0 ? round(($waterFee / $total) * 100, 1) : 0,
+            'service' => $total > 0 ? round(($serviceFee / $total) * 100, 1) : 0
+        ]
+    ]);
+});
