@@ -28,6 +28,9 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 </head>
@@ -244,7 +247,7 @@
 
     <!-- ROOM COMPARISON MODAL -->
     <div id="compare-modal" class="fixed inset-0 z-50 bg-[#04060b]/90 backdrop-blur-md hidden flex items-center justify-center p-4">
-        <div class="w-full max-w-4xl bg-[#0a0f1d] border border-slate-800 rounded-3xl p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto animate-fade-in">
+        <div class="w-full max-w-5xl bg-[#0a0f1d] border border-slate-800 rounded-3xl p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto animate-fade-in">
             <button onclick="closeCompareModal()" class="absolute top-6 right-6 w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-all">
                 <i class="fa-solid fa-xmark"></i>
             </button>
@@ -253,78 +256,94 @@
                 <i class="fa-solid fa-code-compare text-emerald-400"></i> Bảng So Sánh Các Phòng Trọ Đã Chọn
             </h2>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-slate-300 border-collapse">
-                    <thead>
-                        <tr class="border-b border-slate-900">
-                            <th class="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Tiêu chí</th>
-                            <th class="px-4 py-3 font-bold text-xs text-emerald-400" id="compare-col-1-title">Phòng 1</th>
-                            <th class="px-4 py-3 font-bold text-xs text-emerald-400" id="compare-col-2-title">Phòng 2</th>
-                            <th class="px-4 py-3 font-bold text-xs text-emerald-400" id="compare-col-3-title">Phòng 3</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-900">
-                        <!-- Rent price -->
-                        <tr>
-                            <td class="px-4 py-4 text-xs font-semibold text-slate-500">Giá thuê tháng</td>
-                            <td class="px-4 py-4 text-sm font-extrabold text-slate-200" id="compare-val-1-price">-</td>
-                            <td class="px-4 py-4 text-sm font-extrabold text-slate-200" id="compare-val-2-price">-</td>
-                            <td class="px-4 py-4 text-sm font-extrabold text-slate-200" id="compare-val-3-price">-</td>
-                        </tr>
-                        <!-- Distance to campus -->
-                        <tr>
-                            <td class="px-4 py-4 text-xs font-semibold text-slate-500">Khoảng cách trường</td>
-                            <td class="px-4 py-4 text-xs text-slate-300" id="compare-val-1-dist">-</td>
-                            <td class="px-4 py-4 text-xs text-slate-300" id="compare-val-2-dist">-</td>
-                            <td class="px-4 py-4 text-xs text-slate-300" id="compare-val-3-dist">-</td>
-                        </tr>
-                        <!-- Overall score -->
-                        <tr>
-                            <td class="px-4 py-4 text-xs font-semibold text-slate-500">Đánh giá chung</td>
-                            <td class="px-4 py-4 text-xs font-bold text-amber-400" id="compare-val-1-rating">-</td>
-                            <td class="px-4 py-4 text-xs font-bold text-amber-400" id="compare-val-2-rating">-</td>
-                            <td class="px-4 py-4 text-xs font-bold text-amber-400" id="compare-val-3-rating">-</td>
-                        </tr>
-                        <!-- Owner Score -->
-                        <tr>
-                            <td class="px-4 py-4 text-xs font-semibold text-slate-500">Điểm chủ nhà</td>
-                            <td class="px-4 py-4 text-xs text-slate-300" id="compare-val-1-owner">⭐⭐⭐⭐⭐ (5/5)</td>
-                            <td class="px-4 py-4 text-xs text-slate-300" id="compare-val-2-owner">⭐⭐⭐⭐☆ (4/5)</td>
-                            <td class="px-4 py-4 text-xs text-slate-300" id="compare-val-3-owner">⭐⭐⭐⭐⭐ (5/5)</td>
-                        </tr>
-                        <!-- Security Score -->
-                        <tr>
-                            <td class="px-4 py-4 text-xs font-semibold text-slate-500">An ninh & Khóa</td>
-                            <td class="px-4 py-4 text-xs text-slate-300" id="compare-val-1-sec">⭐⭐⭐⭐☆ (4/5)</td>
-                            <td class="px-4 py-4 text-xs text-slate-300" id="compare-val-2-sec">⭐⭐⭐⭐⭐ (5/5)</td>
-                            <td class="px-4 py-4 text-xs text-slate-300" id="compare-val-3-sec">⭐⭐⭐⭐⭐ (5/5)</td>
-                        </tr>
-                        <!-- Pets allowed -->
-                        <tr>
-                            <td class="px-4 py-4 text-xs font-semibold text-slate-500">Cho nuôi thú cưng</td>
-                            <td class="px-4 py-4 text-xs" id="compare-val-1-pets">-</td>
-                            <td class="px-4 py-4 text-xs" id="compare-val-2-pets">-</td>
-                            <td class="px-4 py-4 text-xs" id="compare-val-3-pets">-</td>
-                        </tr>
-                        <!-- Has loft -->
-                        <tr>
-                            <td class="px-4 py-4 text-xs font-semibold text-slate-500">Có gác lửng</td>
-                            <td class="px-4 py-4 text-xs" id="compare-val-1-loft">-</td>
-                            <td class="px-4 py-4 text-xs" id="compare-val-2-loft">-</td>
-                            <td class="px-4 py-4 text-xs" id="compare-val-3-loft">-</td>
-                        </tr>
-                        <!-- Has balcony -->
-                        <tr>
-                            <td class="px-4 py-4 text-xs font-semibold text-slate-500">Có ban công thoáng</td>
-                            <td class="px-4 py-4 text-xs" id="compare-val-1-balcony">-</td>
-                            <td class="px-4 py-4 text-xs" id="compare-val-2-balcony">-</td>
-                            <td class="px-4 py-4 text-xs" id="compare-val-3-balcony">-</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+                <!-- Left: Radar Chart (5/12 cols) -->
+                <div class="lg:col-span-5 p-6 rounded-2xl bg-[#0e1424]/60 border border-slate-800/80 flex flex-col justify-between items-center min-h-[360px]">
+                    <div class="w-full text-center">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Biểu Đồ Radar Chỉ Số</span>
+                        <span class="text-[9px] text-slate-500 block leading-tight">So sánh trực quan thang điểm 10 (càng xa tâm càng tốt)</span>
+                    </div>
+                    <div class="w-full h-72 flex items-center justify-center mt-4 relative">
+                        <canvas id="compareRadarChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Right: Detailed Table (7/12 cols) -->
+                <div class="lg:col-span-7 flex flex-col justify-between">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-300 border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-900 pb-2">
+                                    <th class="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase">Tiêu chí</th>
+                                    <th class="px-3 py-3 font-bold text-xs text-emerald-400 max-w-[120px] truncate" id="compare-col-1-title">Phòng 1</th>
+                                    <th class="px-3 py-3 font-bold text-xs text-indigo-400 max-w-[120px] truncate" id="compare-col-2-title">Phòng 2</th>
+                                    <th class="px-3 py-3 font-bold text-xs text-cyan-400 max-w-[120px] truncate" id="compare-col-3-title">Phòng 3</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-900/60">
+                                <!-- Rent price -->
+                                <tr>
+                                    <td class="px-3 py-3 font-bold text-slate-400">Giá thuê / tháng</td>
+                                    <td class="px-3 py-3 font-extrabold text-slate-200" id="compare-val-1-price">-</td>
+                                    <td class="px-3 py-3 font-extrabold text-slate-200" id="compare-val-2-price">-</td>
+                                    <td class="px-3 py-3 font-extrabold text-slate-200" id="compare-val-3-price">-</td>
+                                </tr>
+                                <!-- Distance to campus -->
+                                <tr>
+                                    <td class="px-3 py-3 font-bold text-slate-400">Khoảng cách trường</td>
+                                    <td class="px-3 py-3 text-slate-300" id="compare-val-1-dist">-</td>
+                                    <td class="px-3 py-3 text-slate-300" id="compare-val-2-dist">-</td>
+                                    <td class="px-3 py-3 text-slate-300" id="compare-val-3-dist">-</td>
+                                </tr>
+                                <!-- Overall score -->
+                                <tr>
+                                    <td class="px-3 py-3 font-bold text-slate-400">Đánh giá chung</td>
+                                    <td class="px-3 py-3 font-bold text-amber-400" id="compare-val-1-rating">-</td>
+                                    <td class="px-3 py-3 font-bold text-amber-400" id="compare-val-2-rating">-</td>
+                                    <td class="px-3 py-3 font-bold text-amber-400" id="compare-val-3-rating">-</td>
+                                </tr>
+                                <!-- Owner Score -->
+                                <tr>
+                                    <td class="px-3 py-3 font-bold text-slate-400">Điểm chủ nhà</td>
+                                    <td class="px-3 py-3 text-slate-300" id="compare-val-1-owner">-</td>
+                                    <td class="px-3 py-3 text-slate-300" id="compare-val-2-owner">-</td>
+                                    <td class="px-3 py-3 text-slate-300" id="compare-val-3-owner">-</td>
+                                </tr>
+                                <!-- Security Score -->
+                                <tr>
+                                    <td class="px-3 py-3 font-bold text-slate-400">An ninh & Khóa</td>
+                                    <td class="px-3 py-3 text-slate-300" id="compare-val-1-sec">-</td>
+                                    <td class="px-3 py-3 text-slate-300" id="compare-val-2-sec">-</td>
+                                    <td class="px-3 py-3 text-slate-300" id="compare-val-3-sec">-</td>
+                                </tr>
+                                <!-- Pets allowed -->
+                                <tr>
+                                    <td class="px-3 py-3 font-bold text-slate-400">Cho nuôi thú cưng</td>
+                                    <td class="px-3 py-3" id="compare-val-1-pets">-</td>
+                                    <td class="px-3 py-3" id="compare-val-2-pets">-</td>
+                                    <td class="px-3 py-3" id="compare-val-3-pets">-</td>
+                                </tr>
+                                <!-- Has loft -->
+                                <tr>
+                                    <td class="px-3 py-3 font-bold text-slate-400">Có gác lửng</td>
+                                    <td class="px-3 py-3" id="compare-val-1-loft">-</td>
+                                    <td class="px-3 py-3" id="compare-val-2-loft">-</td>
+                                    <td class="px-3 py-3" id="compare-val-3-loft">-</td>
+                                </tr>
+                                <!-- Has balcony -->
+                                <tr>
+                                    <td class="px-3 py-3 font-bold text-slate-400">Ban công thoáng</td>
+                                    <td class="px-3 py-3" id="compare-val-1-balcony">-</td>
+                                    <td class="px-3 py-3" id="compare-val-2-balcony">-</td>
+                                    <td class="px-3 py-3" id="compare-val-3-balcony">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
-            <div class="mt-6 pt-4 flex justify-end">
+            <div class="mt-8 pt-4 border-t border-slate-900 flex justify-end">
                 <button onclick="closeCompareModal()" class="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-slate-800 hover:bg-slate-700 transition-all">
                     Đóng bảng so sánh
                 </button>
@@ -540,13 +559,16 @@
             updateCompareDock();
         }
 
+        // Track radar chart instance
+        let compareChartInstance = null;
+
         function openCompareModal() {
-            if(selectedRooms.length === 0) return;
+            if (selectedRooms.length === 0) return;
             
             const modal = document.getElementById('compare-modal');
             
             // Pre-clear table values
-            for(let col=1; col<=3; col++) {
+            for (let col = 1; col <= 3; col++) {
                 document.getElementById(`compare-col-${col}-title`).textContent = "-";
                 document.getElementById(`compare-val-${col}-price`).textContent = "-";
                 document.getElementById(`compare-val-${col}-dist`).textContent = "-";
@@ -558,31 +580,114 @@
                 document.getElementById(`compare-val-${col}-balcony`).textContent = "-";
             }
 
-            // Fill table values from selectedRooms
-            selectedRooms.forEach((roomId, idx) => {
-                const col = idx + 1;
-                const data = mockRooms[roomId];
-                
-                document.getElementById(`compare-col-${col}-title`).textContent = data.title;
-                document.getElementById(`compare-val-${col}-price`).textContent = data.price.toLocaleString('vi-VN') + "đ";
-                document.getElementById(`compare-val-${col}-dist`).textContent = data.distance + "km";
-                document.getElementById(`compare-val-${col}-rating`).textContent = data.rating + " ⭐";
-                document.getElementById(`compare-val-${col}-owner`).textContent = data.owner;
-                document.getElementById(`compare-val-${col}-sec`).textContent = data.sec;
-                
-                // Set green text for positive checkmarks
-                const petsElem = document.getElementById(`compare-val-${col}-pets`);
-                petsElem.textContent = data.pets_txt;
-                petsElem.className = data.pets_txt === 'Có' ? 'px-4 py-4 text-xs font-bold text-emerald-400' : 'px-4 py-4 text-xs text-slate-500';
+            // Construct query string with selected IDs
+            const queryParams = selectedRooms.map(id => `ids[]=${id}`).join('&');
+            
+            fetch(`/api/rooms/compare?${queryParams}`)
+                .then(res => res.json())
+                .then(response => {
+                    if (!response.success || !response.data) return;
+                    
+                    const roomsData = response.data;
+                    const datasets = [];
+                    const colors = [
+                        { stroke: '#10b981', fill: 'rgba(16, 185, 129, 0.15)' }, // Emerald
+                        { stroke: '#6366f1', fill: 'rgba(99, 102, 241, 0.15)' },  // Indigo
+                        { stroke: '#06b6d4', fill: 'rgba(6, 182, 212, 0.15)' }    // Cyan
+                    ];
 
-                const loftElem = document.getElementById(`compare-val-${col}-loft`);
-                loftElem.textContent = data.loft_txt;
-                loftElem.className = data.loft_txt === 'Có' ? 'px-4 py-4 text-xs font-bold text-emerald-400' : 'px-4 py-4 text-xs text-slate-500';
+                    roomsData.forEach((room, idx) => {
+                        const col = idx + 1;
+                        
+                        // Populate Table
+                        document.getElementById(`compare-col-${col}-title`).textContent = `Phòng ${room.room_number}`;
+                        document.getElementById(`compare-val-${col}-price`).textContent = room.price_formatted;
+                        document.getElementById(`compare-val-${col}-dist`).textContent = room.distance + " km";
+                        document.getElementById(`compare-val-${col}-rating`).textContent = room.rating + " ⭐";
+                        document.getElementById(`compare-val-${col}-owner`).textContent = "⭐".repeat(room.owner_stars) + "☆".repeat(5 - room.owner_stars) + ` (${room.owner_stars}/5)`;
+                        document.getElementById(`compare-val-${col}-sec`).textContent = "⭐".repeat(room.security_stars) + "☆".repeat(5 - room.security_stars) + ` (${room.security_stars}/5)`;
+                        
+                        const petsElem = document.getElementById(`compare-val-${col}-pets`);
+                        petsElem.textContent = room.pets;
+                        petsElem.className = room.pets === 'Có' ? 'px-3 py-3 text-xs font-bold text-emerald-400' : 'px-3 py-3 text-xs text-slate-500';
 
-                const balconyElem = document.getElementById(`compare-val-${col}-balcony`);
-                balconyElem.textContent = data.balcony_txt;
-                balconyElem.className = data.balcony_txt === 'Có' ? 'px-4 py-4 text-xs font-bold text-emerald-400' : 'px-4 py-4 text-xs text-slate-500';
-            });
+                        const loftElem = document.getElementById(`compare-val-${col}-loft`);
+                        loftElem.textContent = room.loft;
+                        loftElem.className = room.loft === 'Có' ? 'px-3 py-3 text-xs font-bold text-emerald-400' : 'px-3 py-3 text-xs text-slate-500';
+
+                        const balconyElem = document.getElementById(`compare-val-${col}-balcony`);
+                        balconyElem.textContent = room.balcony;
+                        balconyElem.className = room.balcony === 'Có' ? 'px-3 py-3 text-xs font-bold text-emerald-400' : 'px-3 py-3 text-xs text-slate-500';
+
+                        // Add to Radar Datasets
+                        datasets.push({
+                            label: `Phòng ${room.room_number}`,
+                            data: [
+                                room.scores.price,
+                                room.scores.distance,
+                                room.scores.security,
+                                room.scores.owner
+                            ],
+                            borderColor: colors[idx].stroke,
+                            backgroundColor: colors[idx].fill,
+                            borderWidth: 2.5,
+                            pointBackgroundColor: colors[idx].stroke,
+                            pointBorderColor: '#0a0f1d',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: colors[idx].stroke,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        });
+                    });
+
+                    // Render Radar Chart
+                    const ctxRadar = document.getElementById('compareRadarChart').getContext('2d');
+                    
+                    if (compareChartInstance) {
+                        compareChartInstance.destroy();
+                    }
+
+                    compareChartInstance = new Chart(ctxRadar, {
+                        type: 'radar',
+                        data: {
+                            labels: ['Giá cả', 'Khoảng cách', 'An ninh', 'Chủ nhà'],
+                            datasets: datasets
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    labels: {
+                                        color: '#cbd5e1',
+                                        font: { size: 10, weight: 'bold' }
+                                    }
+                                }
+                            },
+                            scales: {
+                                r: {
+                                    angleLines: {
+                                        color: 'rgba(255, 255, 255, 0.08)'
+                                    },
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.08)'
+                                    },
+                                    pointLabels: {
+                                        color: '#94a3b8',
+                                        font: { size: 10, weight: 'bold' }
+                                    },
+                                    ticks: {
+                                        display: false,
+                                        stepSize: 2
+                                    },
+                                    min: 0,
+                                    max: 10
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(err => console.error("Error loading comparison details:", err));
 
             modal.classList.remove('hidden');
         }

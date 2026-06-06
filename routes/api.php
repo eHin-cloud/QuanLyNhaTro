@@ -108,3 +108,63 @@ Route::get('/revenue-breakdown', function () {
         ]
     ]);
 });
+
+Route::get('/rooms/compare', function (Illuminate\Http\Request $request) {
+    $ids = $request->input('ids');
+    if (!is_array($ids) || empty($ids)) {
+        return response()->json(['success' => false, 'message' => 'Danh sách phòng trống'], 400);
+    }
+    
+    $rooms = \App\Models\Room::with(['residents', 'reviews'])->whereIn('id', $ids)->get();
+    
+    $mapped = $rooms->map(function($room) {
+        $num = intval($room->room_number);
+        
+        $dbReviews = $room->reviews;
+        if ($dbReviews->count() > 0) {
+            $rating = $dbReviews->avg('rating');
+        } else {
+            $rating = 3.6 + (($num * 7) % 15) / 10;
+            if ($rating > 5.0) $rating = 5.0;
+        }
+        
+        $distance = 0.4 + (($num * 3) % 12) / 10;
+        
+        $pets = ($num % 2 == 1);
+        $loft = (($num % 3) != 2);
+        $balcony = (($num % 4) != 0);
+        
+        $ownerStars = intval(round($rating));
+        $secStars = intval(min(5, max(3, round($rating + ($num % 2 ? 0.5 : -0.5)))));
+        
+        $priceScore = round(max(0, min(10, (5000000 - $room->price) / 300000 + 2)), 1);
+        $distanceScore = round(max(0, min(10, (2.0 - $distance) * 6)), 1);
+        $securityScore = $secStars * 2;
+        $ownerScore = $ownerStars * 2;
+        
+        return [
+            'id' => $room->id,
+            'room_number' => $room->room_number,
+            'price' => $room->price,
+            'price_formatted' => number_format($room->price, 0, ',', '.') . 'đ',
+            'distance' => $distance,
+            'rating' => number_format($rating, 1),
+            'owner_stars' => $ownerStars,
+            'security_stars' => $secStars,
+            'pets' => $pets ? 'Có' : 'Không',
+            'loft' => $loft ? 'Có' : 'Không',
+            'balcony' => $balcony ? 'Có' : 'Không',
+            'scores' => [
+                'price' => $priceScore,
+                'distance' => $distanceScore,
+                'security' => $securityScore,
+                'owner' => $ownerScore
+            ]
+        ];
+    });
+    
+    return response()->json([
+        'success' => true,
+        'data' => $mapped
+    ]);
+});
