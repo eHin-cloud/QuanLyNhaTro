@@ -96,7 +96,7 @@
                 </div>
                 <div class="overflow-hidden">
                     <h4 class="text-xs font-bold text-slate-200 truncate">{{ Auth::user()->name ?? 'Người dùng' }}</h4>
-                    <p class="text-[10px] text-slate-500 truncate">{{ Auth::user()->role->name ?? 'Quản trị viên' }}</p>
+                    <p class="text-[10px] text-slate-500 truncate">{{ Auth::user()->roleName() }}</p>
                 </div>
             </div>
             <a href="{{ route('signout') }}" class="mt-3 w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-semibold text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 transition-all duration-200">

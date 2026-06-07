@@ -60,18 +60,52 @@ class User extends Authenticatable
     }
 
     // Role Helper Methods
+    public function roleSlug(): ?string
+    {
+        if ($this->role_id) {
+            $role = $this->relationLoaded('role') ? $this->getRelation('role') : $this->role()->first();
+
+            if ($role) {
+                return $role->slug;
+            }
+        }
+
+        return match ($this->getAttribute('role')) {
+            'admin' => 'landlord',
+            'user' => 'resident',
+            default => $this->getAttribute('role'),
+        };
+    }
+
+    public function roleName(): string
+    {
+        if ($this->role_id) {
+            $role = $this->relationLoaded('role') ? $this->getRelation('role') : $this->role()->first();
+
+            if ($role) {
+                return $role->name;
+            }
+        }
+
+        return match ($this->getAttribute('role')) {
+            'admin' => 'Quản trị viên',
+            'user' => 'Người thuê',
+            default => 'Quản trị viên',
+        };
+    }
+
     public function isLandlord(): bool
     {
-        return $this->role && $this->role->slug === 'landlord';
+        return $this->roleSlug() === 'landlord';
     }
 
     public function isResident(): bool
     {
-        return $this->role && $this->role->slug === 'resident';
+        return $this->roleSlug() === 'resident';
     }
 
     public function isGuest(): bool
     {
-        return $this->role && $this->role->slug === 'guest';
+        return $this->roleSlug() === 'guest';
     }
 }

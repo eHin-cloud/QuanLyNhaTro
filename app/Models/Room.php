@@ -20,11 +20,14 @@ class Room extends Model
         'amenities',
         'description',
         'image',
+        'images',
+        'video',
         'version'
     ];
 
     protected $casts = [
         'amenities' => 'array',
+        'images' => 'array',
     ];
 
     public function building(): BelongsTo
