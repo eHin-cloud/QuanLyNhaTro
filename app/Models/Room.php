@@ -81,4 +81,39 @@ class Room extends Model
     {
         return $this->hasMany(RoomEquipment::class);
     }
+
+    public function activeResidents(): HasMany
+    {
+        return $this->hasMany(Resident::class)->where('status', 'active');
+    }
+
+    public function syncOccupancyStatus(): void
+    {
+        if ($this->status === 'maintenance') {
+            return;
+        }
+
+        $hasActiveResidents = $this->activeResidents()->exists();
+
+        if (!$hasActiveResidents) {
+            $this->update(['status' => 'empty']);
+            return;
+        }
+
+        if ($this->status === 'empty') {
+            $this->update(['status' => 'occupied']);
+        }
+    }
+
+    public static function syncOccupancyStatusById($roomId): void
+    {
+        if (!$roomId) {
+            return;
+        }
+
+        $room = self::find($roomId);
+        if ($room) {
+            $room->syncOccupancyStatus();
+        }
+    }
 }

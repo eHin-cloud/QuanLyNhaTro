@@ -326,14 +326,9 @@ class AdminDashboardController extends Controller
         ]);
 
         if ($oldRoomId != $newRoomId) {
-            $oldRoom = Room::find($oldRoomId);
-            if ($oldRoom) {
-                if (Resident::where('room_id', $oldRoomId)->count() == 0) {
-                    $oldRoom->update(['status' => 'empty']);
-                }
-            }
+            Room::syncOccupancyStatusById($oldRoomId);
             $newRoom = Room::findOrFail($newRoomId);
-            $newRoom->update(['status' => 'occupied']);
+            $newRoom->syncOccupancyStatus();
         }
 
         return redirect()->route('smartroom.admin', ['tab' => 'resident-section'])->with('success', 'Cập nhật thông tin cư dân thành công!');
@@ -357,11 +352,10 @@ class AdminDashboardController extends Controller
         $resident->delete();
 
         if ($room) {
-            // Update room status to empty
-            $room->update(['status' => 'empty']);
+            $room->syncOccupancyStatus();
         }
 
-        return redirect()->route('smartroom.admin', ['tab' => 'resident-section'])->with('success', 'Đã xóa cư dân và trả trạng thái phòng về trống!');
+        return redirect()->route('smartroom.admin', ['tab' => 'resident-section'])->with('success', 'Đã xóa cư dân và cập nhật trạng thái phòng thành công!');
     }
 
     // --- Resident Relative Management APIs ---
