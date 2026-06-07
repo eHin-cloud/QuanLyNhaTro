@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CrudUserController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\RoomController;
+use App\Http\Controllers\EquipmentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -59,6 +60,16 @@ Route::middleware('admin')->group(function () {
         Route::get('/{id}/edit', [RoomController::class, 'edit'])->name('edit');
         Route::post('/{id}/update', [RoomController::class, 'update'])->name('update');
         Route::delete('/{id}/delete', [RoomController::class, 'destroy'])->name('destroy');
+    });
+
+    // Equipment Management
+    Route::prefix('smartroom/admin/equipment')->name('admin.equipment.')->group(function () {
+        Route::get('/', [EquipmentController::class, 'index'])->name('index');
+        Route::post('/store', [EquipmentController::class, 'store'])->name('store');
+        Route::post('/{id}/update', [EquipmentController::class, 'update'])->name('update');
+        Route::delete('/{id}/delete', [EquipmentController::class, 'destroy'])->name('destroy');
+        Route::post('/allocate', [EquipmentController::class, 'allocate'])->name('allocate');
+        Route::post('/recover', [EquipmentController::class, 'recover'])->name('recover');
     });
 
     // Online Contracts

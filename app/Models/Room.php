@@ -52,6 +52,11 @@ class Room extends Model
         return $this->hasMany(ElectricWaterLog::class);
     }
 
+    public function utilityRecords(): HasMany
+    {
+        return $this->hasMany(UtilityRecord::class)->orderBy('billing_month', 'desc');
+    }
+
     public function bills(): HasMany
     {
         return $this->hasMany(Bill::class);
@@ -70,5 +75,10 @@ class Room extends Model
     public function contactRequests()
     {
         return $this->hasMany(ContactRequest::class);
+    }
+
+    public function equipmentAllocations(): HasMany
+    {
+        return $this->hasMany(RoomEquipment::class);
     }
 }

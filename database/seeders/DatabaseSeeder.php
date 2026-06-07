@@ -35,5 +35,7 @@ class DatabaseSeeder extends Seeder
             'like' => 'Khách thuê phòng'
         ]);
         $this->call(SmartRoomSeeder::class);
+        $this->call(RoomSeeder::class);
+        $this->call(EquipmentSeeder::class);
     }
 }
