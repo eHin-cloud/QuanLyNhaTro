@@ -671,7 +671,11 @@ class AdminDashboardController extends Controller
     public function payUtility($id)
     {
         $record = UtilityRecord::findOrFail($id);
-        $record->update(['status' => 'paid']);
+        $record->update([
+            'status' => 'paid',
+            'payment_date' => now(),
+            'payment_method' => 'cash',
+        ]);
 
         // Check if there are any other unpaid utility records for this room
         $unpaidCount = UtilityRecord::where('room_id', $record->room_id)

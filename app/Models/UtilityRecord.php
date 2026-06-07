@@ -18,6 +18,12 @@ class UtilityRecord extends Model
         'electricity_price',
         'water_price',
         'status',
+        'payment_date',
+        'payment_method',
+    ];
+
+    protected $casts = [
+        'payment_date' => 'datetime',
     ];
 
     public function tenant(): BelongsTo
