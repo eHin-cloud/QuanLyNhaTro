@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Bill;
+use App\Models\Contract;
+use App\Models\Equipment;
 use App\Models\Room;
 use App\Models\Resident;
+use App\Models\Ticket;
 use App\Models\UtilityRecord;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -70,10 +74,158 @@ class AdminDashboardController extends Controller
         $emptyRoomsList = Room::where('status', 'empty')->orderBy('room_number')->get();
 
         // 6. Contracts Tab
-        $contracts = \App\Models\Contract::with(['room', 'resident'])->orderBy('id', 'desc')->get();
+        $contracts = Contract::with(['room', 'resident'])->orderBy('id', 'desc')->get();
 
         // 8. Contact Requests Tab
         $contactRequests = \App\Models\ContactRequest::with('room')->orderBy('id', 'desc')->get();
+
+        // 9. Smart alerts
+        $today = Carbon::today();
+        $contractWarningDate = $today->copy()->addDays(30);
+        $emptyRoomWarningDate = $today->copy()->subDays(30);
+
+        $expiringContracts = Contract::with(['room', 'resident'])
+            ->where('status', 'active')
+            ->whereDate('end_date', '>=', $today)
+            ->whereDate('end_date', '<=', $contractWarningDate)
+            ->orderBy('end_date')
+            ->take(6)
+            ->get()
+            ->map(function ($contract) use ($today) {
+                $endDate = Carbon::parse($contract->end_date);
+
+                return [
+                    'title' => 'Hợp đồng phòng ' . ($contract->room->room_number ?? 'N/A') . ' sắp hết hạn',
+                    'detail' => ($contract->resident->name ?? 'Chưa rõ khách thuê') . ' còn ' . $today->diffInDays($endDate) . ' ngày',
+                    'meta' => $endDate->format('d/m/Y'),
+                ];
+            });
+
+        $overdueBills = Bill::with('room')
+            ->whereIn('status', ['pending', 'overdue'])
+            ->orderBy('billing_month')
+            ->get()
+            ->filter(function ($bill) use ($today) {
+                return $bill->status === 'overdue' || Carbon::parse($bill->billing_month . '-10')->lt($today);
+            })
+            ->take(6)
+            ->map(function ($bill) {
+                $dueDate = Carbon::parse($bill->billing_month . '-10');
+
+                return [
+                    'title' => 'Hóa đơn phòng ' . ($bill->room->room_number ?? 'N/A') . ' quá hạn',
+                    'detail' => 'Tháng ' . $dueDate->format('m/Y') . ' - ' . number_format($bill->total_amount) . 'đ',
+                    'meta' => 'Hạn ' . $dueDate->format('d/m/Y'),
+                ];
+            });
+
+        $overdueUtilities = UtilityRecord::with('room')
+            ->whereIn('status', ['sent', 'overdue'])
+            ->orderBy('billing_month')
+            ->get()
+            ->filter(function ($record) use ($today) {
+                return $record->status === 'overdue' || Carbon::parse($record->billing_month . '-10')->lt($today);
+            })
+            ->take(6)
+            ->map(function ($record) {
+                $dueDate = Carbon::parse($record->billing_month . '-10');
+                $roomPrice = $record->room->price ?? 0;
+                $total = $roomPrice
+                    + (($record->new_electricity - $record->old_electricity) * $record->electricity_price)
+                    + (($record->new_water - $record->old_water) * $record->water_price)
+                    + 150000;
+
+                return [
+                    'title' => 'Phiếu điện nước phòng ' . ($record->room->room_number ?? 'N/A') . ' quá hạn',
+                    'detail' => 'Tháng ' . $dueDate->format('m/Y') . ' - ' . number_format($total) . 'đ',
+                    'meta' => 'Hạn ' . $dueDate->format('d/m/Y'),
+                ];
+            });
+
+        $emptyRoomAlerts = Room::where('status', 'empty')
+            ->where('updated_at', '<=', $emptyRoomWarningDate)
+            ->orderBy('updated_at')
+            ->take(6)
+            ->get()
+            ->map(function ($room) use ($today) {
+                return [
+                    'title' => 'Phòng ' . $room->room_number . ' trống lâu ngày',
+                    'detail' => 'Đã trống khoảng ' . $room->updated_at->diffInDays($today) . ' ngày',
+                    'meta' => number_format($room->price) . 'đ/tháng',
+                ];
+            });
+
+        $lowStockEquipment = Equipment::orderBy('name')
+            ->get()
+            ->filter(function ($equipment) {
+                return $equipment->stock_quantity <= 2;
+            })
+            ->take(6)
+            ->map(function ($equipment) {
+                return [
+                    'title' => $equipment->name . ' sắp thiếu',
+                    'detail' => 'Tồn kho còn ' . $equipment->stock_quantity . ' ' . $equipment->unit,
+                    'meta' => $equipment->code,
+                ];
+            })
+            ->values();
+
+        $brokenEquipmentTickets = Ticket::with('room')
+            ->whereIn('status', ['pending', 'processing'])
+            ->orderBy('created_at', 'desc')
+            ->take(6)
+            ->get()
+            ->map(function ($ticket) {
+                return [
+                    'title' => $ticket->title,
+                    'detail' => 'Phòng ' . ($ticket->room->room_number ?? 'N/A') . ' - ' . $ticket->status,
+                    'meta' => $ticket->created_at->format('d/m/Y'),
+                ];
+            });
+
+        $equipmentAlerts = $lowStockEquipment->concat($brokenEquipmentTickets)->take(8)->values();
+        $billAlerts = $overdueBills->concat($overdueUtilities)->take(8)->values();
+
+        $smartAlertGroups = [
+            [
+                'key' => 'contracts',
+                'label' => 'Hợp đồng sắp hết hạn',
+                'count' => $expiringContracts->count(),
+                'icon' => 'fa-file-signature',
+                'color' => 'indigo',
+                'items' => $expiringContracts,
+                'empty' => 'Chưa có hợp đồng nào hết hạn trong 30 ngày tới.',
+            ],
+            [
+                'key' => 'bills',
+                'label' => 'Hóa đơn quá hạn',
+                'count' => $billAlerts->count(),
+                'icon' => 'fa-receipt',
+                'color' => 'amber',
+                'items' => $billAlerts,
+                'empty' => 'Không có hóa đơn quá hạn.',
+            ],
+            [
+                'key' => 'rooms',
+                'label' => 'Phòng trống lâu ngày',
+                'count' => $emptyRoomAlerts->count(),
+                'icon' => 'fa-door-open',
+                'color' => 'emerald',
+                'items' => $emptyRoomAlerts,
+                'empty' => 'Không có phòng trống quá 30 ngày.',
+            ],
+            [
+                'key' => 'equipment',
+                'label' => 'Thiết bị cần chú ý',
+                'count' => $equipmentAlerts->count(),
+                'icon' => 'fa-screwdriver-wrench',
+                'color' => 'rose',
+                'items' => $equipmentAlerts,
+                'empty' => 'Tồn kho thiết bị ổn định và chưa có báo hỏng mở.',
+            ],
+        ];
+
+        $smartAlertTotal = collect($smartAlertGroups)->sum('count');
 
         // 7. Recent activities log (Mocked for dashboard realism based on DB actions)
         $recentActivities = [
@@ -96,7 +248,9 @@ class AdminDashboardController extends Controller
             'emptyRoomsList',
             'recentActivities',
             'contracts',
-            'contactRequests'
+            'contactRequests',
+            'smartAlertGroups',
+            'smartAlertTotal'
         ));
     }
 

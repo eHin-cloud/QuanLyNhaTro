@@ -298,6 +298,88 @@
                     </div>
                 </div>
 
+                <!-- Smart Alerts Dashboard -->
+                <div class="glass-card rounded-2xl p-6">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-200 flex items-center gap-2">
+                                <i class="fa-solid fa-brain text-indigo-400"></i>
+                                Dashboard cảnh báo thông minh
+                            </h3>
+                            <p class="text-xs text-slate-500">Tự động quét hợp đồng, hóa đơn, phòng trống và thiết bị cần xử lý</p>
+                        </div>
+                        <div class="px-4 py-2 rounded-xl bg-slate-900/70 border border-slate-800 text-xs font-bold text-slate-300 flex items-center gap-2">
+                            <i class="fa-solid fa-bell text-amber-400"></i>
+                            {{ $smartAlertTotal }} cảnh báo cần chú ý
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                        @foreach($smartAlertGroups as $group)
+                            @php
+                                $alertColorClasses = [
+                                    'indigo' => [
+                                        'box' => 'bg-indigo-500/5 border-indigo-500/20',
+                                        'icon' => 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
+                                        'count' => 'text-indigo-400',
+                                        'badge' => 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20',
+                                    ],
+                                    'amber' => [
+                                        'box' => 'bg-amber-500/5 border-amber-500/20',
+                                        'icon' => 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+                                        'count' => 'text-amber-400',
+                                        'badge' => 'bg-amber-500/10 text-amber-300 border-amber-500/20',
+                                    ],
+                                    'emerald' => [
+                                        'box' => 'bg-emerald-500/5 border-emerald-500/20',
+                                        'icon' => 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+                                        'count' => 'text-emerald-400',
+                                        'badge' => 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20',
+                                    ],
+                                    'rose' => [
+                                        'box' => 'bg-rose-500/5 border-rose-500/20',
+                                        'icon' => 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+                                        'count' => 'text-rose-400',
+                                        'badge' => 'bg-rose-500/10 text-rose-300 border-rose-500/20',
+                                    ],
+                                ][$group['color']];
+                            @endphp
+
+                            <div class="rounded-2xl border {{ $alertColorClasses['box'] }} p-4 flex flex-col min-h-[320px]">
+                                <div class="flex items-start justify-between gap-3 mb-4">
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        <div class="w-10 h-10 rounded-xl border {{ $alertColorClasses['icon'] }} flex items-center justify-center shrink-0">
+                                            <i class="fa-solid {{ $group['icon'] }}"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <h4 class="text-xs font-extrabold text-slate-200 leading-snug">{{ $group['label'] }}</h4>
+                                            <p class="text-[10px] text-slate-500 mt-0.5">Cập nhật theo dữ liệu hiện tại</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-2xl font-black {{ $alertColorClasses['count'] }}">{{ $group['count'] }}</span>
+                                </div>
+
+                                <div class="space-y-2 flex-1">
+                                    @forelse($group['items'] as $item)
+                                        <div class="rounded-xl bg-slate-950/40 border border-slate-800/70 p-3">
+                                            <div class="flex items-start justify-between gap-2">
+                                                <strong class="text-xs text-slate-200 leading-snug">{{ $item['title'] }}</strong>
+                                                <span class="shrink-0 text-[9px] font-bold px-2 py-0.5 rounded-full border {{ $alertColorClasses['badge'] }}">{{ $item['meta'] }}</span>
+                                            </div>
+                                            <p class="text-[10px] text-slate-500 mt-1 leading-relaxed">{{ $item['detail'] }}</p>
+                                        </div>
+                                    @empty
+                                        <div class="h-full min-h-[170px] rounded-xl bg-slate-950/30 border border-slate-800/50 flex flex-col items-center justify-center text-center p-4">
+                                            <i class="fa-solid fa-circle-check text-emerald-400 mb-2"></i>
+                                            <p class="text-[11px] text-slate-500 leading-relaxed">{{ $group['empty'] }}</p>
+                                        </div>
+                                    @endforelse
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
                 <!-- Recent Events Table -->
                 <div class="glass-card rounded-2xl p-6">
                     <div class="flex items-center justify-between mb-6">
