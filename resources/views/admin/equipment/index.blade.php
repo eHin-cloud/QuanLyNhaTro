@@ -14,6 +14,7 @@
         tailwind.config = { theme: { extend: { fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] } } } }
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
     <style>
         .glass-card {
@@ -54,6 +55,10 @@
                 <a href="{{ route('admin.equipment.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/10 transition-all">
                     <i class="fa-solid fa-screwdriver-wrench text-lg"></i>
                     <span>Thiết Bị</span>
+                </a>
+                <a href="{{ route('admin.reports.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all">
+                    <i class="fa-solid fa-chart-column text-lg"></i>
+                    <span>Báo Cáo</span>
                 </a>
             </nav>
         </div>

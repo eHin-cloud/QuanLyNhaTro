@@ -5,6 +5,7 @@ use App\Http\Controllers\CrudUserController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\EquipmentController;
+use App\Http\Controllers\ReportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,6 +44,7 @@ Route::get('/', function () {
 
 Route::middleware('admin')->group(function () {
     Route::get('/smartroom/admin', [AdminDashboardController::class, 'index'])->name('smartroom.admin');
+    Route::get('/smartroom/admin/reports', [ReportController::class, 'index'])->name('admin.reports.index');
     Route::post('/smartroom/admin/utility', [AdminDashboardController::class, 'storeUtility'])->name('smartroom.admin.utility.store');
     Route::post('/smartroom/admin/utility/bulk', [AdminDashboardController::class, 'storeUtilityBulk'])->name('smartroom.admin.utility.bulk_store');
     Route::post('/smartroom/admin/resident', [AdminDashboardController::class, 'storeResident'])->name('smartroom.admin.resident.store');
