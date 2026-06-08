@@ -103,6 +103,24 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // Giả lập độ trễ truyền tải mạng 0.8s
         usleep(800000);
+        $tenantId = auth()->user()?->tenant_id ?? \App\Models\Tenant::query()->value('id');
+
+        if ($tenantId) {
+            \App\Models\NotificationLog::create([
+                'tenant_id' => $tenantId,
+                'type' => 'manual_message',
+                'channel' => $request->type,
+                'recipient_name' => null,
+                'recipient_contact' => $request->phone,
+                'subject' => 'Manual ' . strtoupper($request->type) . ' message',
+                'message' => $request->message,
+                'status' => 'sent',
+                'target_type' => null,
+                'target_id' => null,
+                'meta' => ['simulated' => true],
+                'sent_at' => now(),
+            ]);
+        }
         
         return response()->json([
             'success' => true,

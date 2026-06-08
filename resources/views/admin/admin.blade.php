@@ -384,6 +384,97 @@
                     </div>
                 </div>
 
+                <!-- Notification Center -->
+                <div class="glass-card rounded-2xl p-6">
+                    <div class="flex flex-col xl:flex-row xl:items-start justify-between gap-6 mb-6">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-200 flex items-center gap-2">
+                                <i class="fa-solid fa-paper-plane text-cyan-400"></i>
+                                Notification Center
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-1">Gui gia lap Email, Zalo, SMS va luu log tat ca thong bao.</p>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 text-center">
+                            <div class="px-4 py-3 rounded-xl bg-slate-950/50 border border-slate-800">
+                                <div class="text-lg font-black text-emerald-300">{{ $notificationSummary['sent'] }}</div>
+                                <div class="text-[10px] text-slate-500 font-bold uppercase">Sent</div>
+                            </div>
+                            <div class="px-4 py-3 rounded-xl bg-slate-950/50 border border-slate-800">
+                                <div class="text-lg font-black text-amber-300">{{ $notificationSummary['skipped'] }}</div>
+                                <div class="text-[10px] text-slate-500 font-bold uppercase">Skipped</div>
+                            </div>
+                            <div class="px-4 py-3 rounded-xl bg-slate-950/50 border border-slate-800">
+                                <div class="text-lg font-black text-indigo-300">{{ $notificationSummary['today'] }}</div>
+                                <div class="text-[10px] text-slate-500 font-bold uppercase">Today</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-3 mb-6">
+                        <form method="POST" action="{{ route('smartroom.admin.notifications.run_all') }}">
+                            @csrf
+                            <button type="submit" class="w-full px-4 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Run all
+                            </button>
+                        </form>
+                        <button type="button" onclick="triggerAutoRemind(this)" class="w-full px-4 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-money-bill-wave"></i> Payment
+                        </button>
+                        <form method="POST" action="{{ route('smartroom.admin.notifications.contracts') }}">
+                            @csrf
+                            <button type="submit" class="w-full px-4 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-file-signature"></i> Contracts
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ route('smartroom.admin.notifications.maintenance') }}">
+                            @csrf
+                            <button type="submit" class="w-full px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-screwdriver-wrench"></i> Maintenance
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-xl border border-slate-900">
+                        <table class="w-full text-left text-sm text-slate-300">
+                            <thead class="text-xs text-slate-500 uppercase bg-slate-900/70 border-b border-slate-900">
+                                <tr>
+                                    <th class="px-4 py-3 font-bold">Time</th>
+                                    <th class="px-4 py-3 font-bold">Type</th>
+                                    <th class="px-4 py-3 font-bold">Channel</th>
+                                    <th class="px-4 py-3 font-bold">Recipient</th>
+                                    <th class="px-4 py-3 font-bold">Subject</th>
+                                    <th class="px-4 py-3 font-bold">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-900 bg-slate-950/20">
+                                @forelse($notificationLogs as $log)
+                                    <tr class="hover:bg-slate-900/30 transition-all">
+                                        <td class="px-4 py-3 text-xs text-slate-500">{{ $log->created_at->format('d/m/Y H:i') }}</td>
+                                        <td class="px-4 py-3 text-xs font-bold text-slate-200">{{ str_replace('_', ' ', $log->type) }}</td>
+                                        <td class="px-4 py-3 text-xs font-bold text-cyan-300 uppercase">{{ $log->channel }}</td>
+                                        <td class="px-4 py-3 text-xs text-slate-400">
+                                            <div class="font-bold text-slate-300">{{ $log->recipient_name ?? '-' }}</div>
+                                            <div class="text-[10px] text-slate-500">{{ $log->recipient_contact ?? '-' }}</div>
+                                        </td>
+                                        <td class="px-4 py-3 text-xs text-slate-400 max-w-[320px] truncate" title="{{ $log->message }}">{{ $log->subject }}</td>
+                                        <td class="px-4 py-3">
+                                            @if($log->status === 'sent')
+                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">sent</span>
+                                            @else
+                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/20">{{ $log->status }}</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" class="px-4 py-8 text-center text-xs text-slate-500">No notification logs yet.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <!-- Recent Events Table -->
                 <div class="glass-card rounded-2xl p-6">
                     <div class="flex items-center justify-between mb-6">
