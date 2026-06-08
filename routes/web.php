@@ -112,8 +112,8 @@ Route::get('/smartroom/contract/{id}/sign', [AdminDashboardController::class, 's
 Route::post('/smartroom/contract/{id}/sign', [AdminDashboardController::class, 'signContract'])->name('smartroom.contract.sign');
 Route::post('/renty/contact-request', [AdminDashboardController::class, 'storeContactRequest'])->name('renty.contact_request.store');
 
-Route::get('/renty/user', function () {
-    $rooms = \App\Models\Room::with(['residents', 'reviews'])->get();
+$rentyPage = function () {
+    $rooms = \App\Models\Room::with(['building', 'tenant', 'residents', 'reviews'])->get();
     
     $mappedRooms = $rooms->map(function($room) {
         $num = intval($room->room_number);
@@ -127,10 +127,19 @@ Route::get('/renty/user', function () {
         }
         
         $distance = 0.4 + (($num * 3) % 12) / 10;
-        
-        $pets = ($num % 2 == 1);
-        $loft = (($num % 3) != 2);
-        $balcony = (($num % 4) != 0);
+        $building = $room->building;
+        $buildingName = $building?->name ?? 'Rentry Review';
+        $buildingAddress = $building?->address ?? 'Khu nhà trọ đang cập nhật địa chỉ';
+        $areaName = str_contains($buildingAddress, 'Thanh Xuân')
+            ? 'Thanh Xuân'
+            : (str_contains($buildingAddress, 'Cầu Giấy')
+                ? 'Cầu Giấy'
+                : (str_contains($buildingAddress, 'Quận 10') ? 'Quận 10' : 'khu vực trung tâm'));
+        $amenities = collect($room->amenities ?? [])->map(fn ($item) => mb_strtolower($item));
+
+        $pets = $amenities->contains(fn ($item) => str_contains($item, 'thú cưng')) || ($num % 2 == 1);
+        $loft = $amenities->contains(fn ($item) => str_contains($item, 'gác') || str_contains($item, 'gac')) || (($num % 3) != 2);
+        $balcony = $amenities->contains(fn ($item) => str_contains($item, 'ban công') || str_contains($item, 'ban cong')) || (($num % 4) != 0);
         
         $ownerStars = intval(round($rating));
         $ownerRating = str_repeat('⭐', $ownerStars) . str_repeat('☆', 5 - $ownerStars) . " ($ownerStars/5)";
@@ -138,13 +147,13 @@ Route::get('/renty/user', function () {
         $secStars = intval(min(5, max(3, round($rating + ($num % 2 ? 0.5 : -0.5)))));
         $secRating = str_repeat('⭐', $secStars) . str_repeat('☆', 5 - $secStars) . " ($secStars/5)";
         
-        $title = "SmartRoom Cầu Giấy - Phòng " . $room->room_number;
-        $address = "Số 12 Ngõ 105 Xuân Thủy, Cầu Giấy (Cách ĐH Sư Phạm " . $distance . "km)";
+        $title = $buildingName . " - Phòng " . $room->room_number;
+        $address = $buildingAddress . " (Cách điểm tiện ích gần nhất " . number_format($distance, 1) . "km)";
         $area = (int) ($room->area ?? (22 + ($num % 9)));
-        $locationDescription = "Nằm trong ngõ 105 Xuân Thủy, khu vực Cầu Giấy đông sinh viên, dễ di chuyển tới ĐH Sư Phạm, ĐH Quốc Gia và trục Cầu Giấy - Hồ Tùng Mậu.";
+        $locationDescription = ($building?->description ?: "Nằm tại khu vực {$areaName}, thuận tiện di chuyển và sinh hoạt hằng ngày.") . " Địa chỉ: {$buildingAddress}.";
         $sceneryDescription = $balcony
-            ? "Không gian quanh phòng thoáng hơn nhờ ban công, có ánh sáng tự nhiên, phù hợp người thích phòng sáng và có chỗ phơi đồ."
-            : "Khu vực xung quanh yên tĩnh, phù hợp học tập và nghỉ ngơi; lối đi trong nhà gọn, có camera và khóa an ninh.";
+            ? "Khu {$areaName} có không gian quanh phòng thoáng hơn nhờ ban công, có ánh sáng tự nhiên, phù hợp người thích phòng sáng và có chỗ phơi đồ."
+            : "Khu {$areaName} yên tĩnh, phù hợp học tập và nghỉ ngơi; lối đi trong nhà gọn, có camera và khóa an ninh.";
         $spaceDescription = "Phòng rộng khoảng {$area}m², bố trí dạng " . ($loft ? 'có gác lửng để tách khu ngủ và sinh hoạt' : 'một mặt bằng dễ sắp xếp đồ') . ", phù hợp 1-2 người ở với không gian sinh hoạt gọn gàng.";
         
         $reviewsList = $dbReviews->map(function($rev) {
@@ -220,11 +229,13 @@ Route::get('/renty/user', function () {
 
     $recentReviews = \App\Models\Review::with('room')->latest()->take(5)->get();
 
-    return view('user.user', [
+    return view('rentry.rentry', [
         'rooms' => $mappedRooms,
         'recentReviews' => $recentReviews
     ]);
-})->name('renty.user');
+};
+
+Route::get('/renty', $rentyPage)->name('renty.user');
 
 Route::post('/renty/room/{id}/review', function (Illuminate\Http\Request $request, $id) {
     $request->validate([
