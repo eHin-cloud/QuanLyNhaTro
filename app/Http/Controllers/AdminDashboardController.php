@@ -26,10 +26,10 @@ class AdminDashboardController extends Controller
         $tenantId = $this->currentTenantId();
 
         // 1. Stats ribbon
-        $totalRooms = Room::count();
-        $occupiedRooms = Room::where('status', 'occupied')->count();
-        $emptyRooms = Room::where('status', 'empty')->count();
-        $overdueRooms = Room::where('status', 'overdue')->count();
+        $totalRooms = Room::where('tenant_id', $tenantId)->count();
+        $occupiedRooms = Room::where('tenant_id', $tenantId)->where('status', 'occupied')->count();
+        $emptyRooms = Room::where('tenant_id', $tenantId)->where('status', 'empty')->count();
+        $overdueRooms = Room::where('tenant_id', $tenantId)->where('status', 'overdue')->count();
 
         // 2. Charts Data
         // Revenue trend from paid utility records
@@ -38,10 +38,14 @@ class AdminDashboardController extends Controller
             SUM(rooms.price + (new_electricity - old_electricity)*electricity_price + (new_water - old_water)*water_price + 150000) as total_revenue
         ")
         ->join('rooms', 'rooms.id', '=', 'utility_records.room_id')
+        ->where('rooms.tenant_id', $tenantId)
         ->where('utility_records.status', 'paid')
         ->groupBy('billing_month')
-        ->orderBy('billing_month')
-        ->get();
+        ->orderByDesc('billing_month')
+        ->limit(3)
+        ->get()
+        ->sortBy('billing_month')
+        ->values();
 
         $chartMonths = [];
         $chartRevenue = [];
@@ -53,8 +57,10 @@ class AdminDashboardController extends Controller
 
         // Default value fallback if empty
         if (empty($chartMonths)) {
-            $chartMonths = ['Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6'];
-            $chartRevenue = [31500000, 34200000, 33900000, 38100000];
+            $chartMonths = collect(range(2, 0))
+                ->map(fn ($monthsAgo) => 'Tháng ' . Carbon::now()->subMonths($monthsAgo)->month)
+                ->all();
+            $chartRevenue = [31500000, 34200000, 38100000];
         }
 
         // 3. Room Map (with active residents and latest billing information)

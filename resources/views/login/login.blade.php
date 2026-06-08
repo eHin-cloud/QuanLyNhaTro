@@ -25,6 +25,8 @@
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         .toast-container{position:fixed;top:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:.75rem;max-width:400px;width:calc(100% - 3rem)}
         .toast-card{background:rgba(15,23,42,.6);backdrop-filter:blur(16px) saturate(180%);-webkit-backdrop-filter:blur(16px) saturate(180%);border:1px solid rgba(255,255,255,.08);border-left-width:4px;padding:1rem 1.25rem;border-radius:1rem;box-shadow:0 10px 30px -5px rgba(0,0,0,.3);display:flex;align-items:flex-start;gap:.75rem;transform:translateX(120%);transition:all .4s cubic-bezier(.16,1,.3,1)}
@@ -42,7 +44,10 @@
             <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-all">
                 <i class="fa-solid fa-hotel text-white text-lg"></i>
             </div>
-            <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">SmartRoom</span>
+            <span class="login-brand-lockup text-xl font-extrabold tracking-tight">
+                <span class="login-brand-word login-brand-smart">SmartRoom</span>
+                <span class="login-brand-word login-brand-renty">&amp; Renty</span>
+            </span>
         </a>
         @if($page === 'list')
             <div class="flex items-center gap-4">
@@ -104,91 +109,114 @@
             </div>
         </main>
     @else
-        <main class="flex-grow flex items-center justify-center px-4 py-8 relative z-10">
-            <div class="w-full max-w-md bg-slate-900/40 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:border-slate-700/60 transition-all duration-300">
+        <main class="flex-grow flex items-center justify-center px-4 py-8 relative z-10 {{ $page === 'login' ? 'login-main-stage' : '' }}">
+            <div class="{{ $page === 'login' ? 'login-hero-shell' : (($page === 'create' || $page === 'update') ? 'register-card-upgraded' : 'w-full max-w-md bg-slate-900/40 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:border-slate-700/60 transition-all duration-300') }}">
                 @if($page === 'login')
-                    <div class="text-center mb-8">
-                        <h1 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent mb-2">Chào Mừng Trở Lại</h1>
-                        <p class="text-xs text-slate-400">Đăng nhập tài khoản quản lý nhà trọ của bạn</p>
-                    </div>
-                    <form action="{{ route('user.authUser') }}" method="POST" class="space-y-5">
-                        @csrf
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-400 mb-2" for="login">Tên đăng nhập hoặc Số điện thoại</label>
-                            <div class="relative">
-                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500"><i class="fa-solid fa-user"></i></span>
-                                <input type="text" name="login" id="login" required class="w-full pl-10 pr-4 py-3 bg-slate-950 border border-slate-800/80 rounded-xl text-slate-200 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all" placeholder="Nhập tên đăng nhập hoặc số điện thoại">
-                            </div>
+                    <section class="login-visual-panel">
+                        <div class="login-visual-copy">
+                            <p class="login-eyebrow">SmartRoom &amp; Renty</p>
+                            <h1>Quản lý nhà trọ rõ ràng hơn từ lần đăng nhập đầu tiên</h1>
+                            <p>Theo dõi phòng, đánh giá, hóa đơn và trải nghiệm thuê trọ trong một giao diện tối hiện đại.</p>
                         </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-400 mb-2" for="password">Mật khẩu</label>
-                            <div class="relative">
-                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500"><i class="fa-solid fa-lock"></i></span>
-                                <input type="password" name="password" id="password" required class="w-full pl-10 pr-4 py-3 bg-slate-950 border border-slate-800/80 rounded-xl text-slate-200 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all" placeholder="••••••••">
-                            </div>
+                        <div id="login-house-3d" class="login-house-3d" aria-hidden="true"></div>
+                        <div class="login-visual-stats" aria-label="Thông tin nổi bật">
+                            <span><strong>24/7</strong> Theo dõi</span>
+                            <span><strong>3D</strong> Trực quan</span>
+                            <span><strong>Renty</strong> Review</span>
                         </div>
-                        <button type="submit" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-semibold text-sm shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/35 transform active:scale-95 transition-all duration-200">Đăng Nhập Hệ Thống</button>
-                    </form>
-                    <div class="mt-8 pt-6 border-t border-slate-800/60 text-center space-y-3">
-                        <p class="text-xs text-slate-400">Chưa có tài khoản quản lý?</p>
-                        <a href="{{ route('user.createUser') }}" class="inline-block px-4 py-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 text-xs font-semibold text-indigo-400 transition-all">Đăng Ký Tài Khoản Mới</a>
-                    </div>
+                    </section>
+                    <section class="login-card-upgraded">
+                        <div class="text-center mb-8">
+                            <p class="login-form-kicker">Đăng nhập hệ thống</p>
+                            <h2 class="text-3xl font-extrabold tracking-tight text-slate-50 mb-2">Chào Mừng Trở Lại</h2>
+                            <p class="text-xs text-slate-400">Đăng nhập tài khoản quản lý nhà trọ của bạn</p>
+                        </div>
+                        <form action="{{ route('user.authUser') }}" method="POST" class="space-y-5">
+                            @csrf
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-2" for="login">Tên đăng nhập hoặc Số điện thoại</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500"><i class="fa-solid fa-user"></i></span>
+                                    <input type="text" name="login" id="login" required class="login-input-control w-full pl-10 pr-4 py-3 rounded-xl text-sm focus:outline-none transition-all" placeholder="Nhập tên đăng nhập hoặc số điện thoại">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-2" for="password">Mật khẩu</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500"><i class="fa-solid fa-lock"></i></span>
+                                    <input type="password" name="password" id="password" required class="login-input-control w-full pl-10 pr-4 py-3 rounded-xl text-sm focus:outline-none transition-all" placeholder="••••••••">
+                                </div>
+                            </div>
+                            <button type="submit" class="login-submit-button w-full py-3 px-4 rounded-xl text-white font-semibold text-sm transform active:scale-95 transition-all duration-200">Đăng Nhập Hệ Thống</button>
+                        </form>
+                        <div class="mt-8 pt-6 border-t border-slate-800/60 text-center space-y-3">
+                            <p class="text-xs text-slate-400">Chưa có tài khoản quản lý?</p>
+                            <a href="{{ route('user.createUser') }}" class="login-register-link inline-flex items-center justify-center px-4 py-2 rounded-xl text-xs font-semibold transition-all">Đăng Ký Tài Khoản Mới</a>
+                        </div>
+                    </section>
                 @elseif($page === 'create' || $page === 'update')
                     @php $editing = $page === 'update'; @endphp
-                    <div class="text-center mb-8">
-                        <h1 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent mb-2">{{ $editing ? 'Chỉnh Sửa Tài Khoản' : 'Đăng Ký Tài Khoản' }}</h1>
-                        <p class="text-xs text-slate-400">{{ $editing ? 'Cập nhật thông tin quản trị viên #' . $user->id : 'Tạo tài khoản quản lý căn hộ dịch vụ mới của bạn' }}</p>
+                    <div class="register-card-header">
+                        <div>
+                            <p class="login-form-kicker">{{ $editing ? 'Cập nhật hồ sơ' : 'Tạo tài khoản quản lý' }}</p>
+                            <h1>{{ $editing ? 'Chỉnh Sửa Tài Khoản' : 'Đăng Ký Tài Khoản' }}</h1>
+                            <p>{{ $editing ? 'Cập nhật thông tin quản trị viên #' . $user->id : 'Tạo tài khoản SmartRoom & Renty để quản lý phòng, hóa đơn và đánh giá trong một nơi.' }}</p>
+                        </div>
+                        <div class="register-mini-badge" aria-hidden="true">
+                            <i class="fa-solid fa-building-user"></i>
+                            <span>{{ $editing ? 'Admin' : 'New Admin' }}</span>
+                        </div>
                     </div>
-                    <form action="{{ $editing ? route('user.postUpdateUser') : route('user.postUser') }}" method="POST" class="space-y-4">
+                    <form action="{{ $editing ? route('user.postUpdateUser') : route('user.postUser') }}" method="POST" class="register-form-grid">
                         @csrf
                         @if($editing)
                             <input type="hidden" name="id" value="{{ $user->id }}">
                         @endif
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-400 mb-2" for="name">Họ và Tên</label>
+                        <div class="register-field">
+                            <label class="block text-xs font-semibold text-slate-300 mb-2" for="name">Họ và Tên</label>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500"><i class="fa-solid fa-user"></i></span>
-                                <input type="text" name="name" id="name" value="{{ old('name', $editing ? $user->name : '') }}" required class="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800/80 rounded-xl text-slate-200 text-sm focus:border-indigo-500 focus:outline-none transition-all" placeholder="Nguyễn Văn A">
+                                <input type="text" name="name" id="name" value="{{ old('name', $editing ? $user->name : '') }}" required class="login-input-control w-full pl-10 pr-4 py-3 rounded-xl text-sm focus:outline-none transition-all" placeholder="Nguyễn Văn A">
                             </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-400 mb-2" for="username">Tên đăng nhập</label>
+                        <div class="register-field">
+                            <label class="block text-xs font-semibold text-slate-300 mb-2" for="username">Tên đăng nhập</label>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500"><i class="fa-solid fa-user-tag"></i></span>
-                                <input type="text" name="username" id="username" value="{{ old('username', $editing ? $user->username : '') }}" required class="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800/80 rounded-xl text-slate-200 text-sm focus:border-indigo-500 focus:outline-none transition-all" placeholder="username_vi_viet">
+                                <input type="text" name="username" id="username" value="{{ old('username', $editing ? $user->username : '') }}" required class="login-input-control w-full pl-10 pr-4 py-3 rounded-xl text-sm focus:outline-none transition-all" placeholder="username_vi_viet">
                             </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-400 mb-2" for="phone">Số điện thoại</label>
+                        <div class="register-field">
+                            <label class="block text-xs font-semibold text-slate-300 mb-2" for="phone">Số điện thoại</label>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500"><i class="fa-solid fa-phone"></i></span>
-                                <input type="tel" name="phone" id="phone" value="{{ old('phone', $editing ? $user->phone : '') }}" required class="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800/80 rounded-xl text-slate-200 text-sm focus:border-indigo-500 focus:outline-none transition-all" placeholder="0901234567">
+                                <input type="tel" name="phone" id="phone" value="{{ old('phone', $editing ? $user->phone : '') }}" required class="login-input-control w-full pl-10 pr-4 py-3 rounded-xl text-sm focus:outline-none transition-all" placeholder="0901234567">
                             </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-400 mb-2" for="email">Địa chỉ Email (Không bắt buộc)</label>
+                        <div class="register-field">
+                            <label class="block text-xs font-semibold text-slate-300 mb-2" for="email">Địa chỉ Email (Không bắt buộc)</label>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500"><i class="fa-solid fa-envelope"></i></span>
-                                <input type="email" name="email" id="email" value="{{ old('email', $editing ? $user->email : '') }}" class="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800/80 rounded-xl text-slate-200 text-sm focus:border-indigo-500 focus:outline-none transition-all" placeholder="admin@example.com (tùy chọn)">
+                                <input type="email" name="email" id="email" value="{{ old('email', $editing ? $user->email : '') }}" class="login-input-control w-full pl-10 pr-4 py-3 rounded-xl text-sm focus:outline-none transition-all" placeholder="admin@example.com (tùy chọn)">
                             </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-400 mb-2" for="like">Ghi chú / Mô tả</label>
+                        <div class="register-field register-field-wide">
+                            <label class="block text-xs font-semibold text-slate-300 mb-2" for="like">Ghi chú / Mô tả</label>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500"><i class="fa-solid fa-heart"></i></span>
-                                <input type="text" name="like" id="like" value="{{ old('like', $editing ? $user->like : '') }}" required class="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800/80 rounded-xl text-slate-200 text-sm focus:border-indigo-500 focus:outline-none transition-all" placeholder="Quản lý chung cư mini">
+                                <input type="text" name="like" id="like" value="{{ old('like', $editing ? $user->like : '') }}" required class="login-input-control w-full pl-10 pr-4 py-3 rounded-xl text-sm focus:outline-none transition-all" placeholder="Quản lý chung cư mini">
                             </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-400 mb-2" for="password">{{ $editing ? 'Mật khẩu mới' : 'Mật khẩu' }}</label>
+                        <div class="register-field register-field-wide">
+                            <label class="block text-xs font-semibold text-slate-300 mb-2" for="password">{{ $editing ? 'Mật khẩu mới' : 'Mật khẩu' }}</label>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500"><i class="fa-solid fa-lock"></i></span>
-                                <input type="password" name="password" id="password" required class="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800/80 rounded-xl text-slate-200 text-sm focus:border-indigo-500 focus:outline-none transition-all" placeholder="{{ $editing ? 'Nhập mật khẩu mới hoặc cũ để xác nhận' : '•••••••• (tối thiểu 6 ký tự)' }}">
+                                <input type="password" name="password" id="password" required class="login-input-control w-full pl-10 pr-4 py-3 rounded-xl text-sm focus:outline-none transition-all" placeholder="{{ $editing ? 'Nhập mật khẩu mới hoặc cũ để xác nhận' : '•••••••• (tối thiểu 6 ký tự)' }}">
                             </div>
                         </div>
-                        <div class="pt-2 flex gap-3">
-                            <a href="{{ $editing ? route('user.list') : route('login') }}" class="flex-1 py-2.5 px-4 text-center rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 text-xs font-semibold text-slate-300 transition-all">{{ $editing ? 'Hủy' : 'Đăng Nhập Ngay' }}</a>
-                            <button type="submit" class="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-semibold text-sm shadow-lg shadow-indigo-500/20 transform active:scale-95 transition-all">{{ $editing ? 'Cập Nhật' : 'Đăng Ký Tài Khoản' }}</button>
+                        <div class="register-actions">
+                            <a href="{{ $editing ? route('user.list') : route('login') }}">{{ $editing ? 'Hủy' : 'Đăng Nhập Ngay' }}</a>
+                            <button type="submit">{{ $editing ? 'Cập Nhật' : 'Đăng Ký Tài Khoản' }}</button>
                         </div>
                     </form>
                 @elseif($page === 'read')

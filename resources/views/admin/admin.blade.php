@@ -33,6 +33,7 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-[#080b11] text-slate-100 min-h-screen flex selection:bg-indigo-500 selection:text-white overflow-hidden">
 
@@ -234,7 +235,7 @@
                     <div class="glass-card rounded-2xl p-6 lg:col-span-2 flex flex-col justify-between">
                         <div class="flex items-center justify-between mb-4 border-b border-slate-900/60 pb-3">
                             <div>
-                                <h3 class="text-base font-bold text-slate-200">Phân Tích Doanh Thu Hệ Thống</h3>
+                                <h3 class="text-base font-bold text-slate-200">Doanh Thu 3 Tháng Gần Nhất</h3>
                                 <p class="text-xs text-slate-500">Báo cáo xu hướng cột và cơ cấu nguồn thu từ điện, nước, phòng</p>
                             </div>
                             <span class="text-[10px] px-2.5 py-1 rounded bg-indigo-500/10 text-indigo-400 font-bold border border-indigo-500/20 uppercase tracking-wider">Doanh thu tháng 06</span>
@@ -243,7 +244,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
                             <!-- Left: Trend Bar Chart -->
                             <div class="md:col-span-3 flex flex-col justify-between">
-                                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2">Xu Hướng Doanh Thu</span>
+                                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2">Xu hướng 3 tháng</span>
                                 <div class="h-56 w-full">
                                     <canvas id="revenueChart"></canvas>
                                 </div>
@@ -283,11 +284,15 @@
                     <!-- Doughnut Room Status Chart -->
                     <div class="glass-card rounded-2xl p-6 flex flex-col justify-between">
                         <div class="mb-4">
-                            <h3 class="text-base font-bold text-slate-200">Trạng Thái Phòng Trọ</h3>
-                            <p class="text-xs text-slate-500">Tỉ lệ phần trăm trạng thái phòng</p>
+                            <h3 class="text-base font-bold text-slate-200">Tỷ Lệ Phòng Trống / Đầy</h3>
+                            <p class="text-xs text-slate-500">Tổng quan nhanh tình trạng khai thác phòng</p>
                         </div>
-                        <div class="h-48 w-full flex items-center justify-center">
+                        <div class="h-48 w-full flex items-center justify-center relative">
                             <canvas id="statusChart"></canvas>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Tổng phòng</span>
+                                <strong class="text-2xl font-black text-slate-100">{{ $totalRooms }}</strong>
+                            </div>
                         </div>
                         <div class="grid grid-cols-3 gap-2 mt-4 text-center">
                             <div class="p-2 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
@@ -2747,7 +2752,17 @@
                     maintainAspectRatio: false,
                     cutout: '75%',
                     plugins: {
-                        legend: { display: false }
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((sum, item) => sum + item, 0);
+                                    const value = context.parsed || 0;
+                                    const percent = total > 0 ? Math.round((value / total) * 100) : 0;
+                                    return `${context.label}: ${value} phòng (${percent}%)`;
+                                }
+                            }
+                        }
                     }
                 }
             });
