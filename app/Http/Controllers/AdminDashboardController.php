@@ -78,12 +78,13 @@ class AdminDashboardController extends Controller
         $residentStats = Resident::query()->get();
         $residents = Resident::with('room')
             ->when($residentFilters['q'] !== '', function ($query) use ($residentFilters) {
-                $keyword = $residentFilters['q'];
+                $identityKeyword = $this->prefixLike($residentFilters['q']);
+                $nameKeyword = $this->containsLike($residentFilters['q']);
 
-                $query->where(function ($residentQuery) use ($keyword) {
-                    $residentQuery->where('name', 'like', "%{$keyword}%")
-                        ->orWhere('phone', 'like', "%{$keyword}%")
-                        ->orWhere('cccd', 'like', "%{$keyword}%");
+                $query->where(function ($residentQuery) use ($identityKeyword, $nameKeyword) {
+                    $residentQuery->where('name', 'like', $nameKeyword)
+                        ->orWhere('phone', 'like', $identityKeyword)
+                        ->orWhere('cccd', 'like', $identityKeyword);
                 });
             })
             ->orderBy('id', 'desc')
@@ -271,6 +272,16 @@ class AdminDashboardController extends Controller
             'smartAlertGroups',
             'smartAlertTotal'
         ));
+    }
+
+    private function prefixLike(string $value): string
+    {
+        return addcslashes(trim($value), '\%_') . '%';
+    }
+
+    private function containsLike(string $value): string
+    {
+        return '%' . addcslashes(trim($value), '\%_') . '%';
     }
 
     public function storeUtility(Request $request)

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Room;
+use App\Models\Tenant;
 use App\Models\UtilityRecord;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -23,7 +24,7 @@ class PaymentController extends Controller
 
     public function index(Request $request)
     {
-        $tenantId = Auth::user()->tenant_id;
+        $tenantId = $this->currentTenantId();
         $filters = $this->filters($request);
 
         $records = $this->filteredRecordQuery($tenantId, $filters)
@@ -107,7 +108,7 @@ class PaymentController extends Controller
 
     public function export(Request $request): StreamedResponse
     {
-        $tenantId = Auth::user()->tenant_id;
+        $tenantId = $this->currentTenantId();
         $filters = $this->filters($request);
         $rows = $this->revenueReports($tenantId, $filters);
         $fileName = 'bao-cao-doanh-thu-' . $filters['report_period'] . '-' . now()->format('Ymd-His') . '.csv';
@@ -151,14 +152,15 @@ class PaymentController extends Controller
             ->when($filters['payment_method'], fn ($query) => $query->where('payment_method', $filters['payment_method']))
             ->when($filters['room_id'], fn ($query) => $query->where('room_id', $filters['room_id']))
             ->when($filters['q'] !== '', function ($query) use ($filters) {
-                $keyword = $filters['q'];
+                $identityKeyword = $this->prefixLike($filters['q']);
+                $nameKeyword = $this->containsLike($filters['q']);
 
-                $query->whereHas('room', function ($roomQuery) use ($keyword) {
-                    $roomQuery->where('room_number', 'like', "%{$keyword}%")
-                        ->orWhereHas('residents', function ($residentQuery) use ($keyword) {
-                            $residentQuery->where('name', 'like', "%{$keyword}%")
-                                ->orWhere('phone', 'like', "%{$keyword}%")
-                                ->orWhere('cccd', 'like', "%{$keyword}%");
+                $query->whereHas('room', function ($roomQuery) use ($identityKeyword, $nameKeyword) {
+                    $roomQuery->where('room_number', 'like', $identityKeyword)
+                        ->orWhereHas('residents', function ($residentQuery) use ($identityKeyword, $nameKeyword) {
+                            $residentQuery->where('name', 'like', $nameKeyword)
+                                ->orWhere('phone', 'like', $identityKeyword)
+                                ->orWhere('cccd', 'like', $identityKeyword);
                         });
                 });
             });
@@ -176,14 +178,15 @@ class PaymentController extends Controller
             ->whereDoesntHave('utilityRecords', fn ($query) => $query->where('billing_month', $filters['billing_month']))
             ->when($filters['room_id'], fn ($query) => $query->where('id', $filters['room_id']))
             ->when($filters['q'] !== '', function ($query) use ($filters) {
-                $keyword = $filters['q'];
+                $identityKeyword = $this->prefixLike($filters['q']);
+                $nameKeyword = $this->containsLike($filters['q']);
 
-                $query->where(function ($roomQuery) use ($keyword) {
-                    $roomQuery->where('room_number', 'like', "%{$keyword}%")
-                        ->orWhereHas('residents', function ($residentQuery) use ($keyword) {
-                            $residentQuery->where('name', 'like', "%{$keyword}%")
-                                ->orWhere('phone', 'like', "%{$keyword}%")
-                                ->orWhere('cccd', 'like', "%{$keyword}%");
+                $query->where(function ($roomQuery) use ($identityKeyword, $nameKeyword) {
+                    $roomQuery->where('room_number', 'like', $identityKeyword)
+                        ->orWhereHas('residents', function ($residentQuery) use ($identityKeyword, $nameKeyword) {
+                            $residentQuery->where('name', 'like', $nameKeyword)
+                                ->orWhere('phone', 'like', $identityKeyword)
+                                ->orWhere('cccd', 'like', $identityKeyword);
                         });
                 });
             })
@@ -317,11 +320,42 @@ class PaymentController extends Controller
         return $value;
     }
 
+    private function currentTenantId(): int
+    {
+        $tenantId = Auth::user()?->tenant_id;
+
+        if ($tenantId) {
+            return (int) $tenantId;
+        }
+
+        $fallbackTenantId = Tenant::query()->value('id');
+        if (!$fallbackTenantId) {
+            abort(404, 'Khong tim thay tenant de hien thi thanh toan.');
+        }
+
+        return (int) $fallbackTenantId;
+    }
+
+    private function prefixLike(string $value): string
+    {
+        return $this->escapeLike($value) . '%';
+    }
+
+    private function containsLike(string $value): string
+    {
+        return '%' . $this->escapeLike($value) . '%';
+    }
+
+    private function escapeLike(string $value): string
+    {
+        return addcslashes(trim($value), '\%_');
+    }
+
     private function authorizeTenantRecord(UtilityRecord $record): void
     {
         $record->loadMissing('room');
 
-        if (!$record->room || $record->room->tenant_id !== Auth::user()->tenant_id) {
+        if (!$record->room || $record->room->tenant_id !== $this->currentTenantId()) {
             abort(404);
         }
     }

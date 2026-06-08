@@ -55,7 +55,7 @@ class RoomController extends Controller
         $perPage = 5;
         $rooms = Room::with('building')
             ->where('tenant_id', $tenantId)
-            ->when($filters['room_number'] !== '', fn ($query) => $query->where('room_number', 'like', '%' . $filters['room_number'] . '%'))
+            ->when($filters['room_number'] !== '', fn ($query) => $query->where('room_number', 'like', $this->prefixLike($filters['room_number'])))
             ->when($filters['status'], fn ($query) => $query->where('status', $filters['status']))
             ->when($filters['floor'], fn ($query) => $query->where('floor', $filters['floor']))
             ->when($filters['min_price'] !== null, fn ($query) => $query->where('price', '>=', $filters['min_price']))
@@ -425,6 +425,11 @@ class RoomController extends Controller
         // Thay thế khoảng trắng toàn sừng (full-width ideographic space '　') thành khoảng trắng thường
         $cleaned = str_replace('　', ' ', $string);
         return trim($cleaned);
+    }
+
+    private function prefixLike(string $value): string
+    {
+        return addcslashes(trim($value), '\%_') . '%';
     }
 
     /**
