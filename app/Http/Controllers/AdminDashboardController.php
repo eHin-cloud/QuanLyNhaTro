@@ -12,6 +12,8 @@ use App\Models\Ticket;
 use App\Models\UtilityRecord;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class AdminDashboardController extends Controller
 {
@@ -70,7 +72,22 @@ class AdminDashboardController extends Controller
             ->get();
 
         // 5. Resident Management Tab
-        $residents = Resident::with('room')->orderBy('id', 'desc')->get();
+        $residentFilters = [
+            'q' => trim((string) $request->query('resident_q', '')),
+        ];
+        $residentStats = Resident::query()->get();
+        $residents = Resident::with('room')
+            ->when($residentFilters['q'] !== '', function ($query) use ($residentFilters) {
+                $keyword = $residentFilters['q'];
+
+                $query->where(function ($residentQuery) use ($keyword) {
+                    $residentQuery->where('name', 'like', "%{$keyword}%")
+                        ->orWhere('phone', 'like', "%{$keyword}%")
+                        ->orWhere('cccd', 'like', "%{$keyword}%");
+                });
+            })
+            ->orderBy('id', 'desc')
+            ->get();
         $emptyRoomsList = Room::where('status', 'empty')->orderBy('room_number')->get();
 
         // 6. Contracts Tab
@@ -245,6 +262,8 @@ class AdminDashboardController extends Controller
             'roomsByFloor',
             'utilityRooms',
             'residents',
+            'residentStats',
+            'residentFilters',
             'emptyRoomsList',
             'recentActivities',
             'contracts',
@@ -732,6 +751,64 @@ class AdminDashboardController extends Controller
         \Illuminate\Support\Facades\Log::info("Telegram Notification Sent:\n" . $message);
 
         return redirect()->route('smartroom.admin', ['tab' => 'utility-section'])->with('success', 'Đã tự động gửi thông báo chi tiết hóa đơn qua Telegram & Zalo thành công!');
+    }
+
+    public function autoRemindUtilities()
+    {
+        $currentMonth = now()->format('Y-m');
+        $tenantId = Auth::user()->tenant_id;
+
+        $unpaidBills = UtilityRecord::with(['room.residents' => function ($query) {
+            $query->where('status', 'active');
+        }])
+            ->where('billing_month', $currentMonth)
+            ->where('status', '!=', 'paid')
+            ->whereHas('room', fn ($query) => $query->where('tenant_id', $tenantId))
+            ->get();
+
+        $sentRooms = [];
+
+        foreach ($unpaidBills as $bill) {
+            $room = $bill->room;
+            $resident = $room?->residents->first();
+
+            if (!$room || !$resident) {
+                continue;
+            }
+
+            $elecUsed = max(0, $bill->new_electricity - $bill->old_electricity);
+            $waterUsed = max(0, $bill->new_water - $bill->old_water);
+            $totalAmount = $room->price + ($elecUsed * $bill->electricity_price) + ($waterUsed * $bill->water_price) + 150000;
+            $totalFormatted = number_format($totalAmount, 0, ',', '.') . ' VND';
+
+            $message = "[SMARTROOM REMINDER] Phong {$room->room_number}, cu dan {$resident->name}, hoa don {$currentMonth} chua thanh toan: {$totalFormatted}.";
+            Log::info('Auto payment reminder sent', [
+                'room_id' => $room->id,
+                'room_number' => $room->room_number,
+                'resident_id' => $resident->id,
+                'phone' => $resident->phone,
+                'message' => $message,
+            ]);
+
+            if ($bill->status !== 'overdue') {
+                $bill->update(['status' => 'sent']);
+            }
+
+            $sentRooms[] = [
+                'room_number' => $room->room_number,
+                'resident_name' => $resident->name,
+                'phone' => $resident->phone,
+                'total_amount' => $totalAmount,
+                'total_amount_formatted' => $totalFormatted,
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'billing_month' => $currentMonth,
+            'sent_count' => count($sentRooms),
+            'sent_rooms' => $sentRooms,
+        ]);
     }
 
     public function storeContract(Request $request)

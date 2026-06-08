@@ -156,7 +156,7 @@
                         <option value="year" @selected($filters['report_period'] === 'year')>Theo năm</option>
                     </select>
                     <div class="flex gap-2">
-                        <input type="search" name="q" value="{{ $filters['q'] }}" placeholder="Phòng, tên, SĐT" class="min-w-0 flex-1 px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                        <input type="search" name="q" value="{{ $filters['q'] }}" placeholder="Phòng, tên, SĐT, CCCD" class="min-w-0 flex-1 px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
                         <button type="submit" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold">
                             <i class="fa-solid fa-filter"></i>
                         </button>

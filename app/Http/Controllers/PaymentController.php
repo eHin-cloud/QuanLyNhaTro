@@ -157,7 +157,8 @@ class PaymentController extends Controller
                     $roomQuery->where('room_number', 'like', "%{$keyword}%")
                         ->orWhereHas('residents', function ($residentQuery) use ($keyword) {
                             $residentQuery->where('name', 'like', "%{$keyword}%")
-                                ->orWhere('phone', 'like', "%{$keyword}%");
+                                ->orWhere('phone', 'like', "%{$keyword}%")
+                                ->orWhere('cccd', 'like', "%{$keyword}%");
                         });
                 });
             });
@@ -181,7 +182,8 @@ class PaymentController extends Controller
                     $roomQuery->where('room_number', 'like', "%{$keyword}%")
                         ->orWhereHas('residents', function ($residentQuery) use ($keyword) {
                             $residentQuery->where('name', 'like', "%{$keyword}%")
-                                ->orWhere('phone', 'like', "%{$keyword}%");
+                                ->orWhere('phone', 'like', "%{$keyword}%")
+                                ->orWhere('cccd', 'like', "%{$keyword}%");
                         });
                 });
             })

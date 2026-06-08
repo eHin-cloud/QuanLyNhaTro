@@ -38,25 +38,38 @@ class RoomController extends Controller
     {
         $user = Auth::user();
         $tenantId = $user->tenant_id;
+        $filters = [
+            'room_number' => trim((string) $request->query('room_number', '')),
+            'status' => in_array($request->query('status'), ['empty', 'occupied', 'overdue', 'maintenance'], true) ? $request->query('status') : null,
+            'floor' => $request->filled('floor') && is_numeric($request->query('floor')) ? (int) $request->query('floor') : null,
+            'min_price' => $request->filled('min_price') && is_numeric($request->query('min_price')) ? (int) $request->query('min_price') : null,
+            'max_price' => $request->filled('max_price') && is_numeric($request->query('max_price')) ? (int) $request->query('max_price') : null,
+        ];
 
         // Xử lý tham số page không hợp lệ hoặc quá lớn
         $page = $request->query('page');
         if ($page !== null && (!is_numeric($page) || intval($page) <= 0)) {
-            return redirect()->route('admin.rooms.index', ['page' => 1]);
+            return redirect()->route('admin.rooms.index', array_merge($request->except('page'), ['page' => 1]));
         }
 
         $perPage = 5;
         $rooms = Room::with('building')
             ->where('tenant_id', $tenantId)
+            ->when($filters['room_number'] !== '', fn ($query) => $query->where('room_number', 'like', '%' . $filters['room_number'] . '%'))
+            ->when($filters['status'], fn ($query) => $query->where('status', $filters['status']))
+            ->when($filters['floor'], fn ($query) => $query->where('floor', $filters['floor']))
+            ->when($filters['min_price'] !== null, fn ($query) => $query->where('price', '>=', $filters['min_price']))
+            ->when($filters['max_price'] !== null, fn ($query) => $query->where('price', '<=', $filters['max_price']))
             ->orderBy('room_number')
-            ->paginate($perPage);
+            ->paginate($perPage)
+            ->appends($request->query());
 
         // Nếu page vượt quá tổng số trang, tự động quay lại page 1
         if ($rooms->currentPage() > $rooms->lastPage() && $rooms->lastPage() > 0) {
-            return redirect()->route('admin.rooms.index', ['page' => 1]);
+            return redirect()->route('admin.rooms.index', array_merge($request->except('page'), ['page' => 1]));
         }
 
-        return view('admin.rooms.index', compact('rooms'));
+        return view('admin.rooms.index', compact('rooms', 'filters'));
     }
 
     /**

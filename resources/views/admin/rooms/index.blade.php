@@ -151,6 +151,28 @@
                     </a>
                 </div>
 
+                <form method="GET" action="{{ route('admin.rooms.index') }}" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-7 gap-3 mb-6">
+                    <input type="search" name="room_number" value="{{ $filters['room_number'] }}" class="xl:col-span-2 px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500" placeholder="So phong">
+                    <select name="status" class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                        <option value="">Tat ca trang thai</option>
+                        <option value="empty" @selected($filters['status'] === 'empty')>Trong</option>
+                        <option value="occupied" @selected($filters['status'] === 'occupied')>Dang thue</option>
+                        <option value="overdue" @selected($filters['status'] === 'overdue')>No tien</option>
+                        <option value="maintenance" @selected($filters['status'] === 'maintenance')>Bao tri</option>
+                    </select>
+                    <input type="number" name="floor" value="{{ $filters['floor'] }}" min="1" class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500" placeholder="Tang">
+                    <input type="number" name="min_price" value="{{ $filters['min_price'] }}" min="0" class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500" placeholder="Gia tu">
+                    <input type="number" name="max_price" value="{{ $filters['max_price'] }}" min="0" class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500" placeholder="Gia den">
+                    <div class="flex gap-2">
+                        <button type="submit" class="flex-1 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold">
+                            <i class="fa-solid fa-filter"></i> Loc
+                        </button>
+                        <a href="{{ route('admin.rooms.index') }}" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-bold">
+                            <i class="fa-solid fa-rotate-left"></i>
+                        </a>
+                    </div>
+                </form>
+
                 <div class="overflow-x-auto rounded-xl border border-slate-900">
                     <table class="w-full text-left text-sm text-slate-300">
                         <thead class="text-xs text-slate-500 uppercase bg-slate-900/80 border-b border-slate-900">

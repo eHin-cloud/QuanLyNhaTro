@@ -706,7 +706,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Tổng cư dân</p>
-                                <h3 class="text-2xl font-extrabold text-white mt-1">{{ $residents->count() }}</h3>
+                                <h3 class="text-2xl font-extrabold text-white mt-1">{{ $residentStats->count() }}</h3>
                             </div>
                             <div class="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400"><i class="fa-solid fa-users"></i></div>
                         </div>
@@ -716,7 +716,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Đã đăng ký tạm trú</p>
-                                <h3 class="text-2xl font-extrabold text-emerald-400 mt-1">{{ $residents->where('temporary_residence_status', 'registered')->count() }}</h3>
+                                <h3 class="text-2xl font-extrabold text-emerald-400 mt-1">{{ $residentStats->where('temporary_residence_status', 'registered')->count() }}</h3>
                             </div>
                             <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400"><i class="fa-solid fa-clipboard-check"></i></div>
                         </div>
@@ -726,7 +726,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Tạm vắng</p>
-                                <h3 class="text-2xl font-extrabold text-amber-400 mt-1">{{ $residents->where('temporary_residence_status', 'absent')->count() }}</h3>
+                                <h3 class="text-2xl font-extrabold text-amber-400 mt-1">{{ $residentStats->where('temporary_residence_status', 'absent')->count() }}</h3>
                             </div>
                             <div class="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400"><i class="fa-solid fa-user-clock"></i></div>
                         </div>
@@ -736,7 +736,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Chưa đăng ký</p>
-                                <h3 class="text-2xl font-extrabold text-rose-400 mt-1">{{ $residents->where('temporary_residence_status', 'none')->count() }}</h3>
+                                <h3 class="text-2xl font-extrabold text-rose-400 mt-1">{{ $residentStats->where('temporary_residence_status', 'none')->count() }}</h3>
                             </div>
                             <div class="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-400"><i class="fa-solid fa-user-xmark"></i></div>
                         </div>
@@ -750,7 +750,18 @@
                             <p class="text-xs text-slate-500">Lưu trữ thông tin cá nhân, đăng ký tạm trú, quản lý người thân tạm trú.</p>
                         </div>
                         <div class="flex gap-2">
-                            <input type="text" id="resident-search-input" onkeyup="searchResidentTable()" class="px-4 py-2 text-xs rounded-xl bg-slate-900 border border-slate-800 text-slate-200 placeholder-slate-500 focus:border-indigo-500 focus:outline-none" placeholder="Tìm tên / CCCD / phòng...">
+                            <form method="GET" action="{{ route('smartroom.admin') }}" class="flex gap-2">
+                                <input type="hidden" name="tab" value="resident-section">
+                                <input type="search" name="resident_q" value="{{ $residentFilters['q'] }}" class="px-4 py-2 text-xs rounded-xl bg-slate-900 border border-slate-800 text-slate-200 placeholder-slate-500 focus:border-indigo-500 focus:outline-none" placeholder="Ten / SDT / CCCD">
+                                <button type="submit" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 rounded-xl text-xs font-bold transition-all">
+                                    <i class="fa-solid fa-filter"></i>
+                                </button>
+                                @if($residentFilters['q'] !== '')
+                                    <a href="{{ route('smartroom.admin', ['tab' => 'resident-section']) }}" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 rounded-xl text-xs font-bold transition-all">
+                                        <i class="fa-solid fa-rotate-left"></i>
+                                    </a>
+                                @endif
+                            </form>
                             <button onclick="toggleAddResidentModal(true)" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2">
                                 <i class="fa-solid fa-plus"></i> Thêm Cư Dân
                             </button>
@@ -1968,7 +1979,7 @@
 
         // Resident search
         function searchResidentTable() {
-            const query = document.getElementById('resident-search-input').value.toLowerCase();
+            const query = document.querySelector('input[name="resident_q"]')?.value.toLowerCase() || '';
             const rows = document.getElementById('resident-table-body').querySelectorAll('tr');
             rows.forEach(row => {
                 const text = row.textContent.toLowerCase();
@@ -2891,7 +2902,7 @@
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang tự động gửi...';
 
-            fetch('/api/utility-bills/auto-remind', {
+            fetch("{{ route('smartroom.admin.utility.auto_remind') }}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
