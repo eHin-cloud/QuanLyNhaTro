@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use App\Services\AdminActivityLogger;
 
 class RoomController extends Controller
 {
@@ -170,7 +171,7 @@ class RoomController extends Controller
         $videoPath = $request->hasFile('video') ? $request->file('video')->store('rooms/videos', 'public') : null;
 
         // 4. Tạo phòng trọ mới
-        Room::create([
+        $room = Room::create([
             'building_id' => $request->building_id,
             'tenant_id' => $tenantId,
             'room_number' => $request->room_number,
@@ -186,6 +187,16 @@ class RoomController extends Controller
             'video' => $videoPath,
             'version' => 1 // Khởi tạo phiên bản đầu tiên cho Optimistic Locking
         ]);
+
+        AdminActivityLogger::log(
+            'create',
+            'rooms',
+            'Thêm phòng ' . $room->room_number,
+            $room,
+            ['room_number' => $room->room_number],
+            null,
+            $room->only(['room_number', 'floor', 'status', 'room_type', 'price', 'area'])
+        );
 
         return redirect()->route('admin.rooms.index')->with('success', 'Thêm phòng trọ mới thành công.');
     }
@@ -324,6 +335,8 @@ class RoomController extends Controller
         }
 
         // 7. Cập nhật dữ liệu phòng trọ và tăng version lên 1
+        $before = $room->only(['room_number', 'floor', 'status', 'room_type', 'price', 'area', 'building_id']);
+
         $room->update([
             'building_id' => $request->building_id,
             'room_number' => $request->room_number,
@@ -337,6 +350,16 @@ class RoomController extends Controller
             'image' => $imagePath,
             'version' => $room->version + 1 // Tăng version để phòng chống cập nhật đè (Optimistic Locking)
         ]);
+
+        AdminActivityLogger::log(
+            'update',
+            'rooms',
+            'Cập nhật phòng ' . $room->room_number,
+            $room,
+            ['room_number' => $room->room_number],
+            $before,
+            $room->fresh()->only(['room_number', 'floor', 'status', 'room_type', 'price', 'area', 'building_id'])
+        );
 
         return redirect()->route('admin.rooms.index')->with('success', 'Cập nhật phòng trọ thành công.');
     }
@@ -376,7 +399,19 @@ class RoomController extends Controller
             Storage::disk('public')->delete($room->video);
         }
 
+        $before = $room->only(['room_number', 'floor', 'status', 'room_type', 'price', 'area', 'building_id']);
+        $roomNumber = $room->room_number;
+
         $room->delete();
+
+        AdminActivityLogger::log(
+            'delete',
+            'rooms',
+            'Xóa phòng ' . $roomNumber,
+            $room,
+            ['room_number' => $roomNumber],
+            $before
+        );
 
         return redirect()->route('admin.rooms.index')->with('success', 'Xóa phòng trọ thành công.');
     }

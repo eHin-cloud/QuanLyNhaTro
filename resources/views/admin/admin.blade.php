@@ -79,6 +79,10 @@
                     <i class="fa-solid fa-money-check-dollar text-lg"></i>
                     <span>Thanh Toán</span>
                 </a>
+                <a href="{{ route('admin.activity_logs.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
+                    <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+                    <span>Lịch Sử Vận Hành</span>
+                </a>
                 <button onclick="switchTab('utility-section', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
                     <i class="fa-solid fa-bolt text-lg"></i>
                     <span>Chốt Điện Nước</span>

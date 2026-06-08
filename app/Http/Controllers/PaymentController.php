@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use App\Services\AdminActivityLogger;
 
 class PaymentController extends Controller
 {
@@ -91,6 +92,8 @@ class PaymentController extends Controller
             'payment_method' => 'nullable|required_if:status,paid|in:cash,bank_transfer,vietqr,other',
         ]);
 
+        $before = $payment->only(['status', 'payment_date', 'payment_method']);
+
         $payment->update([
             'status' => $validated['status'],
             'payment_date' => $validated['status'] === 'paid'
@@ -102,6 +105,17 @@ class PaymentController extends Controller
         ]);
 
         $this->syncRoomPaymentStatus($payment->room_id);
+
+        $payment->loadMissing('room');
+        AdminActivityLogger::log(
+            'payment',
+            'payments',
+            'Cập nhật thanh toán phòng ' . ($payment->room->room_number ?? $payment->room_id) . ' sang trạng thái ' . $this->statusLabels()[$payment->status]['label'],
+            $payment,
+            ['room_number' => $payment->room->room_number ?? null, 'billing_month' => $payment->billing_month],
+            $before,
+            $payment->fresh()->only(['status', 'payment_date', 'payment_method'])
+        );
 
         return back()->with('success', 'Đã cập nhật trạng thái thanh toán.');
     }

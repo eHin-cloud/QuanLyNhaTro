@@ -12,6 +12,7 @@ use App\Models\Resident;
 use App\Models\Tenant;
 use App\Models\Ticket;
 use App\Models\UtilityRecord;
+use App\Services\AdminActivityLogger;
 use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -335,12 +336,22 @@ class AdminDashboardController extends Controller
             if ($request->new_electricity < $existing->old_electricity || $request->new_water < $existing->old_water) {
                 return redirect()->route('smartroom.admin', ['tab' => 'utility-section'])->with('error', 'Chỉ số mới không được nhỏ hơn chỉ số cũ!');
             }
+            $before = $existing->only(['new_electricity', 'new_water', 'status']);
             $existing->update([
                 'new_electricity' => $request->new_electricity,
                 'new_water' => $request->new_water,
                 'status' => 'sent'
             ]);
             $room->update(['status' => 'overdue']);
+            AdminActivityLogger::log(
+                'update',
+                'utilities',
+                'Cập nhật chỉ số điện nước phòng ' . $room->room_number . ' tháng ' . $currentMonth,
+                $existing,
+                ['room_number' => $room->room_number, 'billing_month' => $currentMonth],
+                $before,
+                $existing->fresh()->only(['new_electricity', 'new_water', 'status'])
+            );
             return redirect()->route('smartroom.admin', ['tab' => 'utility-section'])->with('success', 'Đã cập nhật chỉ số điện nước & gửi hóa đơn thành công!');
         }
 
@@ -356,7 +367,7 @@ class AdminDashboardController extends Controller
             return redirect()->route('smartroom.admin', ['tab' => 'utility-section'])->with('error', 'Chỉ số mới không được nhỏ hơn chỉ số cũ!');
         }
 
-        UtilityRecord::create([
+        $record = UtilityRecord::create([
             'room_id' => $room->id,
             'billing_month' => $currentMonth,
             'old_electricity' => $oldElec,
@@ -370,6 +381,16 @@ class AdminDashboardController extends Controller
 
         // Mark room status as overdue until paid
         $room->update(['status' => 'overdue']);
+
+        AdminActivityLogger::log(
+            'create',
+            'utilities',
+            'Chốt chỉ số điện nước phòng ' . $room->room_number . ' tháng ' . $currentMonth,
+            $record,
+            ['room_number' => $room->room_number, 'billing_month' => $currentMonth],
+            null,
+            $record->only(['old_electricity', 'new_electricity', 'old_water', 'new_water', 'status'])
+        );
 
         return redirect()->route('smartroom.admin', ['tab' => 'utility-section'])->with('success', 'Đã lưu chỉ số điện nước & gửi hóa đơn thành công!');
     }
@@ -430,6 +451,13 @@ class AdminDashboardController extends Controller
         }
 
         if ($savedCount > 0) {
+            AdminActivityLogger::log(
+                'create',
+                'utilities',
+                'Chốt nhanh chỉ số điện nước cho ' . $savedCount . ' phòng tháng ' . $currentMonth,
+                null,
+                ['billing_month' => $currentMonth, 'saved_count' => $savedCount]
+            );
             return redirect()->route('smartroom.admin', ['tab' => 'utility-section'])->with('success', "Đã chốt nhanh chỉ số điện nước và gửi hóa đơn cho {$savedCount} phòng thành công!");
         }
 
@@ -463,7 +491,7 @@ class AdminDashboardController extends Controller
         $room = Room::findOrFail($request->room_id);
 
         // Create resident
-        Resident::create([
+        $resident = Resident::create([
             'tenant_id' => $room->tenant_id ?? (\App\Models\Tenant::first()->id ?? 1),
             'room_id' => $request->room_id,
             'name' => $request->name,
@@ -480,6 +508,16 @@ class AdminDashboardController extends Controller
 
         // Update room status
         $room->update(['status' => 'occupied']);
+
+        AdminActivityLogger::log(
+            'create',
+            'residents',
+            'Thêm cư dân ' . $resident->name . ' vào phòng ' . $room->room_number,
+            $resident,
+            ['room_number' => $room->room_number],
+            null,
+            $resident->only(['room_id', 'name', 'phone', 'email', 'cccd', 'temporary_residence_status'])
+        );
 
         return redirect()->route('smartroom.admin', ['tab' => 'resident-section'])->with('success', 'Đã thêm mới cư dân và kích hoạt trạng thái phòng thành công!');
     }
@@ -526,6 +564,7 @@ class AdminDashboardController extends Controller
 
         $oldRoomId = $resident->room_id;
         $newRoomId = $request->room_id;
+        $before = $resident->only(['room_id', 'name', 'phone', 'email', 'cccd', 'temporary_residence_status']);
 
         $resident->update([
             'room_id' => $newRoomId,
@@ -546,6 +585,16 @@ class AdminDashboardController extends Controller
             $newRoom->syncOccupancyStatus();
         }
 
+        AdminActivityLogger::log(
+            'update',
+            'residents',
+            'Cập nhật cư dân ' . $resident->name,
+            $resident,
+            ['old_room_id' => $oldRoomId, 'new_room_id' => $newRoomId],
+            $before,
+            $resident->fresh()->only(['room_id', 'name', 'phone', 'email', 'cccd', 'temporary_residence_status'])
+        );
+
         return redirect()->route('smartroom.admin', ['tab' => 'resident-section'])->with('success', 'Cập nhật thông tin cư dân thành công!');
     }
 
@@ -564,11 +613,22 @@ class AdminDashboardController extends Controller
         }
 
         $room = $resident->room;
+        $before = $resident->only(['room_id', 'name', 'phone', 'email', 'cccd', 'temporary_residence_status']);
+        $residentName = $resident->name;
         $resident->delete();
 
         if ($room) {
             $room->syncOccupancyStatus();
         }
+
+        AdminActivityLogger::log(
+            'delete',
+            'residents',
+            'Xóa cư dân ' . $residentName,
+            $resident,
+            ['room_number' => $room?->room_number],
+            $before
+        );
 
         return redirect()->route('smartroom.admin', ['tab' => 'resident-section'])->with('success', 'Đã xóa cư dân và cập nhật trạng thái phòng thành công!');
     }
@@ -641,6 +701,16 @@ class AdminDashboardController extends Controller
             'version' => 1
         ]);
 
+        AdminActivityLogger::log(
+            'create',
+            'relatives',
+            'Thêm người thân ' . $relative->name . ' cho cư dân ' . $resident->name,
+            $relative,
+            ['resident_id' => $resident->id, 'resident_name' => $resident->name],
+            null,
+            $relative->only(['resident_id', 'name', 'phone', 'cccd', 'relationship', 'temporary_residence_status'])
+        );
+
         return response()->json([
             'success' => true,
             'message' => 'Đã thêm thông tin người thân tạm trú thành công!',
@@ -690,6 +760,8 @@ class AdminDashboardController extends Controller
             ], 409);
         }
 
+        $before = $relative->only(['resident_id', 'name', 'phone', 'cccd', 'relationship', 'temporary_residence_status']);
+
         $relative->update([
             'name' => $request->name,
             'dob' => $request->dob,
@@ -702,6 +774,16 @@ class AdminDashboardController extends Controller
             'end_date' => $request->end_date,
             'version' => $relative->version + 1
         ]);
+
+        AdminActivityLogger::log(
+            'update',
+            'relatives',
+            'Cập nhật người thân ' . $relative->name,
+            $relative,
+            ['resident_id' => $relative->resident_id],
+            $before,
+            $relative->fresh()->only(['resident_id', 'name', 'phone', 'cccd', 'relationship', 'temporary_residence_status'])
+        );
 
         return response()->json([
             'success' => true,
@@ -721,7 +803,18 @@ class AdminDashboardController extends Controller
             return response()->json(['success' => false, 'message' => 'Mục này đã bị xóa trước đó hoặc không tồn tại!'], 404);
         }
 
+        $before = $relative->only(['resident_id', 'name', 'phone', 'cccd', 'relationship', 'temporary_residence_status']);
+        $relativeName = $relative->name;
         $relative->delete();
+
+        AdminActivityLogger::log(
+            'delete',
+            'relatives',
+            'Xóa người thân ' . $relativeName,
+            $relative,
+            ['resident_id' => $before['resident_id'] ?? null],
+            $before
+        );
 
         return response()->json([
             'success' => true,
@@ -732,6 +825,7 @@ class AdminDashboardController extends Controller
     public function payUtility($id)
     {
         $record = UtilityRecord::findOrFail($id);
+        $before = $record->only(['status', 'payment_date', 'payment_method']);
         $record->update([
             'status' => 'paid',
             'payment_date' => now(),
@@ -749,6 +843,17 @@ class AdminDashboardController extends Controller
                 $room->update(['status' => 'occupied']);
             }
         }
+
+        $record->loadMissing('room');
+        AdminActivityLogger::log(
+            'payment',
+            'payments',
+            'Xác nhận thanh toán hóa đơn điện nước phòng ' . ($record->room->room_number ?? $record->room_id),
+            $record,
+            ['room_number' => $record->room->room_number ?? null, 'billing_month' => $record->billing_month],
+            $before,
+            $record->fresh()->only(['status', 'payment_date', 'payment_method'])
+        );
 
         return redirect()->route('smartroom.admin', ['tab' => 'utility-section'])->with('success', 'Xác nhận thanh toán hóa đơn điện nước thành công!');
     }
@@ -810,6 +915,14 @@ class AdminDashboardController extends Controller
             ],
             'sent_at' => now(),
         ]);
+
+        AdminActivityLogger::log(
+            'notify',
+            'utilities',
+            'Gửi thông báo hóa đơn phòng ' . $record->room->room_number . ' cho ' . $resident->name,
+            $record,
+            ['room_number' => $record->room->room_number, 'billing_month' => $record->billing_month, 'resident_name' => $resident->name]
+        );
 
         return redirect()->route('smartroom.admin', ['tab' => 'utility-section'])->with('success', 'Đã tự động gửi thông báo chi tiết hóa đơn qua Telegram & Zalo thành công!');
     }
@@ -891,7 +1004,7 @@ class AdminDashboardController extends Controller
 
         $code = 'HĐ-' . $room->room_number . '-' . date('Ymd', strtotime($request->start_date));
 
-        \App\Models\Contract::create([
+        $contract = \App\Models\Contract::create([
             'tenant_id' => $this->currentTenantId(),
             'room_id' => $room->id,
             'resident_id' => $resident->id,
@@ -903,13 +1016,34 @@ class AdminDashboardController extends Controller
             'terms' => $request->terms,
         ]);
 
+        AdminActivityLogger::log(
+            'create',
+            'contracts',
+            'Tạo hợp đồng ' . $contract->contract_code . ' cho phòng ' . $room->room_number,
+            $contract,
+            ['room_number' => $room->room_number, 'resident_name' => $resident->name],
+            null,
+            $contract->only(['room_id', 'resident_id', 'contract_code', 'start_date', 'end_date', 'deposit', 'status'])
+        );
+
         return redirect()->route('smartroom.admin', ['tab' => 'contract-section'])->with('success', 'Tạo hợp đồng online thành công! Cư dân có thể ký qua liên kết.');
     }
 
     public function deleteContract($id)
     {
         $contract = \App\Models\Contract::findOrFail($id);
+        $before = $contract->only(['room_id', 'resident_id', 'contract_code', 'start_date', 'end_date', 'deposit', 'status']);
+        $contractCode = $contract->contract_code;
         $contract->delete();
+
+        AdminActivityLogger::log(
+            'delete',
+            'contracts',
+            'Xóa hợp đồng ' . $contractCode,
+            $contract,
+            ['contract_code' => $contractCode],
+            $before
+        );
 
         return redirect()->route('smartroom.admin', ['tab' => 'contract-section'])->with('success', 'Xóa hợp đồng thành công!');
     }
@@ -927,10 +1061,21 @@ class AdminDashboardController extends Controller
         ]);
 
         $contract = \App\Models\Contract::findOrFail($id);
+        $before = $contract->only(['status', 'signature']);
         $contract->update([
             'signature' => $request->signature,
             'status' => 'active',
         ]);
+
+        AdminActivityLogger::log(
+            'update',
+            'contracts',
+            'Hợp đồng ' . $contract->contract_code . ' đã được ký online',
+            $contract,
+            ['contract_code' => $contract->contract_code],
+            $before,
+            $contract->fresh()->only(['status', 'signature'])
+        );
 
         return redirect()->route('smartroom.contract.sign_view', $id)->with('success', 'Ký hợp đồng online thành công!');
     }
@@ -962,7 +1107,18 @@ class AdminDashboardController extends Controller
         ]);
 
         $contact = \App\Models\ContactRequest::findOrFail($id);
+        $before = $contact->only(['status']);
         $contact->update(['status' => $request->status]);
+
+        AdminActivityLogger::log(
+            'update',
+            'contact_requests',
+            'Cập nhật yêu cầu tư vấn của ' . $contact->name . ' sang trạng thái ' . $request->status,
+            $contact,
+            ['phone' => $contact->phone],
+            $before,
+            $contact->fresh()->only(['status'])
+        );
 
         return redirect()->route('smartroom.admin', ['tab' => 'contact-section'])->with('success', 'Cập nhật trạng thái yêu cầu tư vấn thành công!');
     }
@@ -970,7 +1126,18 @@ class AdminDashboardController extends Controller
     public function deleteContactRequest($id)
     {
         $contact = \App\Models\ContactRequest::findOrFail($id);
+        $before = $contact->only(['room_id', 'name', 'phone', 'status']);
+        $contactName = $contact->name;
         $contact->delete();
+
+        AdminActivityLogger::log(
+            'delete',
+            'contact_requests',
+            'Xóa yêu cầu tư vấn của ' . $contactName,
+            $contact,
+            ['phone' => $before['phone'] ?? null],
+            $before
+        );
 
         return redirect()->route('smartroom.admin', ['tab' => 'contact-section'])->with('success', 'Xóa yêu cầu tư vấn thành công!');
     }
