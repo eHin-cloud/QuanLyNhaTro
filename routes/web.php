@@ -213,6 +213,7 @@ $rentyPage = function () {
             'sec' => $secRating,
             'title' => $title,
             'address' => $address,
+            'area_name' => $areaName,
             'area' => $area,
             'location_description' => $locationDescription,
             'scenery_description' => $sceneryDescription,
@@ -225,6 +226,37 @@ $rentyPage = function () {
             'image_urls' => $imageUrls,
             'reviews' => $reviewsList
         ];
+    });
+
+    $mappedRooms = $mappedRooms->map(function ($room) use ($mappedRooms) {
+        $peerRooms = $mappedRooms->filter(function ($peer) use ($room) {
+            return $peer['id'] !== $room['id']
+                && $peer['area_name'] === $room['area_name']
+                && abs((int) $peer['area'] - (int) $room['area']) <= 5;
+        });
+
+        $averagePrice = (int) round($peerRooms->count() > 0 ? $peerRooms->avg('price') : $mappedRooms->avg('price'));
+        $priceDiffPercent = $averagePrice > 0 ? (($room['price'] - $averagePrice) / $averagePrice) * 100 : 0;
+
+        $room['area_average_price'] = $averagePrice;
+        $room['price_diff_percent'] = round($priceDiffPercent, 1);
+        $room['price_warning'] = null;
+
+        if ($priceDiffPercent <= -25) {
+            $room['price_warning'] = [
+                'type' => 'low',
+                'label' => 'Giá thấp bất thường',
+                'message' => 'Thấp hơn khoảng ' . abs(round($priceDiffPercent)) . '% so với nhóm phòng cùng khu vực/diện tích. Nên kiểm tra kỹ ảnh, phí phát sinh và điều kiện cọc.',
+            ];
+        } elseif ($priceDiffPercent >= 25) {
+            $room['price_warning'] = [
+                'type' => 'high',
+                'label' => 'Giá cao hơn mặt bằng',
+                'message' => 'Cao hơn khoảng ' . round($priceDiffPercent) . '% so với nhóm phòng cùng khu vực/diện tích. Nên so sánh thêm tiện ích và vị trí trước khi liên hệ.',
+            ];
+        }
+
+        return $room;
     });
 
     $recentReviews = \App\Models\Review::with('room')->latest()->take(5)->get();
