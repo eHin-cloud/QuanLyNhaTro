@@ -168,12 +168,10 @@
                  data-distance="{{ $room['distance'] }}" 
                  data-title="{{ $room['title'] }}">
                 <div>
-                    <!-- Thumbnail image with ambient neon look -->
-                    <div class="h-44 bg-slate-950 relative overflow-hidden flex items-center justify-center border-b border-slate-900 group">
-                        <!-- Glowing circular backdrops -->
-                        <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-purple-500/5 to-emerald-500/5 opacity-55 transition-all group-hover:scale-110 duration-500"></div>
-                        <div class="absolute -top-12 -right-12 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl group-hover:bg-indigo-500/20 transition-all duration-500"></div>
-                        <div class="absolute -bottom-12 -left-12 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition-all duration-500"></div>
+                    <!-- Room photo -->
+                    <div class="h-48 bg-slate-950 relative overflow-hidden border-b border-slate-900 group">
+                        <img src="{{ $room['cover_image'] }}" alt="Ảnh phòng {{ $room['room_number'] }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/10 to-transparent"></div>
 
                         @if($room['status'] === 'empty')
                             <span class="absolute top-4 left-4 px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[9px] font-extrabold uppercase tracking-wider shadow-sm z-10 flex items-center gap-1.5">
@@ -187,11 +185,14 @@
                             </span>
                         @endif
 
-                        <div class="text-center relative z-10">
-                            <span class="inline-flex w-14 h-14 items-center justify-center rounded-2xl bg-slate-900/80 border border-slate-800 text-indigo-400 group-hover:text-emerald-400 group-hover:border-emerald-500/30 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-300 transform group-hover:scale-105">
-                                <i class="fa-solid fa-house-circle-check text-xl"></i>
+                        <div class="absolute left-4 right-4 bottom-4 z-10 flex items-end justify-between gap-3">
+                            <div>
+                                <span class="block text-[10px] font-extrabold text-white uppercase tracking-widest drop-shadow">Ảnh thực tế phòng</span>
+                                <span class="block text-[10px] font-semibold text-slate-300 mt-0.5">Phòng {{ $room['room_number'] }} · {{ count($room['image_urls']) }} ảnh</span>
+                            </div>
+                            <span class="w-9 h-9 rounded-xl bg-slate-950/70 border border-white/10 backdrop-blur flex items-center justify-center text-emerald-300">
+                                <i class="fa-solid fa-images"></i>
                             </span>
-                            <span class="block text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-2.5 group-hover:text-slate-400 transition-colors">SmartRoom Cầu Giấy</span>
                         </div>
                     </div>
                     <!-- Details -->
@@ -378,6 +379,44 @@
             <p class="text-xs text-slate-500 mb-6 flex items-center gap-1">
                 <i class="fa-solid fa-location-dot text-slate-600"></i> <span id="detail-room-address">Số 12 Ngõ 105 Xuân Thủy, Cầu Giấy</span>
             </p>
+
+            <div class="mb-6">
+                <div class="relative h-72 rounded-2xl overflow-hidden bg-slate-950 border border-slate-800">
+                    <img id="detail-main-image" src="" alt="Ảnh phòng trọ" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none"></div>
+                    <div class="absolute left-4 bottom-4">
+                        <span class="px-3 py-1.5 rounded-lg bg-slate-950/70 border border-white/10 backdrop-blur text-xs font-bold text-slate-100">
+                            <i class="fa-solid fa-camera text-emerald-300 mr-1.5"></i><span id="detail-image-count">Ảnh phòng</span>
+                        </span>
+                    </div>
+                </div>
+                <div id="detail-image-thumbs" class="mt-3 grid grid-cols-3 gap-3">
+                </div>
+            </div>
+
+            <div class="mb-6 p-5 rounded-2xl bg-slate-900/45 border border-slate-800/60">
+                <div class="flex items-center justify-between gap-3 mb-4">
+                    <h3 class="text-sm font-extrabold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-map-location-dot text-emerald-400"></i>
+                        Mô tả nơi ở & không gian
+                    </h3>
+                    <span class="px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-bold" id="detail-room-area">0 m²</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-4 rounded-xl bg-[#070b13] border border-slate-800/60">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Địa chỉ & khu vực</span>
+                        <p class="mt-2 text-xs text-slate-300 leading-relaxed" id="detail-location-description"></p>
+                    </div>
+                    <div class="p-4 rounded-xl bg-[#070b13] border border-slate-800/60">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Khung cảnh</span>
+                        <p class="mt-2 text-xs text-slate-300 leading-relaxed" id="detail-scenery-description"></p>
+                    </div>
+                    <div class="p-4 rounded-xl bg-[#070b13] border border-slate-800/60">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Không gian phòng</span>
+                        <p class="mt-2 text-xs text-slate-300 leading-relaxed" id="detail-space-description"></p>
+                    </div>
+                </div>
+            </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <!-- Info Left -->
@@ -729,6 +768,36 @@
             document.getElementById('detail-room-pets').textContent = data.pets_txt;
             document.getElementById('detail-room-loft').textContent = data.loft_txt;
             document.getElementById('detail-room-balcony').textContent = data.balcony_txt;
+            document.getElementById('detail-room-area').textContent = data.area_text;
+            document.getElementById('detail-location-description').textContent = data.location_description;
+            document.getElementById('detail-scenery-description').textContent = data.scenery_description;
+            document.getElementById('detail-space-description').textContent = data.space_description;
+
+            const images = Array.isArray(data.image_urls) && data.image_urls.length > 0 ? data.image_urls : [data.cover_image];
+            const mainImage = document.getElementById('detail-main-image');
+            const imageCount = document.getElementById('detail-image-count');
+            const thumbs = document.getElementById('detail-image-thumbs');
+
+            mainImage.src = images[0];
+            mainImage.alt = `Ảnh phòng ${data.room_number}`;
+            imageCount.textContent = `${images.length} ảnh phòng ${data.room_number}`;
+            thumbs.innerHTML = '';
+
+            images.slice(0, 6).forEach((src, index) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'h-20 rounded-xl overflow-hidden border border-slate-800 hover:border-emerald-500/70 transition-all focus:outline-none focus:border-emerald-400';
+                button.innerHTML = `<img src="${src}" alt="Ảnh phòng ${data.room_number} ${index + 1}" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">`;
+                button.addEventListener('click', () => {
+                    mainImage.src = src;
+                    document.querySelectorAll('#detail-image-thumbs button').forEach(btn => btn.classList.remove('border-emerald-400'));
+                    button.classList.add('border-emerald-400');
+                });
+                if (index === 0) {
+                    button.classList.add('border-emerald-400');
+                }
+                thumbs.appendChild(button);
+            });
 
             // Set form action route
             const form = document.getElementById('write-review-form');

@@ -1010,19 +1010,27 @@ echo    ====================================================================
 echo    [ CONG CU ] DANG TIEN HANH KHOI TAO PHAN CONG TU DONG HOA...
 echo    ====================================================================
 echo.
-echo    [ STEP 1 ] KIEM TRA MANG LIEN KET MYSQL...
-tasklist /fi "imagename eq mysqld.exe" | findstr /i "mysqld.exe" > nul
-if %errorlevel% neq 0 (
-    color 0c
-    echo    [ LOI ] Co so du lieu MySQL chua bat! Vui long bat MySQL tren XAMPP/Laragon.
-    pause
-    goto MENU
-)
-echo    [+] MySQL dang ket noi tot (CSDL: !DB_NAME!, Cong CSDL: !DB_PORT!).
-
 if not exist .env (
     copy .env.example .env > nul
     call !PHP_CMD! artisan key:generate
+)
+
+echo    [ STEP 1 ] KIEM TRA KET NOI CO SO DU LIEU...
+findstr /C:"DB_CONNECTION=sqlite" .env > nul
+if !errorlevel! equ 0 (
+    if not exist database\database.sqlite (
+        type nul > database\database.sqlite
+    )
+    echo    [+] Dang dung SQLite, bo qua kiem tra MySQL.
+) else (
+    tasklist /fi "imagename eq mysqld.exe" | findstr /i "mysqld.exe" > nul
+    if !errorlevel! neq 0 (
+        color 0c
+        echo    [ LOI ] Co so du lieu MySQL chua bat! Vui long bat MySQL tren XAMPP/Laragon.
+        pause
+        goto MENU
+    )
+    echo    [+] MySQL dang ket noi tot (CSDL: !DB_NAME!, Cong CSDL: !DB_PORT!).
 )
 
 echo    [ STEP 1.5 ] LAM SACH CACHE TOAN DIEN...
@@ -1060,13 +1068,28 @@ echo    [ STEP 3 ] PHAT HANH BAN SERVERS CONG !PORT!...
 start "SmartRoom ^& Renty Laravel Server" cmd /c "!PHP_CMD! artisan serve --port=!PORT!"
 if "%MODE%"=="DEV" (
     start "Vite Hot-Reload Server" cmd /c "npm run dev"
-    timeout /t 8 > nul
-) else (
-    timeout /t 3 > nul
 )
 
-:: Tu dong mo trinh duyet khi server khoi chay thanh cong
-start http://127.0.0.1:!PORT!/
+set "AUTO_OPEN_PATH=/renty/user"
+set "AUTO_OPEN_URL=http://127.0.0.1:!PORT!!AUTO_OPEN_PATH!"
+set "SERVER_READY=0"
+echo    [ STEP 4 ] DOI SERVER SAN SANG ROI TU DONG MO WEB...
+for /l %%i in (1,1,30) do (
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "try { $r = Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:!PORT!/' -TimeoutSec 1; if ($r.StatusCode -ge 200) { exit 0 } } catch { exit 1 }" > nul 2>&1
+    if !errorlevel! equ 0 (
+        set "SERVER_READY=1"
+        goto OPEN_WEB_AFTER_READY
+    )
+    timeout /t 1 > nul
+)
+
+:OPEN_WEB_AFTER_READY
+if "!SERVER_READY!"=="1" (
+    echo    [+] Server da san sang. Dang mo: !AUTO_OPEN_URL!
+) else (
+    echo    [!] Chua xac nhan duoc server san sang, van mo web de ban kiem tra.
+)
+start "" "!AUTO_OPEN_URL!"
 
 cls
 color 0b
@@ -1075,9 +1098,10 @@ echo    +=======================================================================
 echo    ^|                 SmartRoom ^& Renty CHAY TU DONG HOA THANH CONG                        ^|
 echo    +======================================================================================+
 echo    ^|                                                                                      ^|
-echo    ^|  [+] Localhost URL:       http://127.0.0.1:!PORT!/                                     ^|
+echo    ^|  [+] Website nguoi thue:  http://127.0.0.1:!PORT!/renty/user                         ^|
+echo    ^|  [+] Localhost URL:       http://127.0.0.1:!PORT!/                                    ^|
 echo    ^|  [+] Local Network URL:   http://!LOCAL_IP!:!PORT!/                                   ^|
-echo    ^|  [+] Admin Portal:        http://127.0.0.1:!PORT!/admin                              ^|
+echo    ^|  [+] Admin Portal:        http://127.0.0.1:!PORT!/smartroom/admin                    ^|
 echo    ^|                                                                                      ^|
 echo    ^|  [*] Meo kiem thu: Dung dien thoai / may tinh bang ket noi cung mang Wi-Fi voi may   ^|
 echo    ^|      tinh, roi truy cap vao duong dan Local Network URL o tren de test thiet bi di   ^|

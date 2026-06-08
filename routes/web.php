@@ -130,6 +130,12 @@ Route::get('/renty/user', function () {
         
         $title = "SmartRoom Cầu Giấy - Phòng " . $room->room_number;
         $address = "Số 12 Ngõ 105 Xuân Thủy, Cầu Giấy (Cách ĐH Sư Phạm " . $distance . "km)";
+        $area = (int) ($room->area ?? (22 + ($num % 9)));
+        $locationDescription = "Nằm trong ngõ 105 Xuân Thủy, khu vực Cầu Giấy đông sinh viên, dễ di chuyển tới ĐH Sư Phạm, ĐH Quốc Gia và trục Cầu Giấy - Hồ Tùng Mậu.";
+        $sceneryDescription = $balcony
+            ? "Không gian quanh phòng thoáng hơn nhờ ban công, có ánh sáng tự nhiên, phù hợp người thích phòng sáng và có chỗ phơi đồ."
+            : "Khu vực xung quanh yên tĩnh, phù hợp học tập và nghỉ ngơi; lối đi trong nhà gọn, có camera và khóa an ninh.";
+        $spaceDescription = "Phòng rộng khoảng {$area}m², bố trí dạng " . ($loft ? 'có gác lửng để tách khu ngủ và sinh hoạt' : 'một mặt bằng dễ sắp xếp đồ') . ", phù hợp 1-2 người ở với không gian sinh hoạt gọn gàng.";
         
         $reviewsList = $dbReviews->map(function($rev) {
             return [
@@ -139,6 +145,40 @@ Route::get('/renty/user', function () {
                 'created_at' => $rev->created_at->format('d/m/Y H:i')
             ];
         })->toArray();
+
+        $uploadedImages = collect($room->images ?? []);
+        if ($room->image) {
+            $uploadedImages->prepend($room->image);
+        }
+
+        $imageUrls = $uploadedImages
+            ->filter()
+            ->unique()
+            ->values()
+            ->map(fn ($path) => \Illuminate\Support\Facades\Storage::url($path))
+            ->all();
+
+        if (empty($imageUrls)) {
+            $fallbackSets = [
+                [
+                    'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80',
+                ],
+                [
+                    'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1560185127-6ed189bf02f4?auto=format&fit=crop&w=1200&q=80',
+                ],
+                [
+                    'https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1560448075-bb485b067938?auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1200&q=80',
+                ],
+            ];
+
+            $imageUrls = $fallbackSets[$num % count($fallbackSets)];
+        }
         
         return [
             'id' => $room->id,
@@ -154,9 +194,16 @@ Route::get('/renty/user', function () {
             'sec' => $secRating,
             'title' => $title,
             'address' => $address,
+            'area' => $area,
+            'location_description' => $locationDescription,
+            'scenery_description' => $sceneryDescription,
+            'space_description' => $spaceDescription,
+            'area_text' => $area . ' m²',
             'pets_txt' => $pets ? 'Có' : 'Không',
             'loft_txt' => $loft ? 'Có' : 'Không',
             'balcony_txt' => $balcony ? 'Có' : 'Không',
+            'cover_image' => $imageUrls[0],
+            'image_urls' => $imageUrls,
             'reviews' => $reviewsList
         ];
     });
