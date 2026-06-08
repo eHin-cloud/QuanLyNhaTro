@@ -117,6 +117,18 @@
                         </div>
                     </div>
                 </div>
+                @if($moduleSummary->isNotEmpty())
+                    <div class="mt-6 flex flex-wrap gap-2">
+                        <a href="{{ route('admin.activity_logs.index', request()->except('module', 'page')) }}" class="px-3 py-2 rounded-lg text-xs font-bold border {{ empty($filters['module']) ? 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20' : 'bg-slate-950/60 text-slate-400 border-slate-800 hover:text-slate-100' }}">
+                            Tất cả nhóm
+                        </a>
+                        @foreach($moduleSummary as $item)
+                            <a href="{{ route('admin.activity_logs.index', array_merge(request()->except('page'), ['module' => $item['module']])) }}" class="px-3 py-2 rounded-lg text-xs font-bold border {{ $filters['module'] === $item['module'] ? 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20' : 'bg-slate-950/60 text-slate-400 border-slate-800 hover:text-slate-100' }}">
+                                {{ $item['label'] }} · {{ $item['count'] }}
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
             </section>
 
             <div class="grid grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)] gap-6 items-start">
@@ -130,6 +142,15 @@
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Tìm phòng/cư dân</label>
                             <input name="q" value="{{ $filters['q'] }}" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500" placeholder="VD: phòng 101, tên cư dân">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Lọc theo phòng</label>
+                            <select name="room_number" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                                <option value="">Tất cả phòng</option>
+                                @foreach($roomOptions as $roomNumber)
+                                    <option value="{{ $roomNumber }}" @selected($filters['room_number'] === $roomNumber)>Phòng {{ $roomNumber }}</option>
+                                @endforeach
+                            </select>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Loại sự kiện</label>
@@ -166,6 +187,12 @@
                 <section class="space-y-3">
                     @forelse($logs as $log)
                         @php
+                            $meta = $log->metadata ?? [];
+                            $roomNumber = $meta['room_number'] ?? null;
+                            $residentName = $meta['resident_name'] ?? null;
+                            $billingMonth = $meta['billing_month'] ?? null;
+                            $equipmentName = $meta['equipment_name'] ?? null;
+                            $paymentMethod = $meta['payment_method'] ?? null;
                             $actionMeta = match ($log->action) {
                                 'delete' => ['class' => 'bg-rose-500/10 text-rose-300 border-rose-500/20', 'icon' => 'fa-trash'],
                                 'update', 'payment' => ['class' => 'bg-amber-500/10 text-amber-300 border-amber-500/20', 'icon' => 'fa-pen-to-square'],
@@ -182,10 +209,29 @@
                                     </div>
                                     <div class="min-w-0">
                                         <div class="flex flex-wrap items-center gap-2">
+                                            @if($roomNumber)
+                                                <span class="px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 text-xs font-bold">Phòng {{ $roomNumber }}</span>
+                                            @endif
                                             <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-xs font-bold">{{ $moduleLabels[$log->module] ?? $log->module }}</span>
                                             <span class="px-2.5 py-1 rounded-lg border text-xs font-bold {{ $actionMeta['class'] }}">{{ $actionLabels[$log->action] ?? $log->action }}</span>
                                         </div>
                                         <h3 class="mt-3 text-base font-extrabold text-slate-100 leading-snug">{{ $log->description }}</h3>
+                                        @if($residentName || $billingMonth || $equipmentName || $paymentMethod)
+                                            <div class="mt-3 flex flex-wrap gap-2 text-xs">
+                                                @if($residentName)
+                                                    <span class="px-2.5 py-1 rounded-lg bg-slate-950/70 border border-slate-800 text-slate-300">Cư dân: {{ $residentName }}</span>
+                                                @endif
+                                                @if($billingMonth)
+                                                    <span class="px-2.5 py-1 rounded-lg bg-slate-950/70 border border-slate-800 text-slate-300">Kỳ: {{ $billingMonth }}</span>
+                                                @endif
+                                                @if($equipmentName)
+                                                    <span class="px-2.5 py-1 rounded-lg bg-slate-950/70 border border-slate-800 text-slate-300">Thiết bị: {{ $equipmentName }}</span>
+                                                @endif
+                                                @if($paymentMethod)
+                                                    <span class="px-2.5 py-1 rounded-lg bg-slate-950/70 border border-slate-800 text-slate-300">Thanh toán: {{ strtoupper($paymentMethod) }}</span>
+                                                @endif
+                                            </div>
+                                        @endif
                                         <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
                                             <span><i class="fa-solid fa-user-gear mr-1 text-slate-600"></i>Người cập nhật: {{ $log->user_name ?? 'Hệ thống' }}</span>
                                             <span><i class="fa-regular fa-clock mr-1 text-slate-600"></i>{{ $log->created_at->format('d/m/Y H:i:s') }}</span>
@@ -196,8 +242,10 @@
                                     </div>
                                 </div>
                                 <div class="text-xs text-slate-500 lg:text-right shrink-0">
-                                    <div>{{ class_basename($log->subject_type) ?: 'Dữ liệu' }}</div>
-                                    <div class="mt-1 font-mono">#{{ $log->subject_id ?? 'N/A' }}</div>
+                                    <div>{{ $log->created_at->diffForHumans() }}</div>
+                                    @if($log->subject_id)
+                                        <div class="mt-1 font-mono">{{ class_basename($log->subject_type) }} #{{ $log->subject_id }}</div>
+                                    @endif
                                 </div>
                             </div>
                         </article>

@@ -49,7 +49,7 @@ class AdminActivityLogSeeder extends Seeder
             'Cư dân Trần Thanh Hùng bắt đầu thuê phòng 101',
             Resident::where('room_id', $rooms->get('101')?->id)->first(),
             Carbon::now()->subDays(9)->setTime(9, 15),
-            ['room_number' => '101', 'resident_name' => 'Trần Thanh Hùng']
+            ['room_number' => '101', 'resident_name' => 'Trần Thanh Hùng', 'event_group' => 'move_in']
         );
 
         $record101 = $this->utilityRecordFor($rooms->get('101'));
@@ -61,7 +61,7 @@ class AdminActivityLogSeeder extends Seeder
             'Chốt điện nước tháng này cho phòng 101',
             $record101,
             Carbon::now()->subDays(5)->setTime(17, 30),
-            ['room_number' => '101', 'billing_month' => $record101?->billing_month]
+            ['room_number' => '101', 'billing_month' => $record101?->billing_month, 'event_group' => 'utility']
         );
 
         $record103 = $this->utilityRecordFor($rooms->get('103'));
@@ -73,7 +73,7 @@ class AdminActivityLogSeeder extends Seeder
             'Gửi nhắc thanh toán hóa đơn quá hạn cho phòng 103',
             $record103,
             Carbon::now()->subDays(4)->setTime(8, 45),
-            ['room_number' => '103', 'billing_month' => $record103?->billing_month]
+            ['room_number' => '103', 'billing_month' => $record103?->billing_month, 'event_group' => 'debt']
         );
 
         $this->log(
@@ -84,7 +84,7 @@ class AdminActivityLogSeeder extends Seeder
             'Phòng 102 đã thanh toán tiền phòng và điện nước',
             $this->utilityRecordFor($rooms->get('102')),
             Carbon::now()->subDays(3)->setTime(20, 10),
-            ['room_number' => '102', 'payment_method' => 'vietqr']
+            ['room_number' => '102', 'payment_method' => 'vietqr', 'event_group' => 'payment']
         );
 
         $contract = Contract::where('tenant_id', $tenant->id)->with('room')->orderByDesc('end_date')->first();
@@ -96,7 +96,7 @@ class AdminActivityLogSeeder extends Seeder
             'Kiểm tra hợp đồng sắp hết hạn của phòng ' . ($contract->room->room_number ?? 'N/A'),
             $contract,
             Carbon::now()->subDays(2)->setTime(14, 5),
-            ['room_number' => $contract->room->room_number ?? null, 'end_date' => $contract->end_date ?? null]
+            ['room_number' => $contract->room->room_number ?? null, 'end_date' => $contract->end_date ?? null, 'event_group' => 'contract']
         );
 
         $equipment = Equipment::where('tenant_id', $tenant->id)->orderBy('name')->first();
@@ -108,7 +108,7 @@ class AdminActivityLogSeeder extends Seeder
             'Bàn giao thiết bị cho phòng 201',
             $equipment,
             Carbon::now()->subDay()->setTime(10, 20),
-            ['room_number' => '201', 'equipment_name' => $equipment->name ?? null]
+            ['room_number' => '201', 'equipment_name' => $equipment->name ?? null, 'event_group' => 'equipment']
         );
 
         $this->log(
@@ -119,7 +119,7 @@ class AdminActivityLogSeeder extends Seeder
             'Chuyển phòng 402 sang trạng thái bảo trì',
             Room::where('tenant_id', $tenant->id)->where('room_number', '402')->first(),
             Carbon::now()->subHours(6),
-            ['room_number' => '402', 'status' => 'maintenance']
+            ['room_number' => '402', 'status' => 'maintenance', 'event_group' => 'maintenance']
         );
     }
 
