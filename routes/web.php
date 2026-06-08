@@ -7,6 +7,7 @@ use App\Http\Controllers\RoomController;
 use App\Http\Controllers\EquipmentController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ResidentPortalController;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,6 +42,10 @@ Route::get('signout', [CrudUserController::class, 'signOut'])->name('signout');
 Route::get('/', function () {
     return view('index');
 })->name('smartroom.portal');
+
+Route::get('/smartroom/resident', [ResidentPortalController::class, 'index'])->name('smartroom.resident');
+Route::post('/smartroom/resident/tickets', [ResidentPortalController::class, 'storeTicket'])->name('smartroom.resident.tickets.store');
+Route::get('/smartroom/resident/bills/{id}/qr', [ResidentPortalController::class, 'billQr'])->name('smartroom.resident.bills.qr');
 
 
 Route::middleware('admin')->group(function () {
