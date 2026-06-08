@@ -1030,7 +1030,7 @@ if !errorlevel! equ 0 (
         pause
         goto MENU
     )
-    echo    [+] MySQL dang ket noi tot (CSDL: !DB_NAME!, Cong CSDL: !DB_PORT!).
+    echo    [+] MySQL dang ket noi tot - CSDL: !DB_NAME!, Cong CSDL: !DB_PORT!.
 )
 
 echo    [ STEP 1.5 ] LAM SACH CACHE TOAN DIEN...
@@ -1070,7 +1070,7 @@ if "%MODE%"=="DEV" (
     start "Vite Hot-Reload Server" cmd /c "npm run dev"
 )
 
-set "AUTO_OPEN_PATH=/renty/user"
+set "AUTO_OPEN_PATH=/renty"
 set "AUTO_OPEN_URL=http://127.0.0.1:!PORT!!AUTO_OPEN_PATH!"
 set "SERVER_READY=0"
 echo    [ STEP 4 ] DOI SERVER SAN SANG ROI TU DONG MO WEB...
@@ -1098,7 +1098,7 @@ echo    +=======================================================================
 echo    ^|                 SmartRoom ^& Renty CHAY TU DONG HOA THANH CONG                        ^|
 echo    +======================================================================================+
 echo    ^|                                                                                      ^|
-echo    ^|  [+] Website nguoi thue:  http://127.0.0.1:!PORT!/renty/user                         ^|
+echo    ^|  [+] Website nguoi thue:  http://127.0.0.1:!PORT!/renty                              ^|
 echo    ^|  [+] Localhost URL:       http://127.0.0.1:!PORT!/                                    ^|
 echo    ^|  [+] Local Network URL:   http://!LOCAL_IP!:!PORT!/                                   ^|
 echo    ^|  [+] Admin Portal:        http://127.0.0.1:!PORT!/smartroom/admin                    ^|

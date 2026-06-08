@@ -54,15 +54,18 @@ class SmartRoomSeeder extends Seeder
             'bank_account_name' => 'NGUYEN VAN CHU NHA'
         ]);
 
-        $tenant2 = Tenant::updateOrCreate([
-            'email' => 'contact@renty-thanhxuan.vn',
-        ], [
-            'name' => 'Hệ thống Renty Home Thanh Xuân',
+        $tenant2 = Tenant::whereIn('email', [
+            'contact@rentry-thanhxuan.vn',
+            'contact@renty-thanhxuan.vn',
+        ])->first() ?? new Tenant();
+        $tenant2->fill([
+            'name' => 'Hệ thống Rentry Home Thanh Xuân',
+            'email' => 'contact@rentry-thanhxuan.vn',
             'phone' => '0977222333',
             'bank_name' => 'VCB',
             'bank_account_no' => '1234567890',
             'bank_account_name' => 'LE ANH QUAN LY'
-        ]);
+        ])->save();
 
         // 3. Tạo tài khoản Tenant Admins (Chủ trọ)
         $landlord1 = User::updateOrCreate([
@@ -108,13 +111,15 @@ class SmartRoomSeeder extends Seeder
             'description' => 'Chung cư mini cao cấp, gần ĐH Sư Phạm, ĐH Quốc Gia. Đầy đủ khóa vân tay, camera an ninh, gác lửng.'
         ]);
 
-        $building2 = Building::updateOrCreate([
+        $building2 = Building::where('tenant_id', $tenant2->id)
+            ->whereIn('name', ['Rentry Home Thanh Xuân', 'Renty Home Thanh Xuân'])
+            ->first() ?? new Building(['tenant_id' => $tenant2->id]);
+        $building2->fill([
             'tenant_id' => $tenant2->id,
-            'name' => 'Renty Home Thanh Xuân',
-        ], [
+            'name' => 'Rentry Home Thanh Xuân',
             'address' => 'Số 85 Vũ Tông Phan, Thanh Xuân, Hà Nội',
             'description' => 'Tòa nhà mới xây, phòng studio có ban công rộng, đầy đủ đồ cơ bản.'
-        ]);
+        ])->save();
 
         // 5. Tạo các Phòng trọ (Rooms) cho Building 1 (Cầu Giấy - Tenant 1)
         $roomDataT1 = [
