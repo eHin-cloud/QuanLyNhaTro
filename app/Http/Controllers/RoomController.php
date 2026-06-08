@@ -38,25 +38,38 @@ class RoomController extends Controller
     {
         $user = Auth::user();
         $tenantId = $user->tenant_id;
+        $filters = [
+            'room_number' => trim((string) $request->query('room_number', '')),
+            'status' => in_array($request->query('status'), ['empty', 'occupied', 'overdue', 'maintenance'], true) ? $request->query('status') : null,
+            'floor' => $request->filled('floor') && is_numeric($request->query('floor')) ? (int) $request->query('floor') : null,
+            'min_price' => $request->filled('min_price') && is_numeric($request->query('min_price')) ? (int) $request->query('min_price') : null,
+            'max_price' => $request->filled('max_price') && is_numeric($request->query('max_price')) ? (int) $request->query('max_price') : null,
+        ];
 
         // Xử lý tham số page không hợp lệ hoặc quá lớn
         $page = $request->query('page');
         if ($page !== null && (!is_numeric($page) || intval($page) <= 0)) {
-            return redirect()->route('admin.rooms.index', ['page' => 1]);
+            return redirect()->route('admin.rooms.index', array_merge($request->except('page'), ['page' => 1]));
         }
 
         $perPage = 5;
         $rooms = Room::with('building')
             ->where('tenant_id', $tenantId)
+            ->when($filters['room_number'] !== '', fn ($query) => $query->where('room_number', 'like', $this->prefixLike($filters['room_number'])))
+            ->when($filters['status'], fn ($query) => $query->where('status', $filters['status']))
+            ->when($filters['floor'], fn ($query) => $query->where('floor', $filters['floor']))
+            ->when($filters['min_price'] !== null, fn ($query) => $query->where('price', '>=', $filters['min_price']))
+            ->when($filters['max_price'] !== null, fn ($query) => $query->where('price', '<=', $filters['max_price']))
             ->orderBy('room_number')
-            ->paginate($perPage);
+            ->paginate($perPage)
+            ->appends($request->query());
 
         // Nếu page vượt quá tổng số trang, tự động quay lại page 1
         if ($rooms->currentPage() > $rooms->lastPage() && $rooms->lastPage() > 0) {
-            return redirect()->route('admin.rooms.index', ['page' => 1]);
+            return redirect()->route('admin.rooms.index', array_merge($request->except('page'), ['page' => 1]));
         }
 
-        return view('admin.rooms.index', compact('rooms'));
+        return view('admin.rooms.index', compact('rooms', 'filters'));
     }
 
     /**
@@ -134,6 +147,9 @@ class RoomController extends Controller
             'area' => 'required|integer|min:1|max:1000',
             'amenities' => 'nullable|array',
             'description' => 'nullable|string|max:1000',
+            'images' => 'nullable|array|max:10',
+            'images.*' => 'image|mimes:jpeg,jpg,png,webp|max:2048',
+            'video' => 'nullable|file|mimetypes:video/mp4,video/webm,video/quicktime|max:51200',
             'image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048' // Chặn file lạ (PDF, exe...), dung lượng max 2MB
         ], [
             'room_number.required' => 'Vui lòng nhập số phòng.',
@@ -149,10 +165,9 @@ class RoomController extends Controller
         ]);
 
         // 3. Xử lý lưu ảnh
-        $imagePath = null;
-        if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('rooms', 'public');
-        }
+        $imagePaths = $this->storeRoomImages($request);
+        $imagePath = $imagePaths[0] ?? null;
+        $videoPath = $request->hasFile('video') ? $request->file('video')->store('rooms/videos', 'public') : null;
 
         // 4. Tạo phòng trọ mới
         Room::create([
@@ -167,6 +182,8 @@ class RoomController extends Controller
             'amenities' => $request->amenities ?? [],
             'description' => $request->description,
             'image' => $imagePath,
+            'images' => $imagePaths,
+            'video' => $videoPath,
             'version' => 1 // Khởi tạo phiên bản đầu tiên cho Optimistic Locking
         ]);
 
@@ -275,6 +292,9 @@ class RoomController extends Controller
             'area' => 'required|integer|min:1|max:1000',
             'amenities' => 'nullable|array',
             'description' => 'nullable|string|max:1000',
+            'images' => 'nullable|array|max:10',
+            'images.*' => 'image|mimes:jpeg,jpg,png,webp|max:2048',
+            'video' => 'nullable|file|mimetypes:video/mp4,video/webm,video/quicktime|max:51200',
             'image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048'
         ], [
             'room_number.required' => 'Vui lòng nhập số phòng.',
@@ -287,13 +307,20 @@ class RoomController extends Controller
         ]);
 
         // 6. Xử lý ảnh: Giữ nguyên ảnh cũ nếu không chọn ảnh mới (Update Persistence)
+        $imagePaths = $this->roomImages($room);
         $imagePath = $room->image;
-        if ($request->hasFile('image')) {
-            // Xóa ảnh cũ nếu có để tiết kiệm dung lượng
-            if ($room->image) {
-                Storage::disk('public')->delete($room->image);
+        if ($request->hasFile('images')) {
+            $this->deleteRoomImages($room);
+            $imagePaths = $this->storeRoomImages($request);
+            $imagePath = $imagePaths[0] ?? null;
+        }
+
+        $videoPath = $room->video;
+        if ($request->hasFile('video')) {
+            if ($room->video) {
+                Storage::disk('public')->delete($room->video);
             }
-            $imagePath = $request->file('image')->store('rooms', 'public');
+            $videoPath = $request->file('video')->store('rooms/videos', 'public');
         }
 
         // 7. Cập nhật dữ liệu phòng trọ và tăng version lên 1
@@ -344,8 +371,9 @@ class RoomController extends Controller
         }
 
         // Xóa ảnh trước khi xóa bản ghi
-        if ($room->image) {
-            Storage::disk('public')->delete($room->image);
+        $this->deleteRoomImages($room);
+        if ($room->video) {
+            Storage::disk('public')->delete($room->video);
         }
 
         $room->delete();
@@ -356,6 +384,39 @@ class RoomController extends Controller
     /**
      * Chuẩn hóa khoảng trắng 2-bytes (Nhật/Trung) và trim sạch sẽ
      */
+    private function storeRoomImages(Request $request): array
+    {
+        $paths = [];
+
+        foreach ($request->file('images', []) as $image) {
+            $paths[] = $image->store('rooms', 'public');
+        }
+
+        if (empty($paths) && $request->hasFile('image')) {
+            $paths[] = $request->file('image')->store('rooms', 'public');
+        }
+
+        return $paths;
+    }
+
+    private function roomImages(Room $room): array
+    {
+        $images = is_array($room->images) ? $room->images : [];
+
+        if ($room->image && !in_array($room->image, $images, true)) {
+            array_unshift($images, $room->image);
+        }
+
+        return array_values(array_unique(array_filter($images)));
+    }
+
+    private function deleteRoomImages(Room $room): void
+    {
+        foreach ($this->roomImages($room) as $image) {
+            Storage::disk('public')->delete($image);
+        }
+    }
+
     private function cleanWhitespace($string)
     {
         if (is_null($string)) {
@@ -364,6 +425,11 @@ class RoomController extends Controller
         // Thay thế khoảng trắng toàn sừng (full-width ideographic space '　') thành khoảng trắng thường
         $cleaned = str_replace('　', ' ', $string);
         return trim($cleaned);
+    }
+
+    private function prefixLike(string $value): string
+    {
+        return addcslashes(trim($value), '\%_') . '%';
     }
 
     /**

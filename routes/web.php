@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CrudUserController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\RoomController;
+use App\Http\Controllers\EquipmentController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\PaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,6 +45,10 @@ Route::get('/', function () {
 
 Route::middleware('admin')->group(function () {
     Route::get('/smartroom/admin', [AdminDashboardController::class, 'index'])->name('smartroom.admin');
+    Route::get('/smartroom/admin/reports', [ReportController::class, 'index'])->name('admin.reports.index');
+    Route::get('/smartroom/admin/payments', [PaymentController::class, 'index'])->name('admin.payments.index');
+    Route::get('/smartroom/admin/payments/export', [PaymentController::class, 'export'])->name('admin.payments.export');
+    Route::post('/smartroom/admin/payments/{payment}', [PaymentController::class, 'update'])->name('admin.payments.update');
     Route::post('/smartroom/admin/utility', [AdminDashboardController::class, 'storeUtility'])->name('smartroom.admin.utility.store');
     Route::post('/smartroom/admin/utility/bulk', [AdminDashboardController::class, 'storeUtilityBulk'])->name('smartroom.admin.utility.bulk_store');
     Route::post('/smartroom/admin/resident', [AdminDashboardController::class, 'storeResident'])->name('smartroom.admin.resident.store');
@@ -50,6 +57,10 @@ Route::middleware('admin')->group(function () {
     Route::post('/smartroom/admin/utility/{id}/pay', [AdminDashboardController::class, 'payUtility'])->name('smartroom.admin.utility.pay');
     Route::get('/smartroom/admin/utility/{id}/print', [AdminDashboardController::class, 'printUtility'])->name('smartroom.admin.utility.print');
     Route::post('/smartroom/admin/utility/{id}/notify', [AdminDashboardController::class, 'notifyUtility'])->name('smartroom.admin.utility.notify');
+    Route::post('/smartroom/admin/utility/auto-remind', [AdminDashboardController::class, 'autoRemindUtilities'])->name('smartroom.admin.utility.auto_remind');
+    Route::post('/smartroom/admin/notifications/contracts', [AdminDashboardController::class, 'notifyContracts'])->name('smartroom.admin.notifications.contracts');
+    Route::post('/smartroom/admin/notifications/maintenance', [AdminDashboardController::class, 'notifyMaintenance'])->name('smartroom.admin.notifications.maintenance');
+    Route::post('/smartroom/admin/notifications/run-all', [AdminDashboardController::class, 'notifyAll'])->name('smartroom.admin.notifications.run_all');
 
     // Room Management
     Route::prefix('smartroom/admin/rooms')->name('admin.rooms.')->group(function () {
@@ -59,6 +70,16 @@ Route::middleware('admin')->group(function () {
         Route::get('/{id}/edit', [RoomController::class, 'edit'])->name('edit');
         Route::post('/{id}/update', [RoomController::class, 'update'])->name('update');
         Route::delete('/{id}/delete', [RoomController::class, 'destroy'])->name('destroy');
+    });
+
+    // Equipment Management
+    Route::prefix('smartroom/admin/equipment')->name('admin.equipment.')->group(function () {
+        Route::get('/', [EquipmentController::class, 'index'])->name('index');
+        Route::post('/store', [EquipmentController::class, 'store'])->name('store');
+        Route::post('/{id}/update', [EquipmentController::class, 'update'])->name('update');
+        Route::delete('/{id}/delete', [EquipmentController::class, 'destroy'])->name('destroy');
+        Route::post('/allocate', [EquipmentController::class, 'allocate'])->name('allocate');
+        Route::post('/recover', [EquipmentController::class, 'recover'])->name('recover');
     });
 
     // Online Contracts

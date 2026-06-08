@@ -67,6 +67,18 @@
                     <i class="fa-solid fa-door-open text-lg"></i>
                     <span>Cấu hình phòng</span>
                 </a>
+                <a href="{{ route('admin.equipment.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
+                    <i class="fa-solid fa-screwdriver-wrench text-lg"></i>
+                    <span>Thiáº¿t Bá»‹</span>
+                </a>
+                <a href="{{ route('admin.reports.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
+                    <i class="fa-solid fa-chart-column text-lg"></i>
+                    <span>Báo Cáo</span>
+                </a>
+                <a href="{{ route('admin.payments.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
+                    <i class="fa-solid fa-money-check-dollar text-lg"></i>
+                    <span>Thanh Toán</span>
+                </a>
                 <button onclick="switchTab('utility-section', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
                     <i class="fa-solid fa-bolt text-lg"></i>
                     <span>Chốt Điện Nước</span>
@@ -287,6 +299,179 @@
                                 <strong class="text-sm text-amber-400">{{ $totalRooms > 0 ? round(($overdueRooms / $totalRooms) * 100, 1) : 0 }}%</strong>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Smart Alerts Dashboard -->
+                <div class="glass-card rounded-2xl p-6">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-200 flex items-center gap-2">
+                                <i class="fa-solid fa-brain text-indigo-400"></i>
+                                Dashboard cảnh báo thông minh
+                            </h3>
+                            <p class="text-xs text-slate-500">Tự động quét hợp đồng, hóa đơn, phòng trống và thiết bị cần xử lý</p>
+                        </div>
+                        <div class="px-4 py-2 rounded-xl bg-slate-900/70 border border-slate-800 text-xs font-bold text-slate-300 flex items-center gap-2">
+                            <i class="fa-solid fa-bell text-amber-400"></i>
+                            {{ $smartAlertTotal }} cảnh báo cần chú ý
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                        @foreach($smartAlertGroups as $group)
+                            @php
+                                $alertColorClasses = [
+                                    'indigo' => [
+                                        'box' => 'bg-indigo-500/5 border-indigo-500/20',
+                                        'icon' => 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
+                                        'count' => 'text-indigo-400',
+                                        'badge' => 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20',
+                                    ],
+                                    'amber' => [
+                                        'box' => 'bg-amber-500/5 border-amber-500/20',
+                                        'icon' => 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+                                        'count' => 'text-amber-400',
+                                        'badge' => 'bg-amber-500/10 text-amber-300 border-amber-500/20',
+                                    ],
+                                    'emerald' => [
+                                        'box' => 'bg-emerald-500/5 border-emerald-500/20',
+                                        'icon' => 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+                                        'count' => 'text-emerald-400',
+                                        'badge' => 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20',
+                                    ],
+                                    'rose' => [
+                                        'box' => 'bg-rose-500/5 border-rose-500/20',
+                                        'icon' => 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+                                        'count' => 'text-rose-400',
+                                        'badge' => 'bg-rose-500/10 text-rose-300 border-rose-500/20',
+                                    ],
+                                ][$group['color']];
+                            @endphp
+
+                            <div class="rounded-2xl border {{ $alertColorClasses['box'] }} p-4 flex flex-col min-h-[320px]">
+                                <div class="flex items-start justify-between gap-3 mb-4">
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        <div class="w-10 h-10 rounded-xl border {{ $alertColorClasses['icon'] }} flex items-center justify-center shrink-0">
+                                            <i class="fa-solid {{ $group['icon'] }}"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <h4 class="text-xs font-extrabold text-slate-200 leading-snug">{{ $group['label'] }}</h4>
+                                            <p class="text-[10px] text-slate-500 mt-0.5">Cập nhật theo dữ liệu hiện tại</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-2xl font-black {{ $alertColorClasses['count'] }}">{{ $group['count'] }}</span>
+                                </div>
+
+                                <div class="space-y-2 flex-1">
+                                    @forelse($group['items'] as $item)
+                                        <div class="rounded-xl bg-slate-950/40 border border-slate-800/70 p-3">
+                                            <div class="flex items-start justify-between gap-2">
+                                                <strong class="text-xs text-slate-200 leading-snug">{{ $item['title'] }}</strong>
+                                                <span class="shrink-0 text-[9px] font-bold px-2 py-0.5 rounded-full border {{ $alertColorClasses['badge'] }}">{{ $item['meta'] }}</span>
+                                            </div>
+                                            <p class="text-[10px] text-slate-500 mt-1 leading-relaxed">{{ $item['detail'] }}</p>
+                                        </div>
+                                    @empty
+                                        <div class="h-full min-h-[170px] rounded-xl bg-slate-950/30 border border-slate-800/50 flex flex-col items-center justify-center text-center p-4">
+                                            <i class="fa-solid fa-circle-check text-emerald-400 mb-2"></i>
+                                            <p class="text-[11px] text-slate-500 leading-relaxed">{{ $group['empty'] }}</p>
+                                        </div>
+                                    @endforelse
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Notification Center -->
+                <div class="glass-card rounded-2xl p-6">
+                    <div class="flex flex-col xl:flex-row xl:items-start justify-between gap-6 mb-6">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-200 flex items-center gap-2">
+                                <i class="fa-solid fa-paper-plane text-cyan-400"></i>
+                                Notification Center
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-1">Gui gia lap Email, Zalo, SMS va luu log tat ca thong bao.</p>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 text-center">
+                            <div class="px-4 py-3 rounded-xl bg-slate-950/50 border border-slate-800">
+                                <div class="text-lg font-black text-emerald-300">{{ $notificationSummary['sent'] }}</div>
+                                <div class="text-[10px] text-slate-500 font-bold uppercase">Sent</div>
+                            </div>
+                            <div class="px-4 py-3 rounded-xl bg-slate-950/50 border border-slate-800">
+                                <div class="text-lg font-black text-amber-300">{{ $notificationSummary['skipped'] }}</div>
+                                <div class="text-[10px] text-slate-500 font-bold uppercase">Skipped</div>
+                            </div>
+                            <div class="px-4 py-3 rounded-xl bg-slate-950/50 border border-slate-800">
+                                <div class="text-lg font-black text-indigo-300">{{ $notificationSummary['today'] }}</div>
+                                <div class="text-[10px] text-slate-500 font-bold uppercase">Today</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-3 mb-6">
+                        <form method="POST" action="{{ route('smartroom.admin.notifications.run_all') }}">
+                            @csrf
+                            <button type="submit" class="w-full px-4 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Run all
+                            </button>
+                        </form>
+                        <button type="button" onclick="triggerAutoRemind(this)" class="w-full px-4 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-money-bill-wave"></i> Payment
+                        </button>
+                        <form method="POST" action="{{ route('smartroom.admin.notifications.contracts') }}">
+                            @csrf
+                            <button type="submit" class="w-full px-4 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-file-signature"></i> Contracts
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ route('smartroom.admin.notifications.maintenance') }}">
+                            @csrf
+                            <button type="submit" class="w-full px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-screwdriver-wrench"></i> Maintenance
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-xl border border-slate-900">
+                        <table class="w-full text-left text-sm text-slate-300">
+                            <thead class="text-xs text-slate-500 uppercase bg-slate-900/70 border-b border-slate-900">
+                                <tr>
+                                    <th class="px-4 py-3 font-bold">Time</th>
+                                    <th class="px-4 py-3 font-bold">Type</th>
+                                    <th class="px-4 py-3 font-bold">Channel</th>
+                                    <th class="px-4 py-3 font-bold">Recipient</th>
+                                    <th class="px-4 py-3 font-bold">Subject</th>
+                                    <th class="px-4 py-3 font-bold">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-900 bg-slate-950/20">
+                                @forelse($notificationLogs as $log)
+                                    <tr class="hover:bg-slate-900/30 transition-all">
+                                        <td class="px-4 py-3 text-xs text-slate-500">{{ $log->created_at->format('d/m/Y H:i') }}</td>
+                                        <td class="px-4 py-3 text-xs font-bold text-slate-200">{{ str_replace('_', ' ', $log->type) }}</td>
+                                        <td class="px-4 py-3 text-xs font-bold text-cyan-300 uppercase">{{ $log->channel }}</td>
+                                        <td class="px-4 py-3 text-xs text-slate-400">
+                                            <div class="font-bold text-slate-300">{{ $log->recipient_name ?? '-' }}</div>
+                                            <div class="text-[10px] text-slate-500">{{ $log->recipient_contact ?? '-' }}</div>
+                                        </td>
+                                        <td class="px-4 py-3 text-xs text-slate-400 max-w-[320px] truncate" title="{{ $log->message }}">{{ $log->subject }}</td>
+                                        <td class="px-4 py-3">
+                                            @if($log->status === 'sent')
+                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">sent</span>
+                                            @else
+                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/20">{{ $log->status }}</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" class="px-4 py-8 text-center text-xs text-slate-500">No notification logs yet.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -612,7 +797,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Tổng cư dân</p>
-                                <h3 class="text-2xl font-extrabold text-white mt-1">{{ $residents->count() }}</h3>
+                                <h3 class="text-2xl font-extrabold text-white mt-1">{{ $residentStats->count() }}</h3>
                             </div>
                             <div class="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400"><i class="fa-solid fa-users"></i></div>
                         </div>
@@ -622,7 +807,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Đã đăng ký tạm trú</p>
-                                <h3 class="text-2xl font-extrabold text-emerald-400 mt-1">{{ $residents->where('temporary_residence_status', 'registered')->count() }}</h3>
+                                <h3 class="text-2xl font-extrabold text-emerald-400 mt-1">{{ $residentStats->where('temporary_residence_status', 'registered')->count() }}</h3>
                             </div>
                             <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400"><i class="fa-solid fa-clipboard-check"></i></div>
                         </div>
@@ -632,7 +817,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Tạm vắng</p>
-                                <h3 class="text-2xl font-extrabold text-amber-400 mt-1">{{ $residents->where('temporary_residence_status', 'absent')->count() }}</h3>
+                                <h3 class="text-2xl font-extrabold text-amber-400 mt-1">{{ $residentStats->where('temporary_residence_status', 'absent')->count() }}</h3>
                             </div>
                             <div class="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400"><i class="fa-solid fa-user-clock"></i></div>
                         </div>
@@ -642,7 +827,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Chưa đăng ký</p>
-                                <h3 class="text-2xl font-extrabold text-rose-400 mt-1">{{ $residents->where('temporary_residence_status', 'none')->count() }}</h3>
+                                <h3 class="text-2xl font-extrabold text-rose-400 mt-1">{{ $residentStats->where('temporary_residence_status', 'none')->count() }}</h3>
                             </div>
                             <div class="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-400"><i class="fa-solid fa-user-xmark"></i></div>
                         </div>
@@ -656,7 +841,18 @@
                             <p class="text-xs text-slate-500">Lưu trữ thông tin cá nhân, đăng ký tạm trú, quản lý người thân tạm trú.</p>
                         </div>
                         <div class="flex gap-2">
-                            <input type="text" id="resident-search-input" onkeyup="searchResidentTable()" class="px-4 py-2 text-xs rounded-xl bg-slate-900 border border-slate-800 text-slate-200 placeholder-slate-500 focus:border-indigo-500 focus:outline-none" placeholder="Tìm tên / CCCD / phòng...">
+                            <form method="GET" action="{{ route('smartroom.admin') }}" class="flex gap-2">
+                                <input type="hidden" name="tab" value="resident-section">
+                                <input type="search" name="resident_q" value="{{ $residentFilters['q'] }}" class="px-4 py-2 text-xs rounded-xl bg-slate-900 border border-slate-800 text-slate-200 placeholder-slate-500 focus:border-indigo-500 focus:outline-none" placeholder="Ten / SDT / CCCD">
+                                <button type="submit" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 rounded-xl text-xs font-bold transition-all">
+                                    <i class="fa-solid fa-filter"></i>
+                                </button>
+                                @if($residentFilters['q'] !== '')
+                                    <a href="{{ route('smartroom.admin', ['tab' => 'resident-section']) }}" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 rounded-xl text-xs font-bold transition-all">
+                                        <i class="fa-solid fa-rotate-left"></i>
+                                    </a>
+                                @endif
+                            </form>
                             <button onclick="toggleAddResidentModal(true)" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2">
                                 <i class="fa-solid fa-plus"></i> Thêm Cư Dân
                             </button>
@@ -1874,7 +2070,7 @@
 
         // Resident search
         function searchResidentTable() {
-            const query = document.getElementById('resident-search-input').value.toLowerCase();
+            const query = document.querySelector('input[name="resident_q"]')?.value.toLowerCase() || '';
             const rows = document.getElementById('resident-table-body').querySelectorAll('tr');
             rows.forEach(row => {
                 const text = row.textContent.toLowerCase();
@@ -2797,7 +2993,7 @@
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang tự động gửi...';
 
-            fetch('/api/utility-bills/auto-remind', {
+            fetch("{{ route('smartroom.admin.utility.auto_remind') }}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

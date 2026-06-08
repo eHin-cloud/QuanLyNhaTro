@@ -20,11 +20,14 @@ class Room extends Model
         'amenities',
         'description',
         'image',
+        'images',
+        'video',
         'version'
     ];
 
     protected $casts = [
         'amenities' => 'array',
+        'images' => 'array',
     ];
 
     public function building(): BelongsTo
@@ -52,6 +55,11 @@ class Room extends Model
         return $this->hasMany(ElectricWaterLog::class);
     }
 
+    public function utilityRecords(): HasMany
+    {
+        return $this->hasMany(UtilityRecord::class)->orderBy('billing_month', 'desc');
+    }
+
     public function bills(): HasMany
     {
         return $this->hasMany(Bill::class);
@@ -70,5 +78,45 @@ class Room extends Model
     public function contactRequests()
     {
         return $this->hasMany(ContactRequest::class);
+    }
+
+    public function equipmentAllocations(): HasMany
+    {
+        return $this->hasMany(RoomEquipment::class);
+    }
+
+    public function activeResidents(): HasMany
+    {
+        return $this->hasMany(Resident::class)->where('status', 'active');
+    }
+
+    public function syncOccupancyStatus(): void
+    {
+        if ($this->status === 'maintenance') {
+            return;
+        }
+
+        $hasActiveResidents = $this->activeResidents()->exists();
+
+        if (!$hasActiveResidents) {
+            $this->update(['status' => 'empty']);
+            return;
+        }
+
+        if ($this->status === 'empty') {
+            $this->update(['status' => 'occupied']);
+        }
+    }
+
+    public static function syncOccupancyStatusById($roomId): void
+    {
+        if (!$roomId) {
+            return;
+        }
+
+        $room = self::find($roomId);
+        if ($room) {
+            $room->syncOccupancyStatus();
+        }
     }
 }

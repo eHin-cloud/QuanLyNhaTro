@@ -17,14 +17,14 @@ class CheckRole
     {
         $user = $request->user();
 
-        if (!$user || !$user->role) {
+        if (!$user || !$user->roleSlug()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Không có quyền truy cập'
             ], 403);
         }
 
-        if (in_array($user->role->slug, $roles)) {
+        if (in_array($user->roleSlug(), $roles)) {
             return $next($request);
         }
 

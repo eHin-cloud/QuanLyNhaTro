@@ -49,11 +49,10 @@ Yêu cầu mã nguồn phải vượt qua các bài kiểm tra nghiêm ngặt (T
 Bạn phải thực hiện chính xác quy trình Git sau đây khi phát triển chức năng này:
 1. Luôn xuất phát từ branch `master` mới nhất để tạo nhánh mới: `git checkout master && git pull`
 2. Tạo và chuyển sang branch mới với quy tắc đặt tên nghiêm ngặt: `AnhQuy/Ten_Chuc_Nang` (Ví dụ: `AnhQuy/Quan_Ly_Danh_Muc`).
-3. Sau khi hoàn thành và test kỹ các kịch bản lỗi ở trên, tiến hành commit code với message rõ ràng, dễ hiểu.
+3. Sau khi hoàn thành và test kỹ các kịch bản lỗi ở trên, tiến hành commit code với message rõ ràng, dễ hiểu bằng tiếng việt.
 4. Push branch này lên GitHub (`git push origin AnhQuy/Ten_Chuc_Nang`) và tạo Pull Request (PR) vào `master`. Tuyệt đối không commit trực tiếp lên branch `master`.
 
 ### 7. ĐẦU RA YÊU CẦU (OUTPUT)
 - Cung cấp mã nguồn sạch, chia rõ các tầng xử lý (Frontend UI, Frontend Logic Validate, Backend Controller/API).
 - Đính kèm comment giải thích rõ ràng tại các đoạn mã xử lý Khóa đồng thời (Locking), Chống spam click, và Chống F12.
 - Cung cấp các câu lệnh Git mẫu bạn đã dùng để tạo nhánh và đẩy code cho chức năng này
-message bằng tiếng viê.

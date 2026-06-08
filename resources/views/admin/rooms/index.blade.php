@@ -81,6 +81,10 @@
                     <i class="fa-solid fa-door-open text-lg"></i>
                     <span>Quản Lý Phòng</span>
                 </a>
+                <a href="{{ route('admin.equipment.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
+                    <i class="fa-solid fa-screwdriver-wrench text-lg"></i>
+                    <span>Thiáº¿t Bá»‹</span>
+                </a>
             </nav>
         </div>
 
@@ -92,7 +96,7 @@
                 </div>
                 <div class="overflow-hidden">
                     <h4 class="text-xs font-bold text-slate-200 truncate">{{ Auth::user()->name ?? 'Người dùng' }}</h4>
-                    <p class="text-[10px] text-slate-500 truncate">{{ Auth::user()->role->name ?? 'Quản trị viên' }}</p>
+                    <p class="text-[10px] text-slate-500 truncate">{{ Auth::user()->roleName() }}</p>
                 </div>
             </div>
             <a href="{{ route('signout') }}" class="mt-3 w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-semibold text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 transition-all duration-200">
@@ -146,6 +150,28 @@
                         <i class="fa-solid fa-plus-circle text-sm"></i> Thêm Phòng Mới
                     </a>
                 </div>
+
+                <form method="GET" action="{{ route('admin.rooms.index') }}" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-7 gap-3 mb-6">
+                    <input type="search" name="room_number" value="{{ $filters['room_number'] }}" class="xl:col-span-2 px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500" placeholder="So phong">
+                    <select name="status" class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                        <option value="">Tat ca trang thai</option>
+                        <option value="empty" @selected($filters['status'] === 'empty')>Trong</option>
+                        <option value="occupied" @selected($filters['status'] === 'occupied')>Dang thue</option>
+                        <option value="overdue" @selected($filters['status'] === 'overdue')>No tien</option>
+                        <option value="maintenance" @selected($filters['status'] === 'maintenance')>Bao tri</option>
+                    </select>
+                    <input type="number" name="floor" value="{{ $filters['floor'] }}" min="1" class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500" placeholder="Tang">
+                    <input type="number" name="min_price" value="{{ $filters['min_price'] }}" min="0" class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500" placeholder="Gia tu">
+                    <input type="number" name="max_price" value="{{ $filters['max_price'] }}" min="0" class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500" placeholder="Gia den">
+                    <div class="flex gap-2">
+                        <button type="submit" class="flex-1 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold">
+                            <i class="fa-solid fa-filter"></i> Loc
+                        </button>
+                        <a href="{{ route('admin.rooms.index') }}" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-bold">
+                            <i class="fa-solid fa-rotate-left"></i>
+                        </a>
+                    </div>
+                </form>
 
                 <div class="overflow-x-auto rounded-xl border border-slate-900">
                     <table class="w-full text-left text-sm text-slate-300">

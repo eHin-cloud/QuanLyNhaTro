@@ -3,16 +3,27 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Bill;
+use App\Models\Contract;
+use App\Models\Equipment;
+use App\Models\NotificationLog;
 use App\Models\Room;
 use App\Models\Resident;
+use App\Models\Tenant;
+use App\Models\Ticket;
 use App\Models\UtilityRecord;
+use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class AdminDashboardController extends Controller
 {
     public function index(Request $request)
     {
+        $tenantId = $this->currentTenantId();
+
         // 1. Stats ribbon
         $totalRooms = Room::count();
         $occupiedRooms = Room::where('status', 'occupied')->count();
@@ -66,14 +77,187 @@ class AdminDashboardController extends Controller
             ->get();
 
         // 5. Resident Management Tab
-        $residents = Resident::with('room')->orderBy('id', 'desc')->get();
+        $residentFilters = [
+            'q' => trim((string) $request->query('resident_q', '')),
+        ];
+        $residentStats = Resident::query()->get();
+        $residents = Resident::with('room')
+            ->when($residentFilters['q'] !== '', function ($query) use ($residentFilters) {
+                $identityKeyword = $this->prefixLike($residentFilters['q']);
+                $nameKeyword = $this->containsLike($residentFilters['q']);
+
+                $query->where(function ($residentQuery) use ($identityKeyword, $nameKeyword) {
+                    $residentQuery->where('name', 'like', $nameKeyword)
+                        ->orWhere('phone', 'like', $identityKeyword)
+                        ->orWhere('cccd', 'like', $identityKeyword);
+                });
+            })
+            ->orderBy('id', 'desc')
+            ->get();
         $emptyRoomsList = Room::where('status', 'empty')->orderBy('room_number')->get();
 
         // 6. Contracts Tab
-        $contracts = \App\Models\Contract::with(['room', 'resident'])->orderBy('id', 'desc')->get();
+        $contracts = Contract::with(['room', 'resident'])->orderBy('id', 'desc')->get();
 
         // 8. Contact Requests Tab
         $contactRequests = \App\Models\ContactRequest::with('room')->orderBy('id', 'desc')->get();
+
+        // 9. Smart alerts
+        $today = Carbon::today();
+        $contractWarningDate = $today->copy()->addDays(30);
+        $emptyRoomWarningDate = $today->copy()->subDays(30);
+
+        $expiringContracts = Contract::with(['room', 'resident'])
+            ->where('status', 'active')
+            ->whereDate('end_date', '>=', $today)
+            ->whereDate('end_date', '<=', $contractWarningDate)
+            ->orderBy('end_date')
+            ->take(6)
+            ->get()
+            ->map(function ($contract) use ($today) {
+                $endDate = Carbon::parse($contract->end_date);
+
+                return [
+                    'title' => 'Hợp đồng phòng ' . ($contract->room->room_number ?? 'N/A') . ' sắp hết hạn',
+                    'detail' => ($contract->resident->name ?? 'Chưa rõ khách thuê') . ' còn ' . $today->diffInDays($endDate) . ' ngày',
+                    'meta' => $endDate->format('d/m/Y'),
+                ];
+            });
+
+        $overdueBills = Bill::with('room')
+            ->whereIn('status', ['pending', 'overdue'])
+            ->orderBy('billing_month')
+            ->get()
+            ->filter(function ($bill) use ($today) {
+                return $bill->status === 'overdue' || Carbon::parse($bill->billing_month . '-10')->lt($today);
+            })
+            ->take(6)
+            ->map(function ($bill) {
+                $dueDate = Carbon::parse($bill->billing_month . '-10');
+
+                return [
+                    'title' => 'Hóa đơn phòng ' . ($bill->room->room_number ?? 'N/A') . ' quá hạn',
+                    'detail' => 'Tháng ' . $dueDate->format('m/Y') . ' - ' . number_format($bill->total_amount) . 'đ',
+                    'meta' => 'Hạn ' . $dueDate->format('d/m/Y'),
+                ];
+            });
+
+        $overdueUtilities = UtilityRecord::with('room')
+            ->whereIn('status', ['sent', 'overdue'])
+            ->orderBy('billing_month')
+            ->get()
+            ->filter(function ($record) use ($today) {
+                return $record->status === 'overdue' || Carbon::parse($record->billing_month . '-10')->lt($today);
+            })
+            ->take(6)
+            ->map(function ($record) {
+                $dueDate = Carbon::parse($record->billing_month . '-10');
+                $roomPrice = $record->room->price ?? 0;
+                $total = $roomPrice
+                    + (($record->new_electricity - $record->old_electricity) * $record->electricity_price)
+                    + (($record->new_water - $record->old_water) * $record->water_price)
+                    + 150000;
+
+                return [
+                    'title' => 'Phiếu điện nước phòng ' . ($record->room->room_number ?? 'N/A') . ' quá hạn',
+                    'detail' => 'Tháng ' . $dueDate->format('m/Y') . ' - ' . number_format($total) . 'đ',
+                    'meta' => 'Hạn ' . $dueDate->format('d/m/Y'),
+                ];
+            });
+
+        $emptyRoomAlerts = Room::where('status', 'empty')
+            ->where('updated_at', '<=', $emptyRoomWarningDate)
+            ->orderBy('updated_at')
+            ->take(6)
+            ->get()
+            ->map(function ($room) use ($today) {
+                return [
+                    'title' => 'Phòng ' . $room->room_number . ' trống lâu ngày',
+                    'detail' => 'Đã trống khoảng ' . $room->updated_at->diffInDays($today) . ' ngày',
+                    'meta' => number_format($room->price) . 'đ/tháng',
+                ];
+            });
+
+        $lowStockEquipment = Equipment::orderBy('name')
+            ->get()
+            ->filter(function ($equipment) {
+                return $equipment->stock_quantity <= 2;
+            })
+            ->take(6)
+            ->map(function ($equipment) {
+                return [
+                    'title' => $equipment->name . ' sắp thiếu',
+                    'detail' => 'Tồn kho còn ' . $equipment->stock_quantity . ' ' . $equipment->unit,
+                    'meta' => $equipment->code,
+                ];
+            })
+            ->values();
+
+        $brokenEquipmentTickets = Ticket::with('room')
+            ->whereIn('status', ['pending', 'processing'])
+            ->orderBy('created_at', 'desc')
+            ->take(6)
+            ->get()
+            ->map(function ($ticket) {
+                return [
+                    'title' => $ticket->title,
+                    'detail' => 'Phòng ' . ($ticket->room->room_number ?? 'N/A') . ' - ' . $ticket->status,
+                    'meta' => $ticket->created_at->format('d/m/Y'),
+                ];
+            });
+
+        $equipmentAlerts = $lowStockEquipment->concat($brokenEquipmentTickets)->take(8)->values();
+        $billAlerts = $overdueBills->concat($overdueUtilities)->take(8)->values();
+
+        $smartAlertGroups = [
+            [
+                'key' => 'contracts',
+                'label' => 'Hợp đồng sắp hết hạn',
+                'count' => $expiringContracts->count(),
+                'icon' => 'fa-file-signature',
+                'color' => 'indigo',
+                'items' => $expiringContracts,
+                'empty' => 'Chưa có hợp đồng nào hết hạn trong 30 ngày tới.',
+            ],
+            [
+                'key' => 'bills',
+                'label' => 'Hóa đơn quá hạn',
+                'count' => $billAlerts->count(),
+                'icon' => 'fa-receipt',
+                'color' => 'amber',
+                'items' => $billAlerts,
+                'empty' => 'Không có hóa đơn quá hạn.',
+            ],
+            [
+                'key' => 'rooms',
+                'label' => 'Phòng trống lâu ngày',
+                'count' => $emptyRoomAlerts->count(),
+                'icon' => 'fa-door-open',
+                'color' => 'emerald',
+                'items' => $emptyRoomAlerts,
+                'empty' => 'Không có phòng trống quá 30 ngày.',
+            ],
+            [
+                'key' => 'equipment',
+                'label' => 'Thiết bị cần chú ý',
+                'count' => $equipmentAlerts->count(),
+                'icon' => 'fa-screwdriver-wrench',
+                'color' => 'rose',
+                'items' => $equipmentAlerts,
+                'empty' => 'Tồn kho thiết bị ổn định và chưa có báo hỏng mở.',
+            ],
+        ];
+
+        $smartAlertTotal = collect($smartAlertGroups)->sum('count');
+        $notificationLogs = NotificationLog::where('tenant_id', $tenantId)
+            ->latest()
+            ->take(10)
+            ->get();
+        $notificationSummary = [
+            'sent' => NotificationLog::where('tenant_id', $tenantId)->where('status', 'sent')->count(),
+            'skipped' => NotificationLog::where('tenant_id', $tenantId)->where('status', 'skipped')->count(),
+            'today' => NotificationLog::where('tenant_id', $tenantId)->whereDate('created_at', today())->count(),
+        ];
 
         // 7. Recent activities log (Mocked for dashboard realism based on DB actions)
         $recentActivities = [
@@ -93,11 +277,42 @@ class AdminDashboardController extends Controller
             'roomsByFloor',
             'utilityRooms',
             'residents',
+            'residentStats',
+            'residentFilters',
             'emptyRoomsList',
             'recentActivities',
             'contracts',
-            'contactRequests'
+            'contactRequests',
+            'smartAlertGroups',
+            'smartAlertTotal',
+            'notificationLogs',
+            'notificationSummary'
         ));
+    }
+
+    private function currentTenantId(): int
+    {
+        $tenantId = Auth::user()?->tenant_id;
+        if ($tenantId) {
+            return (int) $tenantId;
+        }
+
+        $fallbackTenantId = Tenant::query()->value('id');
+        if (!$fallbackTenantId) {
+            abort(404, 'Khong tim thay tenant.');
+        }
+
+        return (int) $fallbackTenantId;
+    }
+
+    private function prefixLike(string $value): string
+    {
+        return addcslashes(trim($value), '\%_') . '%';
+    }
+
+    private function containsLike(string $value): string
+    {
+        return '%' . addcslashes(trim($value), '\%_') . '%';
     }
 
     public function storeUtility(Request $request)
@@ -326,14 +541,9 @@ class AdminDashboardController extends Controller
         ]);
 
         if ($oldRoomId != $newRoomId) {
-            $oldRoom = Room::find($oldRoomId);
-            if ($oldRoom) {
-                if (Resident::where('room_id', $oldRoomId)->count() == 0) {
-                    $oldRoom->update(['status' => 'empty']);
-                }
-            }
+            Room::syncOccupancyStatusById($oldRoomId);
             $newRoom = Room::findOrFail($newRoomId);
-            $newRoom->update(['status' => 'occupied']);
+            $newRoom->syncOccupancyStatus();
         }
 
         return redirect()->route('smartroom.admin', ['tab' => 'resident-section'])->with('success', 'Cập nhật thông tin cư dân thành công!');
@@ -357,11 +567,10 @@ class AdminDashboardController extends Controller
         $resident->delete();
 
         if ($room) {
-            // Update room status to empty
-            $room->update(['status' => 'empty']);
+            $room->syncOccupancyStatus();
         }
 
-        return redirect()->route('smartroom.admin', ['tab' => 'resident-section'])->with('success', 'Đã xóa cư dân và trả trạng thái phòng về trống!');
+        return redirect()->route('smartroom.admin', ['tab' => 'resident-section'])->with('success', 'Đã xóa cư dân và cập nhật trạng thái phòng thành công!');
     }
 
     // --- Resident Relative Management APIs ---
@@ -523,7 +732,11 @@ class AdminDashboardController extends Controller
     public function payUtility($id)
     {
         $record = UtilityRecord::findOrFail($id);
-        $record->update(['status' => 'paid']);
+        $record->update([
+            'status' => 'paid',
+            'payment_date' => now(),
+            'payment_method' => 'cash',
+        ]);
 
         // Check if there are any other unpaid utility records for this room
         $unpaidCount = UtilityRecord::where('room_id', $record->room_id)
@@ -578,8 +791,88 @@ class AdminDashboardController extends Controller
                  . "Vui lòng thanh toán trước ngày 10 hàng tháng. Cảm ơn!";
 
         \Illuminate\Support\Facades\Log::info("Telegram Notification Sent:\n" . $message);
+        NotificationLog::create([
+            'tenant_id' => $this->currentTenantId(),
+            'type' => 'payment_reminder',
+            'channel' => 'zalo',
+            'recipient_name' => $resident->name,
+            'recipient_contact' => $resident->phone,
+            'subject' => 'Nhac hoa don phong ' . $record->room->room_number,
+            'message' => $message,
+            'status' => 'sent',
+            'target_type' => UtilityRecord::class,
+            'target_id' => $record->id,
+            'meta' => [
+                'room_number' => $record->room->room_number,
+                'billing_month' => $record->billing_month,
+                'total_amount' => $total,
+                'simulated' => true,
+            ],
+            'sent_at' => now(),
+        ]);
 
         return redirect()->route('smartroom.admin', ['tab' => 'utility-section'])->with('success', 'Đã tự động gửi thông báo chi tiết hóa đơn qua Telegram & Zalo thành công!');
+    }
+
+    public function autoRemindUtilities(NotificationService $notificationService)
+    {
+        $currentMonth = now()->format('Y-m');
+        $logs = $notificationService->sendPaymentReminders($this->currentTenantId(), $currentMonth);
+        $sentRooms = $logs
+            ->where('type', 'payment_reminder')
+            ->where('status', 'sent')
+            ->groupBy('target_id')
+            ->map(function ($roomLogs) {
+                $firstLog = $roomLogs->first();
+                $meta = $firstLog->meta ?? [];
+
+                return [
+                    'room_number' => $meta['room_number'] ?? 'N/A',
+                    'resident_name' => $firstLog->recipient_name,
+                    'phone' => $firstLog->channel === 'email' ? null : $firstLog->recipient_contact,
+                    'total_amount' => $meta['total_amount'] ?? 0,
+                    'total_amount_formatted' => number_format((int) ($meta['total_amount'] ?? 0)) . ' VND',
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'success' => true,
+            'billing_month' => $currentMonth,
+            'sent_count' => $sentRooms->count(),
+            'sent_rooms' => $sentRooms,
+        ]);
+    }
+
+    public function notifyContracts(NotificationService $notificationService)
+    {
+        $logs = $notificationService->sendContractExpiryReminders($this->currentTenantId());
+
+        return redirect()
+            ->route('smartroom.admin', ['tab' => 'dashboard-section'])
+            ->with('success', 'Da gui ' . $logs->where('status', 'sent')->count() . ' thong bao nhac hop dong sap het han.');
+    }
+
+    public function notifyMaintenance(NotificationService $notificationService)
+    {
+        $logs = $notificationService->sendMaintenanceReminders($this->currentTenantId());
+
+        return redirect()
+            ->route('smartroom.admin', ['tab' => 'dashboard-section'])
+            ->with('success', 'Da gui ' . $logs->where('status', 'sent')->count() . ' thong bao nhac bao tri thiet bi.');
+    }
+
+    public function notifyAll(NotificationService $notificationService)
+    {
+        $tenantId = $this->currentTenantId();
+        $paymentLogs = $notificationService->sendPaymentReminders($tenantId);
+        $contractLogs = $notificationService->sendContractExpiryReminders($tenantId);
+        $maintenanceLogs = $notificationService->sendMaintenanceReminders($tenantId);
+        $sentCount = $paymentLogs->concat($contractLogs)->concat($maintenanceLogs)->where('status', 'sent')->count();
+
+        return redirect()
+            ->route('smartroom.admin', ['tab' => 'dashboard-section'])
+            ->with('success', 'Da chay tat ca thong bao tu dong. So thong bao gui thanh cong: ' . $sentCount . '.');
     }
 
     public function storeContract(Request $request)
@@ -599,6 +892,7 @@ class AdminDashboardController extends Controller
         $code = 'HĐ-' . $room->room_number . '-' . date('Ymd', strtotime($request->start_date));
 
         \App\Models\Contract::create([
+            'tenant_id' => $this->currentTenantId(),
             'room_id' => $room->id,
             'resident_id' => $resident->id,
             'contract_code' => $code,

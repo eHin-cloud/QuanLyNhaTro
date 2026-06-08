@@ -11,6 +11,7 @@ use App\Models\Contract;
 use App\Models\ElectricWaterLog;
 use App\Models\Bill;
 use App\Models\Ticket;
+use App\Models\Tenant;
 use App\Models\User;
 use App\Models\Role;
 use Carbon\Carbon;
@@ -208,7 +209,7 @@ class TenantAdminController extends Controller
             'price' => 'required|integer|min:0',
             'area' => 'required|integer|min:0',
             'amenities' => 'nullable|array',
-            'status' => 'required|in:empty,occupied,overdue',
+            'status' => 'required|in:empty,occupied,overdue,maintenance',
             'description' => 'nullable|string'
         ]);
 
@@ -417,10 +418,7 @@ class TenantAdminController extends Controller
                 $resident->save();
 
                 // Kiểm tra xem phòng còn cư dân active nào khác không
-                $otherActive = Resident::where('room_id', $room->id)->where('status', 'active')->count();
-                if ($otherActive === 0) {
-                    $room->update(['status' => 'empty']);
-                }
+                $room->syncOccupancyStatus();
             }
 
             DB::commit();
@@ -443,10 +441,7 @@ class TenantAdminController extends Controller
             $resident->delete();
 
             if ($room) {
-                $otherActive = Resident::where('room_id', $room->id)->where('status', 'active')->count();
-                if ($otherActive === 0) {
-                    $room->update(['status' => 'empty']);
-                }
+                $room->syncOccupancyStatus();
             }
 
             DB::commit();

@@ -117,10 +117,11 @@ echo    [6] INITIALIZE        - Tai moi thu vien (Composer Install + NPM Install
 echo    [7] UPGRADE SYSTEM    - [SUA LOI] Dong bo hoa va Cap nhat lai khoa composer.lock
 echo    [8] HEALTH DIAGNOSTIC - [MOI] Kiem tra suc khoe toan dien he thong du an
 echo    [9] LOG MANAGEMENT    - [MOI] Xem, theo doi va xoa sach nhat ky loi Laravel
-echo    [10] EXIT             - Thoat
+echo    [10] DOCKER RUN       - [MOI] Chay bang Docker Compose + MySQL rieng
+echo    [11] EXIT             - Thoat
 echo.
 echo    ----------------------------------------------------------------------------------------
-set /p choice="   >> Nhap lua chon cua ban (1-10): "
+set /p choice="   >> Nhap lua chon cua ban (1-11): "
 
 if "%choice%"=="1" goto DEV_MODE
 if "%choice%"=="2" goto STABLE_RUN
@@ -131,7 +132,8 @@ if "%choice%"=="6" goto INITIALIZE
 if "%choice%"=="7" goto UPGRADE_ALL
 if "%choice%"=="8" goto DIAGNOSTICS
 if "%choice%"=="9" goto LOG_MGMT
-if "%choice%"=="10" goto EXIT_CLEAN
+if "%choice%"=="10" goto DOCKER_RUN
+if "%choice%"=="11" goto EXIT_CLEAN
 goto MENU
 
 :INITIALIZE
@@ -157,6 +159,46 @@ if "!setup_choice!"=="1" goto INITIALIZE_FAST
 if "!setup_choice!"=="2" goto INITIALIZE_DB
 if "!setup_choice!"=="3" goto INITIALIZE_CLEAN
 goto INITIALIZE
+
+:DOCKER_RUN
+cls
+color 0b
+echo.
+echo    +======================================================================================+
+echo    ^|                    SmartRoom DOCKER RUNNER - CHAY MOI TRUONG DOCKER                  ^|
+echo    +======================================================================================+
+echo.
+echo    [!] Che do nay se chay Laravel tren Docker Compose kem MySQL rieng.
+echo        - Website: http://localhost:8000
+echo        - MySQL tren may host: localhost:3307
+echo        - Database: quan_ly_nha_tro / User: smartroom / Password: smartroom
+echo.
+
+where docker >nul 2>&1
+if %errorlevel% neq 0 (
+    color 0c
+    echo    [ LOI ] Khong tim thay Docker CLI. Vui long cai Docker Desktop truoc.
+    pause
+    goto MENU
+)
+
+if not exist docker-start.ps1 (
+    color 0c
+    echo    [ LOI ] Khong tim thay tep docker-start.ps1 trong thu muc du an.
+    pause
+    goto MENU
+)
+
+echo    [ HANH DONG ] Dang goi Docker Compose. Neu gap loi permission, hay mo terminal bang Run as administrator
+echo                 hoac them user Windows vao nhom docker-users.
+echo.
+echo    [ GOI Y ] Nhan Ctrl+C de dung Docker Compose va quay lai menu.
+echo.
+powershell -NoProfile -ExecutionPolicy Bypass -File ".\docker-start.ps1"
+echo.
+echo    [ INFO ] Docker Compose da dung hoac thoat.
+pause
+goto MENU
 
 :INITIALIZE_FAST
 cls

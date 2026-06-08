@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -63,6 +63,10 @@
                     <i class="fa-solid fa-door-open text-lg"></i>
                     <span>Quản Lý Phòng</span>
                 </a>
+                <a href="{{ route('admin.equipment.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
+                    <i class="fa-solid fa-screwdriver-wrench text-lg"></i>
+                    <span>Thiết Bị</span>
+                </a>
             </nav>
         </div>
 
@@ -73,7 +77,7 @@
                 </div>
                 <div class="overflow-hidden">
                     <h4 class="text-xs font-bold text-slate-200 truncate">{{ Auth::user()->name ?? 'Người dùng' }}</h4>
-                    <p class="text-[10px] text-slate-500 truncate">{{ Auth::user()->role->name ?? 'Quản trị viên' }}</p>
+                    <p class="text-[10px] text-slate-500 truncate">{{ Auth::user()->roleName() }}</p>
                 </div>
             </div>
             <a href="{{ route('signout') }}" class="mt-3 w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-semibold text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 transition-all duration-200">
@@ -180,14 +184,24 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Hình Ảnh Minh Họa</label>
-                            <input type="file" name="image" id="image" accept="image/*" 
+                            <input type="file" name="images[]" id="images" accept="image/*" multiple
                                    class="w-full px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-850 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none"
-                                   onchange="previewImage(this)">
+                                   onchange="previewImages(this)">
                             <span class="text-xs text-rose-400 mt-1 hidden" id="err-image"></span>
                             <div class="mt-3 hidden" id="preview-box">
-                                <img id="preview-img" class="h-24 object-cover rounded-lg border border-slate-800" 
-                                     onerror="this.onerror=null; this.src='https://placehold.co/100x80/0f172a/6366f1?text=Error';">
+                                <div id="preview-list" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
                             </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Video giới thiệu phòng</label>
+                        <input type="file" name="video" id="video" accept="video/mp4,video/webm,video/quicktime"
+                               class="w-full px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-850 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none"
+                               onchange="previewVideo(this)">
+                        <span class="text-xs text-rose-400 mt-1 hidden" id="err-video"></span>
+                        <div class="mt-3 hidden" id="video-preview-box">
+                            <video id="preview-video" class="w-full max-h-64 rounded-lg border border-slate-800 bg-black" controls></video>
                         </div>
                     </div>
 
@@ -333,31 +347,83 @@
             return true;
         }
 
-        // Preview ảnh và validate file ảnh
-        function previewImage(input) {
-            const file = input.files[0];
+        // Preview anh va validate file anh
+        function previewImages(input) {
             const errSpan = document.getElementById('err-image');
             const previewBox = document.getElementById('preview-box');
-            const previewImg = document.getElementById('preview-img');
-            
-            if (!file) {
+            const previewList = document.getElementById('preview-list');
+            const files = Array.from(input.files || []);
+
+            previewList.innerHTML = '';
+            if (files.length === 0) {
                 previewBox.classList.add('hidden');
                 return;
             }
 
-            // Chặn đuôi file lạ (PDF, exe, docx)
-            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-            if (!allowedTypes.includes(file.type)) {
-                errSpan.textContent = 'Chỉ chấp nhận định dạng hình ảnh (jpg, png, webp, gif).';
+            if (files.length > 10) {
+                errSpan.textContent = 'Chi duoc chon toi da 10 hinh anh.';
                 errSpan.classList.remove('hidden');
                 input.value = '';
                 previewBox.classList.add('hidden');
                 return;
             }
 
-            // Chặn file quá nặng (max 2MB)
-            if (file.size > 2 * 1024 * 1024) {
-                errSpan.textContent = 'Dung lượng hình ảnh không được vượt quá 2MB.';
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            for (const file of files) {
+                if (!allowedTypes.includes(file.type)) {
+                    errSpan.textContent = 'Chi chap nhan dinh dang hinh anh jpg, png, webp, gif.';
+                    errSpan.classList.remove('hidden');
+                    input.value = '';
+                    previewBox.classList.add('hidden');
+                    return;
+                }
+
+                if (file.size > 2 * 1024 * 1024) {
+                    errSpan.textContent = 'Moi hinh anh khong duoc vuot qua 2MB.';
+                    errSpan.classList.remove('hidden');
+                    input.value = '';
+                    previewBox.classList.add('hidden');
+                    return;
+                }
+            }
+
+            errSpan.classList.add('hidden');
+            previewBox.classList.remove('hidden');
+
+            files.forEach((file) => {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'h-24 w-full object-cover rounded-lg border border-slate-800';
+                    previewList.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function previewVideo(input) {
+            const file = input.files[0];
+            const errSpan = document.getElementById('err-video');
+            const previewBox = document.getElementById('video-preview-box');
+            const previewVideo = document.getElementById('preview-video');
+
+            if (!file) {
+                previewBox.classList.add('hidden');
+                return;
+            }
+
+            const allowedTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
+            if (!allowedTypes.includes(file.type)) {
+                errSpan.textContent = 'Video phai co dinh dang mp4, webm hoac mov.';
+                errSpan.classList.remove('hidden');
+                input.value = '';
+                previewBox.classList.add('hidden');
+                return;
+            }
+
+            if (file.size > 50 * 1024 * 1024) {
+                errSpan.textContent = 'Dung luong video khong duoc vuot qua 50MB.';
                 errSpan.classList.remove('hidden');
                 input.value = '';
                 previewBox.classList.add('hidden');
@@ -365,15 +431,9 @@
             }
 
             errSpan.classList.add('hidden');
-            
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                previewImg.src = e.target.result;
-                previewBox.classList.remove('hidden');
-            }
-            reader.readAsDataURL(file);
+            previewVideo.src = URL.createObjectURL(file);
+            previewBox.classList.remove('hidden');
         }
-
         // Chặn Spam click / Double click gửi form
         const form = document.getElementById('create-room-form');
         form.addEventListener('submit', function (e) {
