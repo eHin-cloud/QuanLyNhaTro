@@ -30,8 +30,8 @@ return [
 
     'ai' => [
         'api_key' => env('AI_API_KEY'),
-        'base_url' => env('AI_BASE_URL', 'https://api.openai.com/v1'),
-        'model' => env('AI_MODEL', 'gpt-4o-mini'),
+        'base_url' => env('AI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta/openai'),
+        'model' => env('AI_MODEL', 'gemini-3.1-flash-lite'),
         'timeout' => env('AI_TIMEOUT', 15),
     ],
 
