@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>SmartRoom - Trang Cu Dan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -172,15 +173,19 @@
                         <form method="POST" action="{{ route('smartroom.resident.tickets.store') }}" enctype="multipart/form-data" class="xl:col-span-1 rounded-xl bg-slate-950/40 border border-slate-800 p-4 space-y-3" onsubmit="return disableSubmit(this)">
                             @csrf
                             <h2 class="text-lg font-black">Gui yeu cau sua chua</h2>
-                            <input name="title" maxlength="150" required class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm focus:outline-none focus:border-indigo-500" placeholder="Tieu de">
-                            <select name="category" required class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm focus:outline-none focus:border-indigo-500">
+                            <input name="title" id="ticket-title" maxlength="150" required class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm focus:outline-none focus:border-indigo-500" placeholder="Tieu de">
+                            <select name="category" id="ticket-category" required class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm focus:outline-none focus:border-indigo-500">
                                 <option value="electric">Dien</option>
                                 <option value="water">Nuoc</option>
                                 <option value="furniture">Noi that</option>
                                 <option value="maintenance">Bao tri</option>
                                 <option value="other">Khac</option>
                             </select>
-                            <textarea name="description" maxlength="1000" required rows="5" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm focus:outline-none focus:border-indigo-500" placeholder="Mo ta chi tiet"></textarea>
+                            <textarea name="description" id="ticket-description" maxlength="1000" required rows="5" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm focus:outline-none focus:border-indigo-500" placeholder="Mo ta chi tiet"></textarea>
+                            <button type="button" onclick="analyzeTicketWithAi(this)" class="w-full px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> AI phan tich su co
+                            </button>
+                            <div id="ticket-ai-result" class="hidden rounded-xl bg-slate-900/70 border border-slate-800 p-3 text-xs text-slate-300"></div>
                             <input name="image" type="file" accept="image/jpeg,image/png,image/webp" class="w-full text-xs text-slate-400 file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border-0 file:bg-indigo-600 file:text-white file:text-xs file:font-bold">
                             <button type="submit" class="submit-btn w-full px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold">
                                 <i class="fa-solid fa-paper-plane"></i> Gui yeu cau
@@ -248,6 +253,72 @@
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Dang gui...';
             return true;
+        }
+
+        function csrfToken() {
+            return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        }
+
+        function analyzeTicketWithAi(btn) {
+            const titleInput = document.getElementById('ticket-title');
+            const descriptionInput = document.getElementById('ticket-description');
+            const categoryInput = document.getElementById('ticket-category');
+            const result = document.getElementById('ticket-ai-result');
+            const description = descriptionInput.value.trim();
+
+            if (description.length < 5) {
+                result.classList.remove('hidden');
+                result.textContent = 'Vui long nhap mo ta su co ro hon truoc khi dung AI.';
+                return;
+            }
+
+            const original = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Dang phan tich...';
+            result.classList.remove('hidden');
+            result.textContent = 'AI dang phan loai su co...';
+
+            fetch("{{ route('smartroom.resident.tickets.analyze') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken()
+                },
+                body: JSON.stringify({
+                    title: titleInput.value,
+                    description
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = original;
+
+                if (!data.success) {
+                    result.textContent = 'Khong the phan tich su co bang AI.';
+                    return;
+                }
+
+                const analysis = data.analysis;
+                titleInput.value = analysis.title || titleInput.value;
+                categoryInput.value = analysis.category || categoryInput.value;
+                descriptionInput.value = analysis.normalized_description || descriptionInput.value;
+                result.innerHTML = `Muc uu tien: <strong>${escapeHtml(analysis.priority)}</strong><br>Goi y xu ly: ${escapeHtml(analysis.suggestion || 'Chua co goi y.')}`;
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.innerHTML = original;
+                result.textContent = 'Khong the ket noi AI.';
+            });
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
         }
 
         document.addEventListener('DOMContentLoaded', () => {

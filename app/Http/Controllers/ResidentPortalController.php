@@ -6,6 +6,7 @@ use App\Models\Contract;
 use App\Models\Resident;
 use App\Models\Ticket;
 use App\Models\UtilityRecord;
+use App\Services\AiManagementService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -110,6 +111,27 @@ class ResidentPortalController extends Controller
         return redirect()
             ->route('smartroom.resident', ['tab' => 'tickets'])
             ->with('success', 'Da gui yeu cau sua chua. Ban quan ly se xu ly som.');
+    }
+
+    public function analyzeTicket(Request $request, AiManagementService $aiManagementService)
+    {
+        $resident = $this->currentResident();
+        if (!$resident || !$resident->room) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'title' => 'nullable|string|max:150',
+            'description' => 'required|string|min:5|max:1000',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'analysis' => $aiManagementService->analyzeMaintenanceTicket(
+                strip_tags($validated['description']),
+                isset($validated['title']) ? strip_tags($validated['title']) : null
+            ),
+        ]);
     }
 
     public function billQr($id)

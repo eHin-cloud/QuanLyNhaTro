@@ -26,6 +26,7 @@ Route::post('/auth/login', [AuthController::class, 'login']);
 Route::get('/renty/rooms', [VisitorController::class, 'index']);
 Route::get('/renty/rooms/map', [VisitorController::class, 'map']);
 Route::get('/renty/rooms/{id}/reviews', [VisitorController::class, 'reviews']);
+Route::get('/renty/rooms/{id}/reviews/summary', [VisitorController::class, 'reviewSummary']);
 Route::post('/renty/rooms/compare', [VisitorController::class, 'compare']);
 
 // ==========================================

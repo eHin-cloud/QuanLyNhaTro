@@ -45,12 +45,16 @@ Route::get('/', function () {
 })->name('smartroom.portal');
 
 Route::get('/smartroom/resident', [ResidentPortalController::class, 'index'])->name('smartroom.resident');
+Route::post('/smartroom/resident/tickets/analyze', [ResidentPortalController::class, 'analyzeTicket'])->name('smartroom.resident.tickets.analyze');
 Route::post('/smartroom/resident/tickets', [ResidentPortalController::class, 'storeTicket'])->name('smartroom.resident.tickets.store');
 Route::get('/smartroom/resident/bills/{id}/qr', [ResidentPortalController::class, 'billQr'])->name('smartroom.resident.bills.qr');
 
 
 Route::middleware('admin')->group(function () {
     Route::get('/smartroom/admin', [AdminDashboardController::class, 'index'])->name('smartroom.admin');
+    Route::post('/smartroom/admin/ai/dashboard-insight', [AdminDashboardController::class, 'aiDashboardInsight'])->name('smartroom.admin.ai.dashboard_insight');
+    Route::post('/smartroom/admin/ai/assistant', [AdminDashboardController::class, 'aiAssistant'])->name('smartroom.admin.ai.assistant');
+    Route::post('/smartroom/admin/ai/contract-terms', [AdminDashboardController::class, 'aiContractTerms'])->name('smartroom.admin.ai.contract_terms');
     Route::get('/smartroom/admin/reports', [ReportController::class, 'index'])->name('admin.reports.index');
     Route::get('/smartroom/admin/activity-logs', [AdminActivityLogController::class, 'index'])->name('admin.activity_logs.index');
     Route::get('/smartroom/admin/payments', [PaymentController::class, 'index'])->name('admin.payments.index');
@@ -73,6 +77,7 @@ Route::middleware('admin')->group(function () {
     Route::prefix('smartroom/admin/rooms')->name('admin.rooms.')->group(function () {
         Route::get('/', [RoomController::class, 'index'])->name('index');
         Route::get('/create', [RoomController::class, 'create'])->name('create');
+        Route::post('/description/ai', [RoomController::class, 'generateDescription'])->name('description.ai');
         Route::post('/store', [RoomController::class, 'store'])->name('store');
         Route::get('/{id}/edit', [RoomController::class, 'edit'])->name('edit');
         Route::post('/{id}/update', [RoomController::class, 'update'])->name('update');

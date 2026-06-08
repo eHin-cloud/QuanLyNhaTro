@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="Hệ thống quản lý SmartRoom - Trang quản trị nhà trọ.">
     <title>SmartRoom - Quản Trị Nhà Trọ Cao Cấp</title>
     
@@ -224,6 +225,44 @@
                         </div>
                         <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center">
                             <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI insights and assistant -->
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    <div class="glass-card rounded-2xl p-6">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <h3 class="text-base font-bold text-slate-200 flex items-center gap-2">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-indigo-400"></i> Nhận xét AI
+                                </h3>
+                                <p class="text-xs text-slate-500 mt-1">Phân tích nhanh doanh thu, công nợ, phòng trống và rủi ro vận hành.</p>
+                            </div>
+                            <button type="button" onclick="loadAiDashboardInsight(this)" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-2">
+                                <i class="fa-solid fa-rotate"></i> Tạo nhận xét
+                            </button>
+                        </div>
+                        <div id="ai-dashboard-insight" class="mt-5 rounded-xl bg-slate-950/40 border border-slate-800 p-4 text-sm text-slate-300 leading-relaxed">
+                            Bấm "Tạo nhận xét" để AI phân tích dữ liệu dashboard hiện tại.
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-2xl p-6">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-200 flex items-center gap-2">
+                                <i class="fa-solid fa-comments text-emerald-400"></i> Trợ lý AI nhà trọ
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-1">Hỏi bằng tiếng Việt, ví dụ: "Phòng nào chưa đóng tiền tháng này?" hoặc "Ai sắp hết hợp đồng?".</p>
+                        </div>
+                        <div class="mt-5 flex gap-2">
+                            <input id="ai-assistant-question" type="text" class="min-w-0 flex-1 px-4 py-3 rounded-xl bg-slate-950/60 border border-slate-800 text-sm text-slate-200 focus:outline-none focus:border-emerald-500" placeholder="Nhập câu hỏi quản lý nhà trọ...">
+                            <button type="button" onclick="askAiAssistant(this)" class="px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-2">
+                                <i class="fa-solid fa-paper-plane"></i> Hỏi
+                            </button>
+                        </div>
+                        <div id="ai-assistant-answer" class="mt-4 rounded-xl bg-slate-950/40 border border-slate-800 p-4 text-sm text-slate-300 leading-relaxed min-h-20">
+                            Trợ lý chỉ đọc dữ liệu thuộc tài khoản chủ trọ đang đăng nhập.
                         </div>
                     </div>
                 </div>
@@ -1554,7 +1593,7 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Chọn Cư Dân Đại Diện</label>
-                        <select name="resident_id" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <select name="resident_id" id="contract-resident-id" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
                             @foreach($residents as $res)
                                 <option value="{{ $res->id }}">{{ $res->name }} (P. {{ $res->room ? $res->room->room_number : 'N/A' }})</option>
                             @endforeach
@@ -1562,7 +1601,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Chọn Phòng Trọ</label>
-                        <select name="room_id" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <select name="room_id" id="contract-room-id" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
                             @foreach($rooms as $r)
                                 @if($r->status !== 'empty')
                                     <option value="{{ $r->id }}">Phòng {{ $r->room_number }}</option>
@@ -1574,20 +1613,23 @@
                 <div class="grid grid-cols-3 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Ngày Bắt Đầu</label>
-                        <input type="date" name="start_date" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="date" name="start_date" id="contract-start-date" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Ngày Kết Thúc</label>
-                        <input type="date" name="end_date" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="date" name="end_date" id="contract-end-date" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tiền Đặt Cọc (VNĐ)</label>
-                        <input type="number" name="deposit" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none" placeholder="3000000">
+                        <input type="number" name="deposit" id="contract-deposit" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none" placeholder="3000000">
                     </div>
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Điều Khoản Hợp Đồng</label>
-                    <textarea name="terms" rows="6" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none resize-none">ĐIỀU KHOẢN HỢP ĐỒNG THUÊ PHÒNG
+                    <button type="button" onclick="generateContractTermsWithAi(this)" class="mb-2 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> AI soạn điều khoản
+                    </button>
+                    <textarea name="terms" id="contract-terms" rows="6" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none resize-none">ĐIỀU KHOẢN HỢP ĐỒNG THUÊ PHÒNG
 
 Điều 1: Bên A (Bên cho thuê) đồng ý cho Bên B (Bên thuê) thuê phòng trọ.
 Điều 2: Tiền thuê phòng đóng định kỳ trước ngày 10 hàng tháng. Tiền đặt cọc bảo đảm nghĩa vụ thực hiện hợp đồng.
@@ -3027,6 +3069,202 @@
                 console.error(err);
             });
         }
+
+        function csrfToken() {
+            return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function renderAiList(title, items, iconClass) {
+            if (!items || items.length === 0) {
+                return '';
+            }
+
+            return `
+                <div class="mt-3">
+                    <div class="text-[11px] uppercase tracking-wider font-bold text-slate-500 flex items-center gap-2">
+                        <i class="${iconClass}"></i> ${escapeHtml(title)}
+                    </div>
+                    <ul class="mt-2 space-y-1.5 text-xs text-slate-300">
+                        ${items.map(item => `<li class="flex gap-2"><span class="text-indigo-400">•</span><span>${escapeHtml(item)}</span></li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+
+        function loadAiDashboardInsight(btn) {
+            const target = document.getElementById('ai-dashboard-insight');
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang phân tích...';
+            target.innerHTML = '<span class="text-slate-500">AI đang đọc dữ liệu dashboard...</span>';
+
+            fetch("{{ route('smartroom.admin.ai.dashboard_insight') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken()
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+
+                if (!data.success) {
+                    target.innerHTML = '<span class="text-rose-400">Không thể tạo nhận xét AI.</span>';
+                    return;
+                }
+
+                const insight = data.insight;
+                const badge = insight.used_ai
+                    ? '<span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">AI</span>'
+                    : '<span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Fallback</span>';
+
+                target.innerHTML = `
+                    <div class="flex items-start justify-between gap-3">
+                        <p class="text-sm text-slate-200 font-semibold">${escapeHtml(insight.summary || '')}</p>
+                        ${badge}
+                    </div>
+                    ${renderAiList('Điểm đáng chú ý', insight.highlights, 'fa-solid fa-chart-line text-emerald-400')}
+                    ${renderAiList('Rủi ro', insight.risks, 'fa-solid fa-triangle-exclamation text-amber-400')}
+                    ${renderAiList('Gợi ý', insight.suggestions, 'fa-solid fa-lightbulb text-indigo-400')}
+                `;
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+                target.innerHTML = '<span class="text-rose-400">Không thể kết nối để tạo nhận xét AI.</span>';
+                console.error(err);
+            });
+        }
+
+        function askAiAssistant(btn) {
+            const input = document.getElementById('ai-assistant-question');
+            const target = document.getElementById('ai-assistant-answer');
+            const question = input.value.trim();
+
+            if (question.length < 3) {
+                target.innerHTML = '<span class="text-amber-400">Vui lòng nhập câu hỏi rõ hơn.</span>';
+                return;
+            }
+
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang hỏi...';
+            target.innerHTML = '<span class="text-slate-500">Trợ lý đang đọc dữ liệu nhà trọ...</span>';
+
+            fetch("{{ route('smartroom.admin.ai.assistant') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken()
+                },
+                body: JSON.stringify({ question })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+
+                if (!data.success) {
+                    target.innerHTML = '<span class="text-rose-400">Không thể hỏi trợ lý AI.</span>';
+                    return;
+                }
+
+                const answer = data.answer;
+                const badge = answer.used_ai
+                    ? '<span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">AI</span>'
+                    : '<span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Fallback</span>';
+
+                target.innerHTML = `
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="whitespace-pre-line">${escapeHtml(answer.answer || '')}</div>
+                        ${badge}
+                    </div>
+                `;
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+                target.innerHTML = '<span class="text-rose-400">Không thể kết nối trợ lý AI.</span>';
+                console.error(err);
+            });
+        }
+
+        function generateContractTermsWithAi(btn) {
+            const roomId = document.getElementById('contract-room-id')?.value;
+            const residentId = document.getElementById('contract-resident-id')?.value;
+            const startDate = document.getElementById('contract-start-date')?.value;
+            const endDate = document.getElementById('contract-end-date')?.value;
+            const deposit = document.getElementById('contract-deposit')?.value;
+            const terms = document.getElementById('contract-terms');
+
+            if (!roomId || !residentId || !startDate || !endDate || !deposit) {
+                alert('Vui lòng nhập đủ phòng, cư dân, thời hạn và tiền cọc trước khi dùng AI.');
+                return;
+            }
+
+            const original = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang soạn...';
+
+            fetch("{{ route('smartroom.admin.ai.contract_terms') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken()
+                },
+                body: JSON.stringify({
+                    room_id: roomId,
+                    resident_id: residentId,
+                    start_date: startDate,
+                    end_date: endDate,
+                    deposit: Number(deposit)
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = original;
+
+                if (!data.success) {
+                    alert('Không thể tạo điều khoản bằng AI.');
+                    return;
+                }
+
+                terms.value = data.terms.terms || terms.value;
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = original;
+                alert('Không thể kết nối AI để tạo điều khoản.');
+                console.error(err);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const aiQuestionInput = document.getElementById('ai-assistant-question');
+            if (aiQuestionInput) {
+                aiQuestionInput.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        const button = aiQuestionInput.parentElement.querySelector('button');
+                        if (button) {
+                            askAiAssistant(button);
+                        }
+                    }
+                });
+            }
+        });
     </script>
 
     <!-- VIETQR POPUP MODAL -->

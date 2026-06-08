@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="Thêm phòng trọ mới - SmartRoom.">
     <title>Thêm Phòng Trọ Mới - SmartRoom</title>
     
@@ -242,7 +243,12 @@
 
                     <!-- Mô tả -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Mô Tả Chi Tiết (Không chứa mã HTML)</label>
+                        <div class="flex items-center justify-between gap-3 mb-2">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Mô Tả Chi Tiết (Không chứa mã HTML)</label>
+                            <button type="button" onclick="generateRoomDescriptionWithAi(this)" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> AI viết mô tả
+                            </button>
+                        </div>
                         <textarea name="description" id="description" rows="3" 
                                   class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-850 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none" 
                                   placeholder="Nhập thông tin mô tả chi tiết phòng trọ..." onblur="validateDescription()"></textarea>
@@ -438,6 +444,65 @@
             previewVideo.src = URL.createObjectURL(file);
             previewBox.classList.remove('hidden');
         }
+
+        function csrfToken() {
+            return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        }
+
+        function selectedAmenities() {
+            return Array.from(document.querySelectorAll('input[name="amenities[]"]:checked')).map(input => input.value);
+        }
+
+        function generateRoomDescriptionWithAi(btn) {
+            const price = document.getElementById('price').value;
+            const area = document.getElementById('area').value;
+            const description = document.getElementById('description');
+
+            if (!price || !area) {
+                alert('Vui lòng nhập giá thuê và diện tích trước khi dùng AI.');
+                return;
+            }
+
+            const original = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang viết...';
+
+            fetch("{{ route('admin.rooms.description.ai') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken()
+                },
+                body: JSON.stringify({
+                    room_number: document.getElementById('room_number').value,
+                    floor: Number(document.getElementById('floor').value || 0),
+                    room_type: document.getElementById('room_type').value,
+                    price: Number(price),
+                    area: Number(area),
+                    status: document.getElementById('status').value,
+                    amenities: selectedAmenities()
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = original;
+
+                if (!data.success) {
+                    alert('Không thể tạo mô tả bằng AI.');
+                    return;
+                }
+
+                description.value = data.description.description || description.value;
+                validateDescription();
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.innerHTML = original;
+                alert('Không thể kết nối AI để tạo mô tả.');
+            });
+        }
+
         // Chặn Spam click / Double click gửi form
         const form = document.getElementById('create-room-form');
         form.addEventListener('submit', function (e) {

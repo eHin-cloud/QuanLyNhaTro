@@ -18,6 +18,10 @@ class NotificationService
 
     private const DEFAULT_CHANNELS = ['email', 'zalo', 'sms'];
 
+    public function __construct(private readonly AiReminderService $aiReminderService)
+    {
+    }
+
     public function sendPaymentReminders(int $tenantId, ?string $billingMonth = null, array $channels = self::DEFAULT_CHANNELS): Collection
     {
         $billingMonth ??= now()->format('Y-m');
@@ -35,25 +39,30 @@ class NotificationService
                     return collect();
                 }
 
-                $total = $this->utilityTotal($record);
-                $subject = 'Nhac thanh toan hoa don phong ' . $room->room_number;
-                $message = 'Phong ' . $room->room_number . ' co hoa don thang ' . $billingMonth
-                    . ' chua thanh toan. Tong tien: ' . number_format($total) . ' VND. Vui long thanh toan truoc ngay 10.';
-
                 if ($record->status !== 'overdue') {
                     $record->update(['status' => 'sent']);
                 }
 
-                return $this->sendToChannels($tenantId, 'payment_reminder', $channels, [
+                $total = $this->utilityTotal($record);
+                $recipient = [
                     'name' => $resident->name,
                     'email' => $resident->email,
                     'phone' => $resident->phone,
-                ], $subject, $message, UtilityRecord::class, $record->id, [
-                    'room_number' => $room->room_number,
-                    'billing_month' => $billingMonth,
-                    'total_amount' => $total,
-                    'simulated' => false,
-                ]);
+                ];
+
+                return collect($channels)
+                    ->map(function (string $channel) use ($tenantId, $record, $room, $resident, $total, $recipient, $billingMonth) {
+                        $content = $this->aiReminderService->generatePaymentReminder($record, $room, $resident, $total, $channel);
+
+                        return $this->send($tenantId, 'payment_reminder', $channel, $recipient, $content['subject'], $content['message'], UtilityRecord::class, $record->id, [
+                            'room_number' => $room->room_number,
+                            'billing_month' => $billingMonth,
+                            'total_amount' => $total,
+                            'ai_generated' => $content['used_ai'],
+                            'ai_fallback_reason' => $content['fallback_reason'],
+                            'simulated' => false,
+                        ]);
+                    });
             })
             ->values();
     }

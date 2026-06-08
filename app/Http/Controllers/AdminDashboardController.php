@@ -13,6 +13,7 @@ use App\Models\Tenant;
 use App\Models\Ticket;
 use App\Models\UtilityRecord;
 use App\Services\AdminActivityLogger;
+use App\Services\AiManagementService;
 use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -314,6 +315,59 @@ class AdminDashboardController extends Controller
     private function containsLike(string $value): string
     {
         return '%' . addcslashes(trim($value), '\%_') . '%';
+    }
+
+    public function aiDashboardInsight(AiManagementService $aiManagementService)
+    {
+        return response()->json([
+            'success' => true,
+            'insight' => $aiManagementService->dashboardInsight($this->currentTenantId()),
+        ]);
+    }
+
+    public function aiAssistant(Request $request, AiManagementService $aiManagementService)
+    {
+        $validated = $request->validate([
+            'question' => 'required|string|min:3|max:500',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'answer' => $aiManagementService->answerManagementQuestion(
+                $this->currentTenantId(),
+                $validated['question']
+            ),
+        ]);
+    }
+
+    public function aiContractTerms(Request $request, AiManagementService $aiManagementService)
+    {
+        $tenantId = $this->currentTenantId();
+        $validated = $request->validate([
+            'room_id' => 'required|integer',
+            'resident_id' => 'required|integer',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
+            'deposit' => 'required|integer|min:0',
+        ]);
+
+        $room = Room::where('tenant_id', $tenantId)->findOrFail($validated['room_id']);
+        $resident = Resident::where('tenant_id', $tenantId)->findOrFail($validated['resident_id']);
+
+        return response()->json([
+            'success' => true,
+            'terms' => $aiManagementService->generateContractTerms([
+                'room_number' => $room->room_number,
+                'room_price' => (int) $room->price,
+                'room_area' => (int) $room->area,
+                'room_amenities' => $room->amenities ?? [],
+                'resident_name' => $resident->name,
+                'resident_phone' => $resident->phone,
+                'start_date' => $validated['start_date'],
+                'end_date' => $validated['end_date'],
+                'deposit' => (int) $validated['deposit'],
+            ]),
+        ]);
     }
 
     public function storeUtility(Request $request)

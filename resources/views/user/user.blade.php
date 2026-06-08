@@ -512,7 +512,13 @@
                 </div>
 
                 <div>
-                    <h3 class="text-sm font-bold text-slate-300 mb-3"><i class="fa-solid fa-comments text-amber-400 mr-1.5"></i>Đánh giá thực tế từ người ở trước</h3>
+                    <div class="flex items-center justify-between gap-3 mb-3">
+                        <h3 class="text-sm font-bold text-slate-300"><i class="fa-solid fa-comments text-amber-400 mr-1.5"></i>Đánh giá thực tế từ người ở trước</h3>
+                        <button type="button" id="review-summary-btn" onclick="loadReviewSummary(this)" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> AI tóm tắt
+                        </button>
+                    </div>
+                    <div id="review-summary-box" class="hidden mb-3 rounded-xl bg-slate-900/70 border border-slate-800 p-3 text-xs text-slate-300"></div>
                     <div class="space-y-4 max-h-[460px] overflow-y-auto pr-2" id="detail-reviews-container">
                         <!-- Dynamic list of reviews -->
                     </div>
@@ -754,10 +760,17 @@
             drawer.classList.toggle('hidden');
         }
 
+        let currentDetailRoomId = null;
+
         // Room details modal
         function openRoomDetailModal(roomId) {
             const data = mockRooms[roomId];
             if (!data) return;
+
+            currentDetailRoomId = roomId;
+            const summaryBox = document.getElementById('review-summary-box');
+            summaryBox.classList.add('hidden');
+            summaryBox.innerHTML = '';
 
             document.getElementById('detail-room-title').textContent = data.title;
             document.getElementById('detail-room-address').textContent = data.address;
@@ -834,6 +847,52 @@
             }
 
             document.getElementById('room-detail-modal').classList.remove('hidden');
+        }
+
+        function loadReviewSummary(btn) {
+            if (!currentDetailRoomId) return;
+
+            const box = document.getElementById('review-summary-box');
+            const original = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang tóm tắt...';
+            box.classList.remove('hidden');
+            box.textContent = 'AI đang đọc các review...';
+
+            fetch(`/api/renty/rooms/${currentDetailRoomId}/reviews/summary`)
+                .then(res => res.json())
+                .then(data => {
+                    btn.disabled = false;
+                    btn.innerHTML = original;
+
+                    if (!data.success) {
+                        box.textContent = 'Không thể tóm tắt review.';
+                        return;
+                    }
+
+                    const summary = data.summary;
+                    const pros = (summary.pros || []).map(item => `<li>${escapeHtml(item)}</li>`).join('');
+                    const cons = (summary.cons || []).map(item => `<li>${escapeHtml(item)}</li>`).join('');
+                    box.innerHTML = `
+                        <div class="font-bold text-slate-200">${escapeHtml(summary.summary || '')}</div>
+                        ${pros ? `<div class="mt-2 text-emerald-300 font-bold">Ưu điểm</div><ul class="list-disc pl-5">${pros}</ul>` : ''}
+                        ${cons ? `<div class="mt-2 text-amber-300 font-bold">Cần lưu ý</div><ul class="list-disc pl-5">${cons}</ul>` : ''}
+                    `;
+                })
+                .catch(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = original;
+                    box.textContent = 'Không thể kết nối AI để tóm tắt review.';
+                });
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
         }
 
         function closeRoomDetailModal() {

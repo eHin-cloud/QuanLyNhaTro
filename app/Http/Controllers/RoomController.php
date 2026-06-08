@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use App\Services\AdminActivityLogger;
+use App\Services\AiManagementService;
 
 class RoomController extends Controller
 {
@@ -81,6 +82,25 @@ class RoomController extends Controller
         $user = Auth::user();
         $buildings = Building::where('tenant_id', $user->tenant_id)->get();
         return view('admin.rooms.create', compact('buildings'));
+    }
+
+    public function generateDescription(Request $request, AiManagementService $aiManagementService)
+    {
+        $validated = $request->validate([
+            'room_number' => 'nullable|string|max:50',
+            'floor' => 'nullable|integer|min:0',
+            'room_type' => 'nullable|string|max:50',
+            'price' => 'required|integer|min:0',
+            'area' => 'required|integer|min:1',
+            'amenities' => 'nullable|array',
+            'amenities.*' => 'string|max:100',
+            'status' => 'nullable|in:empty,occupied,overdue,maintenance',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'description' => $aiManagementService->generateRoomDescription($validated),
+        ]);
     }
 
     /**
