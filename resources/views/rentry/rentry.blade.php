@@ -131,7 +131,7 @@
                     <button onclick="toggleFilterDrawer()" class="px-4 py-3 bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-slate-100 rounded-2xl text-sm font-bold flex items-center gap-2 transition-all">
                         <i class="fa-solid fa-sliders text-emerald-400"></i> Bộ Lọc
                     </button>
-                    <button onclick="filterItems()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-sm font-bold shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-2 shrink-0">
+                    <button onclick="runSearchWithSkeleton()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-sm font-bold shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-2 shrink-0">
                         <i class="fa-solid fa-magnifying-glass"></i> Tìm Kiếm
                     </button>
                 </div>
@@ -189,7 +189,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16" id="rooms-grid">
             @foreach($rooms as $room)
-            <div class="room-item-card glass-card rounded-2xl overflow-hidden group flex flex-col justify-between" 
+            <div class="room-item-card glass-card rounded-2xl overflow-hidden group flex flex-col justify-between relative" 
                  data-room-id="{{ $room['id'] }}"
                  data-price="{{ $room['price'] }}" 
                  data-rating="{{ $room['rating'] }}" 
@@ -200,6 +200,24 @@
                  data-area-name="{{ $room['area_name'] }}"
                  data-viewed="false"
                  data-title="{{ $room['title'] }}">
+                <div class="room-card-skeleton" aria-hidden="true">
+                    <div class="skeleton-media"></div>
+                    <div class="skeleton-body">
+                        <div class="skeleton-row skeleton-row-title"></div>
+                        <div class="skeleton-row skeleton-row-rating"></div>
+                        <div class="skeleton-row skeleton-row-address"></div>
+                        <div class="skeleton-row skeleton-row-price"></div>
+                        <div class="skeleton-tags">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                    <div class="skeleton-footer">
+                        <div class="skeleton-check"></div>
+                        <div class="skeleton-action"></div>
+                    </div>
+                </div>
                 <div>
                     @php
                         $cardImages = collect($room['image_urls'] ?? [])
@@ -1587,8 +1605,39 @@
             }
         });
 
+        let rentySearchSkeletonTimer = null;
+
+        function setSearchSkeletonLoading(isLoading) {
+            const resultsCount = document.getElementById('results-count');
+
+            document.querySelectorAll('.room-item-card').forEach(card => {
+                if (isLoading) {
+                    card.classList.remove('hidden');
+                }
+                card.classList.toggle('is-search-loading', isLoading);
+            });
+
+            if (isLoading && resultsCount) {
+                resultsCount.textContent = 'Đang tìm phòng phù hợp...';
+            }
+        }
+
+        function runSearchWithSkeleton() {
+            clearTimeout(rentySearchSkeletonTimer);
+            setSearchSkeletonLoading(true);
+
+            rentySearchSkeletonTimer = setTimeout(() => {
+                filterItems({ keepSkeleton: true });
+                setSearchSkeletonLoading(false);
+            }, 680);
+        }
+
         // Search and filter function
-        function filterItems() {
+        function filterItems(options = {}) {
+            clearTimeout(rentySearchSkeletonTimer);
+            if (!options.keepSkeleton) {
+                setSearchSkeletonLoading(false);
+            }
             const query = document.getElementById('search-input').value;
             const parsedSearch = parseNaturalSearch(query);
             const normalizedQuery = normalizeText(query);
