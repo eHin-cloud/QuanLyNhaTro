@@ -87,6 +87,7 @@ Route::middleware('admin')->group(function () {
     // Equipment Management
     Route::prefix('smartroom/admin/equipment')->name('admin.equipment.')->group(function () {
         Route::get('/', [EquipmentController::class, 'index'])->name('index');
+        Route::get('/store', fn () => redirect()->route('admin.equipment.index'))->name('store.redirect');
         Route::post('/store', [EquipmentController::class, 'store'])->name('store');
         Route::post('/{id}/update', [EquipmentController::class, 'update'])->name('update');
         Route::delete('/{id}/delete', [EquipmentController::class, 'destroy'])->name('destroy');
