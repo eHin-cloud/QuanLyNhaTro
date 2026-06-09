@@ -54,6 +54,9 @@
                 <i class="fa-solid fa-moon" data-theme-icon></i>
             </button>
             @if($page === 'list')
+                <a href="{{ route('admin.verifications.index') }}" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-sky-500/25 transition-all">
+                    <i class="fa-solid fa-shield-halved mr-1.5"></i> Duyet Xac Minh
+                </a>
                 <a href="{{ route('smartroom.admin') }}" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-500/25 transition-all">
                     <i class="fa-solid fa-gauge mr-1.5"></i> Dashboard Admin
                 </a>
@@ -72,9 +75,14 @@
                         <h1 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Quản Trị Viên</h1>
                         <p class="text-xs text-slate-400 mt-1">Danh sách người dùng được cấp quyền quản lý trong hệ thống</p>
                     </div>
-                    <a href="{{ route('user.createUser') }}" class="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-emerald-500/20 transition-all">
-                        <i class="fa-solid fa-user-plus mr-1.5"></i> Thêm Admin Mới
-                    </a>
+                    <div class="flex flex-wrap gap-2">
+                        <a href="{{ route('admin.verifications.index') }}" class="px-4 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-sky-500/20 transition-all">
+                            <i class="fa-solid fa-shield-halved mr-1.5"></i> Duyet Ho So
+                        </a>
+                        <a href="{{ route('user.createUser') }}" class="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-emerald-500/20 transition-all">
+                            <i class="fa-solid fa-user-plus mr-1.5"></i> Thêm Admin Mới
+                        </a>
+                    </div>
                 </div>
 
                 <div class="bg-slate-900/40 backdrop-blur-xl border border-slate-800 rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
@@ -181,7 +189,8 @@
                         </form>
                         <div class="mt-8 pt-6 border-t border-slate-800/60 text-center space-y-3">
                             <p class="text-xs text-slate-400">Chưa có tài khoản quản lý?</p>
-                            <a href="{{ route('user.createUser') }}" class="login-register-link inline-flex items-center justify-center px-4 py-2 rounded-xl text-xs font-semibold transition-all">Đăng Ký Tài Khoản Mới</a>
+                            <a href="{{ route('landlord.register') }}" class="login-register-link inline-flex items-center justify-center px-4 py-2 rounded-xl text-xs font-semibold transition-all">Dang ky chu tro moi</a>
+                            <a href="{{ route('user.createUser') }}" class="inline-flex items-center justify-center px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all">Dang ky tai khoan cu dan</a>
                         </div>
                     </section>
                 @elseif($page === 'create' || $page === 'update')

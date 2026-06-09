@@ -25,7 +25,7 @@ class ResidentPortalController extends Controller
             if (!$user->isResident()) {
                 $route = match (true) {
                     $user->isAdmin() => 'user.list',
-                    $user->isLandlord(), $user->isManager() => 'smartroom.admin',
+                    $user->canAccessLandlordDashboard() => 'smartroom.admin',
                     default => 'renty.user',
                 };
 
@@ -154,6 +154,12 @@ class ResidentPortalController extends Controller
         $resident = $this->currentResident();
         if (!$resident || !$resident->room) {
             abort(404);
+        }
+
+        if (!in_array(($resident->tenant?->verification_status ?? 'unverified'), ['kyc_verified', 'premium_pending', 'premium_verified'], true)) {
+            return redirect()
+                ->route('smartroom.resident')
+                ->with('error', 'Chu tro dang hoan tat xac minh nhan tien. Vui long lien he ban quan ly de nhan huong dan thanh toan.');
         }
 
         $record = UtilityRecord::where('room_id', $resident->room_id)->findOrFail($id);

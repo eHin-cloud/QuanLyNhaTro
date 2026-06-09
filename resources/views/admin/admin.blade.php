@@ -181,6 +181,170 @@
                 </div>
             @endif
 
+            @if(($tenant->verification_status ?? 'unverified') === 'kyc_verified')
+                <div class="mb-6 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-emerald-100 text-sm font-bold flex items-center gap-3">
+                    <i class="fa-solid fa-shield-halved text-emerald-300"></i>
+                    Ho so nhan tien da duoc xac minh. Ban co the dung chuyen khoan/VietQR va tiep tuc nang cap tich xanh khi san sang.
+                </div>
+            @endif
+
+            @if(($tenant->verification_status ?? 'unverified') === 'premium_verified')
+                <div class="mb-6 rounded-2xl border border-sky-500/25 bg-sky-500/10 p-5 text-sky-50 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div class="flex items-start gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-sky-500/10 border border-sky-400/30 text-sky-200 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black text-sky-100">Nha tro da co Tich xanh</h3>
+                            <p class="mt-1 text-xs leading-6 text-sky-100/75">Ho so DKKD, PCCC va ANTT da duoc xac minh. Tin dang duoc gan badge Tich xanh va uu tien hien thi tren Renty.</p>
+                        </div>
+                    </div>
+                    <span class="px-3 py-1.5 rounded-lg bg-sky-400/10 border border-sky-400/25 text-sky-100 text-[10px] font-black">Boost discovery: dang bat</span>
+                </div>
+            @endif
+
+            @if(($tenant->verification_status ?? 'unverified') === 'premium_pending')
+                <div class="mb-6 rounded-2xl border border-sky-500/20 bg-sky-500/10 p-5 text-sky-50">
+                    <div class="flex items-start gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-sky-500/10 border border-sky-400/30 text-sky-200 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black text-sky-100">Ho so Tich xanh dang duyet</h3>
+                            <p class="mt-1 text-xs leading-6 text-sky-100/75">Ma ho so: #{{ $premiumRequest->id ?? 'N/A' }}. Trong luc cho duyet, ban van giu quyen nhan tien/VietQR tu ho so KYC da xac minh.</p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            @if(in_array(($tenant->verification_status ?? 'unverified'), ['unverified', 'kyc_pending'], true))
+                <div class="mb-6 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-5 text-amber-50">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        <div class="flex items-start gap-3">
+                            <div class="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-seedling"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-black text-amber-100">Ho so dang o muc khoi dau</h3>
+                                <p class="mt-1 text-xs leading-6 text-amber-100/80">
+                                    Ban co the them phong va quan ly nha tro ngay. Khi muon nhan tien tu dong hoac rut tien, hay bo sung CCCD va tai khoan ngan hang de mo khoa thanh toan.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2 text-[10px] font-bold">
+                            <span class="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-200">Tao nha tro: xong</span>
+                            <span class="px-3 py-1.5 rounded-lg bg-slate-950/40 border border-amber-500/20 text-amber-100">KYC nhan tien: {{ ($tenant->verification_status ?? 'unverified') === 'kyc_pending' ? 'dang duyet' : 'khi can' }}</span>
+                            <span class="px-3 py-1.5 rounded-lg bg-slate-950/40 border border-sky-500/20 text-sky-100">Tich xanh: tuy chon</span>
+                        </div>
+                    </div>
+
+                    @if(($tenant->verification_status ?? 'unverified') === 'kyc_pending')
+                        <div class="mt-4 rounded-2xl border border-slate-800 bg-slate-950/40 p-4 text-xs text-slate-300">
+                            <div class="flex items-center gap-2 font-bold text-amber-100">
+                                <i class="fa-solid fa-clock"></i>
+                                Ho so KYC da gui, dang cho admin he thong duyet.
+                            </div>
+                            <p class="mt-2 text-slate-500">Ma ho so: #{{ $kycRequest->id ?? 'N/A' }}. Ban van co the tiep tuc them phong va quan ly nha tro trong luc cho xet duyet.</p>
+                        </div>
+                    @else
+                        <form method="POST" action="{{ route('smartroom.admin.verification.kyc') }}" enctype="multipart/form-data" class="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-4 rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
+                            @csrf
+                            <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+                                <label class="block">
+                                    <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">So CCCD</span>
+                                    <input name="cccd_number" required class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-400">
+                                </label>
+                                <label class="block">
+                                    <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Ngan hang</span>
+                                    <input name="bank_name" required value="{{ old('bank_name', $tenant->bank_name ?? 'MB') }}" class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-400">
+                                </label>
+                                <label class="block">
+                                    <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">So tai khoan</span>
+                                    <input name="bank_account_no" required value="{{ old('bank_account_no', $tenant->bank_account_no ?? '') }}" class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-400">
+                                </label>
+                                <label class="block">
+                                    <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Ten chu tai khoan</span>
+                                    <input name="bank_account_name" required value="{{ old('bank_account_name', $tenant->bank_account_name ?? '') }}" class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-400">
+                                </label>
+                            </div>
+
+                            <label class="block">
+                                <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">CCCD mat truoc</span>
+                                <input type="file" name="cccd_front" accept="image/*" required class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300">
+                            </label>
+                            <label class="block">
+                                <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">CCCD mat sau</span>
+                                <input type="file" name="cccd_back" accept="image/*" required class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300">
+                            </label>
+                            <label class="block">
+                                <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Anh/xac nhan tai khoan NH</span>
+                                <input type="file" name="bank_account_proof" accept="image/*" required class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300">
+                            </label>
+
+                            <label class="lg:col-span-3 flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-[11px] leading-5 text-amber-50">
+                                <input type="checkbox" name="admin_review_consent" value="1" required class="mt-1 rounded border-slate-700 bg-slate-950 text-amber-400 focus:ring-amber-400">
+                                <span>Toi dong y cho Admin he thong SmartRoom xem cac tai lieu CCCD va xac nhan tai khoan ngan hang chi trong thoi gian ho so dang cho duyet. Sau khi duyet hoac tu choi, quyen xem mac dinh se bi thu hoi.</span>
+                            </label>
+
+                            <div class="lg:col-span-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <p class="text-[11px] leading-5 text-slate-500">Thong tin nay chi dung de mo khoa nhan tien/chuyen khoan. Giay phep PCCC va ANTT se la buoc tich xanh rieng, khong bat buoc luc nay.</p>
+                                <button type="submit" class="shrink-0 rounded-xl bg-amber-500 px-4 py-2 text-xs font-black text-slate-950 hover:bg-amber-400">
+                                    Gui KYC nhan tien
+                                </button>
+                            </div>
+                        </form>
+                    @endif
+                </div>
+            @endif
+
+            @if(($tenant->verification_status ?? 'unverified') === 'kyc_verified')
+                <div class="mb-6 rounded-2xl border border-sky-500/20 bg-sky-500/10 p-5 text-sky-50">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        <div class="flex items-start gap-3">
+                            <div class="w-11 h-11 rounded-xl bg-sky-500/10 border border-sky-400/30 text-sky-200 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-award"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-black text-sky-100">Lay Tich xanh cho nha tro</h3>
+                                <p class="mt-1 text-xs leading-6 text-sky-100/75">Day la buoc tuy chon. Hoan tat DKKD, PCCC va ANTT de tin dang co badge Tich xanh va duoc uu tien hien thi tren Renty.</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2 text-[10px] font-bold">
+                            <span class="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-200">KYC nhan tien: xong</span>
+                            <span class="px-3 py-1.5 rounded-lg bg-sky-500/10 border border-sky-500/25 text-sky-100">Tich xanh: tuy chon</span>
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{{ route('smartroom.admin.verification.premium') }}" enctype="multipart/form-data" class="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-4 rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
+                        @csrf
+                        <label class="block">
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Giay phep DKKD</span>
+                            <input type="file" name="business_registration_certificate" accept=".pdf,image/*" required class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300">
+                        </label>
+                        <label class="block">
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Giay chung nhan PCCC</span>
+                            <input type="file" name="fire_safety_certificate" accept=".pdf,image/*" required class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300">
+                        </label>
+                        <label class="block">
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Giay chung nhan ANTT</span>
+                            <input type="file" name="security_order_certificate" accept=".pdf,image/*" required class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300">
+                        </label>
+
+                        <label class="lg:col-span-3 flex items-start gap-3 rounded-xl border border-sky-500/20 bg-sky-500/5 p-3 text-[11px] leading-5 text-sky-50">
+                            <input type="checkbox" name="admin_review_consent" value="1" required class="mt-1 rounded border-slate-700 bg-slate-950 text-sky-400 focus:ring-sky-400">
+                            <span>Toi dong y cho Admin he thong SmartRoom xem cac tai lieu DKKD, PCCC va ANTT chi trong thoi gian ho so Tich xanh dang cho duyet. Sau khi duyet hoac tu choi, quyen xem mac dinh se bi thu hoi.</span>
+                        </label>
+
+                        <div class="lg:col-span-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <p class="text-[11px] leading-5 text-slate-500">Neu chua co du giay to, co the bo qua buoc nay. He thong chi dung ho so nay de xet badge tin cay va uu tien hien thi.</p>
+                            <button type="submit" class="shrink-0 rounded-xl bg-sky-400 px-4 py-2 text-xs font-black text-slate-950 hover:bg-sky-300">
+                                Gui ho so Tich xanh
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            @endif
+
             <!-- SECTION 1: DASHBOARD OVERVIEW -->
             <section id="dashboard-section" class="tab-content space-y-8 animate-fade-in">
                 <!-- Stats ribbon -->
@@ -1680,6 +1844,12 @@
     <!-- JS Logic -->
     <script>
         const currentUserIsLandlord = @json($isLandlord);
+        const canReceiveOnlinePayments = @json(in_array(($tenant->verification_status ?? 'unverified'), ['kyc_verified', 'premium_pending', 'premium_verified'], true));
+
+        function requireKycForOnlinePayments() {
+            alert('Can hoan tat KYC nhan tien truoc khi hien thi VietQR/chuyen khoan. Vui long gui CCCD va tai khoan ngan hang tren the xac minh o dau trang.');
+            return false;
+        }
 
         // Setup custom toast notification override for alert()
         (function() {
@@ -2865,6 +3035,10 @@
         });
 
         function showVietQR(billId) {
+            if (!canReceiveOnlinePayments) {
+                return requireKycForOnlinePayments();
+            }
+
             const qrModal = document.getElementById('vietqr-modal');
             document.getElementById('qr-modal-loading').classList.remove('hidden');
             document.getElementById('qr-modal-content').classList.add('hidden');
@@ -2899,6 +3073,10 @@
         }
 
         function showVietQRFallback(roomNum, amount) {
+            if (!canReceiveOnlinePayments) {
+                return requireKycForOnlinePayments();
+            }
+
             const qrModal = document.getElementById('vietqr-modal');
             document.getElementById('qr-modal-loading').classList.add('hidden');
             document.getElementById('qr-modal-content').classList.remove('hidden');

@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Casts\Aes256GcmEncrypted;
+use App\Models\Concerns\MasksSensitiveAttributes;
+use App\Support\SensitiveData;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,7 +15,11 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, MasksSensitiveAttributes, Notifiable;
+
+    protected array $sensitiveMaskedAttributes = [
+        'phone' => 'phone',
+    ];
 
     protected $fillable = [
         'tenant_id',
@@ -36,7 +43,17 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'phone' => Aes256GcmEncrypted::class,
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (self $user): void {
+            if ($user->isDirty('phone')) {
+                $user->phone_blind_index = SensitiveData::blindIndex($user->phone);
+            }
+        });
     }
 
     public function tenant(): BelongsTo
@@ -80,6 +97,7 @@ class User extends Authenticatable
 
         return match ($this->roleSlug()) {
             'admin' => 'Admin he thong',
+            'unverified_landlord' => 'Chu tro chua xac minh',
             'landlord' => 'Chu tro',
             'manager' => 'Nhan vien quan ly',
             'resident' => 'Cu dan',
@@ -101,6 +119,16 @@ class User extends Authenticatable
     public function isLandlord(): bool
     {
         return $this->roleSlug() === 'landlord';
+    }
+
+    public function isUnverifiedLandlord(): bool
+    {
+        return $this->roleSlug() === 'unverified_landlord';
+    }
+
+    public function canAccessLandlordDashboard(): bool
+    {
+        return in_array($this->roleSlug(), ['landlord', 'unverified_landlord', 'manager'], true);
     }
 
     public function isAdmin(): bool

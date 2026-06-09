@@ -25,7 +25,7 @@ class RoomController extends Controller
             
             // Chỉ cho phép Landlord (chủ trọ) quản lý phòng trọ
             $user = Auth::user();
-            if (!$user->isLandlord()) {
+            if (!$user->canAccessLandlordDashboard()) {
                 abort(403, 'Bạn không có quyền truy cập chức năng này.');
             }
             

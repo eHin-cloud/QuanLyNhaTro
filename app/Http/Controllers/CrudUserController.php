@@ -50,7 +50,7 @@ class CrudUserController extends Controller
             $user = Auth::user();
             $defaultRoute = match (true) {
                 $user->isAdmin() => route('user.list'),
-                $user->isLandlord(), $user->isManager() => route('smartroom.admin'),
+                $user->canAccessLandlordDashboard() => route('smartroom.admin'),
                 $user->isResident() => route('smartroom.resident'),
                 default => route('renty.user'),
             };
@@ -165,8 +165,8 @@ class CrudUserController extends Controller
     {
         if (Auth::check()) {
             $users = User::with(['roleRecord', 'tenant'])->orderByDesc('id')->get();
-            $roles = Role::whereIn('slug', ['admin', 'landlord', 'manager', 'resident', 'guest'])
-                ->orderByRaw("field(slug, 'admin', 'landlord', 'manager', 'resident', 'guest')")
+            $roles = Role::whereIn('slug', ['admin', 'unverified_landlord', 'landlord', 'manager', 'resident', 'guest'])
+                ->orderByRaw("field(slug, 'admin', 'unverified_landlord', 'landlord', 'manager', 'resident', 'guest')")
                 ->get();
             $tenants = Tenant::orderBy('name')->get();
 
@@ -185,11 +185,11 @@ class CrudUserController extends Controller
     {
         $validated = $request->validate([
             'user_id' => 'required|integer|exists:users,id',
-            'role_slug' => 'required|in:admin,landlord,manager,resident,guest',
+            'role_slug' => 'required|in:admin,unverified_landlord,landlord,manager,resident,guest',
             'tenant_id' => 'nullable|integer|exists:tenants,id',
         ]);
 
-        if (in_array($validated['role_slug'], ['landlord', 'manager'], true) && empty($validated['tenant_id'])) {
+        if (in_array($validated['role_slug'], ['unverified_landlord', 'landlord', 'manager'], true) && empty($validated['tenant_id'])) {
             return back()->with('error', 'Chu tro hoac nhan vien quan ly phai duoc gan nha tro/tenant.');
         }
 
@@ -202,6 +202,7 @@ class CrudUserController extends Controller
             : ($validated['tenant_id'] ?? $user->tenant_id);
         $user->role = match ($validated['role_slug']) {
             'admin' => 'admin',
+            'unverified_landlord' => 'unverified_landlord',
             'landlord' => 'admin',
             'manager' => 'manager',
             'resident' => 'user',

@@ -50,7 +50,7 @@ class CheckRole
             return 'user.list';
         }
 
-        if ($user->isLandlord() || $user->isManager()) {
+        if ($user->canAccessLandlordDashboard()) {
             return 'smartroom.admin';
         }
 
