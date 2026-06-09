@@ -40,6 +40,7 @@
     @vite(['resources/css/app.css', 'resources/css/style.css', 'resources/js/app.js'])
 </head>
 <body class="bg-[#080b11] text-slate-100 min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-emerald-500 selection:text-white">
+    <div id="theme-flip-wash" class="theme-flip-wash" aria-hidden="true"></div>
 
     <!-- Decorative glows -->
     <div class="absolute top-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full bg-emerald-600/5 blur-[120px] pointer-events-none"></div>
@@ -61,14 +62,19 @@
                 <a href="#" class="text-emerald-400 hover:text-emerald-300">Khám Phá Phòng</a>
                 <a href="javascript:void(0)" onclick="openHotAreasModal()" class="hover:text-slate-205 transition-colors">Khu Vực Hot</a>
                 <a href="javascript:void(0)" onclick="openNewReviewsModal()" class="hover:text-slate-205 transition-colors">Đánh Giá Mới</a>
-                <button type="button" onclick="toggleThemeMode()" class="theme-toggle-button" aria-label="Chuyển chế độ sáng tối">
-                    <i class="fa-solid fa-moon" id="theme-toggle-icon"></i>
-                </button>
                 @auth
                     <div class="flex items-center gap-3 bg-slate-900/60 border border-slate-800/80 px-3.5 py-1.5 rounded-xl">
                         <span class="text-xs font-bold text-emerald-400">
                             <i class="fa-solid fa-user-circle mr-1"></i> {{ Auth::user()->name }}
                         </span>
+                        <button type="button" onclick="toggleThemeMode()" class="theme-toggle-button renty-theme-switch" aria-label="Chuyển chế độ sáng tối" data-theme-switch>
+                            <span class="theme-switch-track">
+                                <span class="theme-switch-knob">
+                                    <i class="fa-solid fa-moon theme-switch-icon theme-switch-moon" data-theme-icon></i>
+                                    <i class="fa-solid fa-sun theme-switch-icon theme-switch-sun" data-theme-icon></i>
+                                </span>
+                            </span>
+                        </button>
                         <a href="{{ route('signout') }}" class="text-xs font-semibold text-rose-400 hover:text-rose-300 transition-colors">
                             Đăng xuất
                         </a>
@@ -79,6 +85,14 @@
                         </a>
                     @endif
                 @else
+                    <button type="button" onclick="toggleThemeMode()" class="theme-toggle-button renty-theme-switch" aria-label="Chuyển chế độ sáng tối" data-theme-switch>
+                        <span class="theme-switch-track">
+                            <span class="theme-switch-knob">
+                                <i class="fa-solid fa-moon theme-switch-icon theme-switch-moon" data-theme-icon></i>
+                                <i class="fa-solid fa-sun theme-switch-icon theme-switch-sun" data-theme-icon></i>
+                            </span>
+                        </span>
+                    </button>
                     <a href="{{ route('login') }}" class="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-slate-100 transition-all flex items-center gap-2">
                         <i class="fa-solid fa-right-to-bracket text-emerald-400"></i> Đăng Nhập
                     </a>
@@ -1028,15 +1042,35 @@
                 icon.classList.toggle('fa-sun', isLight);
                 icon.classList.toggle('fa-moon', !isLight);
             });
+            document.querySelectorAll('[data-theme-switch]').forEach(button => {
+                button.classList.toggle('is-light', isLight);
+                button.setAttribute('aria-pressed', isLight ? 'true' : 'false');
+            });
         }
 
         function toggleThemeMode() {
             const nextMode = document.body.classList.contains('theme-light') ? 'dark' : 'light';
             localStorage.setItem('renty_theme_mode', nextMode);
+            document.body.classList.remove('theme-flipping');
+            void document.body.offsetWidth;
+            document.body.classList.add('theme-flipping');
+            document.querySelectorAll('[data-theme-switch]').forEach(button => {
+                button.classList.remove('is-animating');
+                void button.offsetWidth;
+                button.classList.add('is-animating');
+            });
             applyThemeMode(nextMode);
         }
 
         applyThemeMode(localStorage.getItem('renty_theme_mode') || 'dark');
+
+        document.getElementById('theme-flip-wash')?.addEventListener('animationend', () => {
+            document.body.classList.remove('theme-flipping');
+        });
+
+        document.querySelectorAll('[data-theme-switch]').forEach(button => {
+            button.addEventListener('animationend', () => button.classList.remove('is-animating'));
+        });
 
         let currentDetailRoomId = null;
         let activeRoomReviews = [];
