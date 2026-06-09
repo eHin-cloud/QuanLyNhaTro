@@ -38,6 +38,7 @@ class DatabaseSeeder extends Seeder
         ]);
         $this->call(SmartRoomSeeder::class);
         $this->call(RoomSeeder::class);
+        $this->call(ContractSeeder::class);
         $this->call(EquipmentSeeder::class);
         $this->call(SmartAlertSeeder::class);
         $this->call(AdminActivityLogSeeder::class);

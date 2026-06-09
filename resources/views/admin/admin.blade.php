@@ -1623,24 +1623,34 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Chọn Cư Dân Đại Diện</label>
-                        <select name="resident_id" id="contract-resident-id" required onchange="fillContractResident(this)" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
-                            @foreach($residents as $res)
-                                <option value="{{ $res->id }}" data-name="{{ $res->name }}" data-phone="{{ $res->phone }}" data-cccd="{{ $res->cccd }}" data-hometown="{{ $res->hometown }}">{{ $res->name }} (P. {{ $res->room ? $res->room->room_number : 'N/A' }})</option>
-                            @endforeach
-                        </select>
-                    </div>
+                <div class="grid grid-cols-1 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Chọn Phòng Trọ</label>
-                        <select name="room_id" id="contract-room-id" required onchange="fillContractRoom(this)" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
-                            @foreach($rooms as $r)
-                                @if($r->status !== 'empty')
-                                    <option value="{{ $r->id }}" data-price="{{ $r->price }}" data-area="{{ $r->area }}" data-room="{{ $r->room_number }}" data-address="{{ $r->building ? $r->building->address : '' }}">Phòng {{ $r->room_number }}</option>
-                                @endif
-                            @endforeach
-                        </select>
+                        <div class="relative">
+                            <div class="flex items-center gap-2 rounded-xl bg-slate-900 border border-slate-800 focus-within:border-indigo-500 px-4">
+                                <i class="fa-solid fa-magnifying-glass text-slate-500 text-xs"></i>
+                                <input type="text" id="contract-room-search" oninput="filterContractRooms(this.value)" onfocus="filterContractRooms(this.value)" placeholder="Tìm số phòng, tên tòa, địa chỉ..." autocomplete="off" class="w-full py-2.5 bg-transparent text-slate-200 text-sm focus:outline-none">
+                            </div>
+                            <input type="hidden" name="room_id" id="contract-room-id" required>
+                            <div id="contract-room-results" class="hidden absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-72 overflow-y-auto rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl shadow-black/40 p-1">
+                                @foreach($rooms as $r)
+                                    @if($r->status !== 'empty')
+                                        @php
+                                            $buildingName = $r->building?->name ?? 'Chưa rõ tòa';
+                                            $buildingAddress = $r->building?->address ?? '';
+                                            $roomSearchText = 'Phòng ' . $r->room_number . ' ' . $buildingName . ' ' . $buildingAddress;
+                                        @endphp
+                                        <button type="button" onclick="selectContractRoom(this)" data-id="{{ $r->id }}" data-price="{{ $r->price }}" data-area="{{ $r->area }}" data-room="{{ $r->room_number }}" data-address="{{ $buildingAddress }}" data-label="Phòng {{ $r->room_number }} - {{ $buildingName }}" data-search="{{ mb_strtolower($roomSearchText) }}" class="contract-room-option w-full text-left px-3 py-2.5 rounded-xl hover:bg-indigo-600/20 transition-all">
+                                            <span class="block text-sm font-bold text-slate-100">Phòng {{ $r->room_number }}</span>
+                                            <span class="block text-[11px] text-slate-500">{{ $buildingName }}</span>
+                                        </button>
+                                    @endif
+                                @endforeach
+                                <div id="contract-room-empty" class="hidden px-3 py-4 text-center text-xs font-semibold text-slate-500">
+                                    Không tìm thấy phòng phù hợp
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -1657,7 +1667,15 @@
                 <div class="rounded-2xl border border-slate-800 bg-slate-950/30 p-4">
                     <h3 class="text-sm font-extrabold text-slate-200 mb-3">II. Bên thuê nhà ở (Bên B)</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input type="text" name="lessee_name" id="lessee-name" required placeholder="Ông/Bà bên B" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tên bên thuê</label>
+                            <select name="resident_id" id="contract-resident-id" required onchange="fillContractResident(this)" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                                @foreach($residents as $res)
+                                    <option value="{{ $res->id }}" data-name="{{ $res->name }}" data-phone="{{ $res->phone }}" data-cccd="{{ $res->cccd }}" data-hometown="{{ $res->hometown }}">{{ $res->name }} (P. {{ $res->room ? $res->room->room_number : 'N/A' }})</option>
+                                @endforeach
+                            </select>
+                            <input type="hidden" name="lessee_name" id="lessee-name">
+                        </div>
                         <input type="text" name="lessee_id_number" id="lessee-id-number" placeholder="CMND/CCCD bên B" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
                         <input type="text" name="lessee_phone" id="lessee-phone" placeholder="Điện thoại bên B" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
                         <input type="text" name="lessee_permanent_address" id="lessee-permanent-address" placeholder="HKTT bên B" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
@@ -1932,9 +1950,13 @@
             if (show) {
                 modal.classList.remove('hidden');
                 fillContractResident(document.getElementById('contract-resident-id'));
-                fillContractRoom(document.getElementById('contract-room-id'));
+                const firstRoom = document.querySelector('.contract-room-option');
+                if (firstRoom && !document.getElementById('contract-room-id')?.value) {
+                    selectContractRoom(firstRoom);
+                }
             } else {
                 modal.classList.add('hidden');
+                closeContractRoomResults();
             }
         }
 
@@ -1957,8 +1979,42 @@
             });
         }
 
-        function fillContractRoom(select) {
-            const option = select?.selectedOptions?.[0];
+        function filterContractRooms(keyword = '') {
+            const results = document.getElementById('contract-room-results');
+            const empty = document.getElementById('contract-room-empty');
+            if (!results) return;
+
+            const normalizedKeyword = keyword.trim().toLowerCase();
+            let visibleCount = 0;
+
+            document.querySelectorAll('.contract-room-option').forEach(option => {
+                const haystack = option.dataset.search || '';
+                const isVisible = !normalizedKeyword || haystack.includes(normalizedKeyword);
+                option.classList.toggle('hidden', !isVisible);
+                if (isVisible) visibleCount++;
+            });
+
+            empty?.classList.toggle('hidden', visibleCount > 0);
+            results.classList.remove('hidden');
+        }
+
+        function closeContractRoomResults() {
+            document.getElementById('contract-room-results')?.classList.add('hidden');
+        }
+
+        function selectContractRoom(option) {
+            if (!option) return;
+
+            const hiddenInput = document.getElementById('contract-room-id');
+            const searchInput = document.getElementById('contract-room-search');
+
+            if (hiddenInput) hiddenInput.value = option.dataset.id || '';
+            if (searchInput) searchInput.value = option.dataset.label || '';
+            fillContractRoom(option);
+            closeContractRoomResults();
+        }
+
+        function fillContractRoom(option) {
             if (!option) return;
 
             const roomNumber = option.dataset.room || '';
@@ -1986,6 +2042,15 @@
                 deposit.value = price;
             }
         }
+
+        document.addEventListener('click', (event) => {
+            const picker = document.getElementById('contract-room-results');
+            const search = document.getElementById('contract-room-search');
+
+            if (picker && search && !picker.contains(event.target) && event.target !== search) {
+                closeContractRoomResults();
+            }
+        });
 
         function copySignLink(url, btn) {
             const fullUrl = url.startsWith('http') ? url : (window.location.origin + url);

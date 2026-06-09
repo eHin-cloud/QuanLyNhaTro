@@ -56,6 +56,16 @@
                 linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
                 linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
         }
+        .signature-paper {
+            background: #fff;
+            background-image:
+                linear-gradient(to bottom, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+            background-size: 100% 32px;
+        }
+        .signature-preview-img {
+            filter: grayscale(1) invert(1) contrast(3.2) brightness(1.08);
+            mix-blend-mode: multiply;
+        }
     </style>
 </head>
 <body class="text-slate-100 min-h-screen py-12 px-4 bg-grid relative flex flex-col items-center justify-center">
@@ -174,10 +184,15 @@
                 @if($contract->status === 'active')
                     <div class="flex flex-col items-center justify-center space-y-4">
                         <span class="text-xs text-slate-500 uppercase font-bold tracking-wider">Chữ ký điện tử xác nhận</span>
-                        <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 w-full max-w-sm flex items-center justify-center h-40 relative">
-                            <img src="{{ $contract->signature }}" alt="Tenant Signature" class="max-h-28 invert opacity-90 transition-all hover:scale-105 duration-300">
+                        <div class="signature-paper border border-slate-700 rounded-2xl p-4 w-full max-w-sm flex items-center justify-center h-40 relative shadow-inner overflow-hidden">
+                            @if($contract->signature)
+                                <img src="{{ $contract->signature }}" alt="Tenant Signature" class="{{ str_contains($contract->signature, 'image/svg+xml') ? '' : 'signature-preview-img' }} max-h-28 max-w-full opacity-100 transition-all hover:scale-105 duration-300">
+                            @endif
+                            <span class="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-sm">
+                                Đã ký điện tử
+                            </span>
                             <!-- Background watermark -->
-                            <div class="absolute bottom-2 right-4 text-[9px] text-slate-600 font-bold uppercase tracking-widest pointer-events-none">
+                            <div class="absolute bottom-2 right-4 text-[9px] text-slate-400 font-bold uppercase tracking-widest pointer-events-none">
                                 Verified Secure
                             </div>
                         </div>
