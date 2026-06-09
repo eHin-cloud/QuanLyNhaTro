@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Room extends Model
 {
+    public const MAX_OCCUPANTS = 5;
+
     protected $fillable = [
         'building_id',
         'tenant_id',
@@ -88,6 +90,30 @@ class Room extends Model
     public function activeResidents(): HasMany
     {
         return $this->hasMany(Resident::class)->where('status', 'active');
+    }
+
+    public function occupancyCount(?int $excludeResidentId = null): int
+    {
+        $residentQuery = $this->activeResidents();
+
+        if ($excludeResidentId) {
+            $residentQuery->where('id', '!=', $excludeResidentId);
+        }
+
+        $residentIds = $residentQuery->pluck('id');
+
+        return $residentIds->count()
+            + ResidentRelative::whereIn('resident_id', $residentIds)->count();
+    }
+
+    public function availableOccupancySlots(?int $excludeResidentId = null): int
+    {
+        return max(0, self::MAX_OCCUPANTS - $this->occupancyCount($excludeResidentId));
+    }
+
+    public function canAcceptOccupants(int $additionalOccupants, ?int $excludeResidentId = null): bool
+    {
+        return $this->availableOccupancySlots($excludeResidentId) >= $additionalOccupants;
     }
 
     public function syncOccupancyStatus(): void
