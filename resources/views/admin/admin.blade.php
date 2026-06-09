@@ -1670,13 +1670,8 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tên bên thuê</label>
-                            <select name="resident_id" id="contract-resident-id" required onchange="fillContractResident(this)" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
-                                <option value="" selected disabled>Chọn bên thuê</option>
-                                @foreach($residents as $res)
-                                    <option value="{{ $res->id }}" data-name="{{ $res->name }}" data-phone="{{ $res->phone }}" data-cccd="{{ $res->cccd }}" data-hometown="{{ $res->hometown }}">{{ $res->name }} (P. {{ $res->room ? $res->room->room_number : 'N/A' }})</option>
-                                @endforeach
-                            </select>
-                            <input type="hidden" name="lessee_name" id="lessee-name">
+                            <input type="text" name="lessee_name" id="lessee-name" required placeholder="Nhập họ tên bên thuê" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                            <input type="hidden" name="resident_id" id="contract-resident-id">
                         </div>
                         <input type="text" name="lessee_id_number" id="lessee-id-number" placeholder="CMND/CCCD bên B" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
                         <input type="text" name="lessee_phone" id="lessee-phone" placeholder="Điện thoại bên B" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">

@@ -1078,7 +1078,7 @@ class AdminDashboardController extends Controller
     {
         $request->validate([
             'room_id' => 'required|exists:rooms,id',
-            'resident_id' => 'required|exists:residents,id',
+            'resident_id' => 'nullable|exists:residents,id',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'deposit' => 'required|integer|min:0',
@@ -1108,10 +1108,24 @@ class AdminDashboardController extends Controller
 
         $tenantId = $this->currentTenantId();
         $room = Room::where('tenant_id', $tenantId)->findOrFail($request->room_id);
-        $resident = Resident::where('tenant_id', $tenantId)->findOrFail($request->resident_id);
+        $resident = $request->filled('resident_id')
+            ? Resident::where('tenant_id', $tenantId)->findOrFail($request->resident_id)
+            : Resident::firstOrNew([
+                'tenant_id' => $tenantId,
+                'room_id' => $room->id,
+                'name' => $request->lessee_name,
+            ]);
+        $resident->fill([
+            'phone' => $request->lessee_phone,
+            'cccd' => $request->lessee_id_number,
+            'hometown' => $request->lessee_permanent_address,
+            'start_date' => $request->start_date,
+            'status' => 'active',
+        ]);
+        $resident->save();
         $tenant = Tenant::find($tenantId);
 
-        $code = 'HĐ-' . $room->room_number . '-' . date('Ymd', strtotime($request->start_date));
+        $code = 'HĐ-' . $room->room_number . '-' . date('Ymd', strtotime($request->start_date)) . '-' . $resident->id . '-' . now()->format('His');
         $terms = $this->buildRentalContractTerms($request, $room, $resident, $tenant);
 
         $contract = \App\Models\Contract::create([
