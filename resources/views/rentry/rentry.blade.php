@@ -201,10 +201,20 @@
                  data-viewed="false"
                  data-title="{{ $room['title'] }}">
                 <div>
+                    @php
+                        $cardImages = collect($room['image_urls'] ?? [])
+                            ->filter()
+                            ->prepend($room['cover_image'])
+                            ->unique()
+                            ->take(4)
+                            ->values();
+                    @endphp
                     <!-- Room photo -->
                     <div class="h-48 bg-slate-950 relative overflow-hidden border-b border-slate-900 group">
-                        <a href="{{ route('renty.room.show', $room['id']) }}" class="absolute inset-0 z-0">
-                            <img src="{{ $room['cover_image'] }}" alt="Ảnh phòng {{ $room['room_number'] }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
+                        <a href="{{ route('renty.room.show', $room['id']) }}" class="absolute inset-0 z-0 renty-card-carousel" aria-label="Xem chi tiết phòng {{ $room['room_number'] }}">
+                            @foreach($cardImages as $imageIndex => $imageUrl)
+                                <img src="{{ $imageUrl }}" alt="Ảnh {{ $imageIndex + 1 }} phòng {{ $room['room_number'] }}" class="renty-card-carousel-image" style="--carousel-delay: {{ $imageIndex * 2 }}s;" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
+                            @endforeach
                             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/10 to-transparent"></div>
                         </a>
 
@@ -287,7 +297,7 @@
                         <span>So sánh</span>
                     </label>
                     <div class="flex items-center gap-3">
-                        <button type="button" onclick="openReportModal('{{ $room['id'] }}', '{{ e($room['title']) }}')" class="text-xs text-rose-400 hover:text-rose-300 font-bold flex items-center gap-1">
+                        <button type="button" onclick="openReportModal('{{ $room['id'] }}', '{{ e($room['title']) }}')" class="room-report-button text-xs text-rose-400 hover:text-rose-300 font-bold flex items-center gap-1">
                             <i class="fa-solid fa-flag"></i> Báo cáo
                         </button>
                         <a href="{{ route('renty.room.show', $room['id']) }}" class="text-xs text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">

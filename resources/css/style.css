@@ -65,6 +65,11 @@
     }
 }
 
+@keyframes rentyCardCrossfade {
+    0%, 24%, 100% { opacity: 1; transform: scale(1.07); }
+    34%, 92% { opacity: 0; transform: scale(1.08); }
+}
+
 @keyframes softSheen {
     0% { transform: translateX(-130%) skewX(-18deg); opacity: 0; }
     18% { opacity: 0.6; }
@@ -689,10 +694,79 @@ body.theme-light textarea::placeholder {
 
 .quick-eye-button {
     box-shadow: 0 14px 34px rgba(2, 6, 23, 0.36);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-8px) scale(0.96);
+    transition:
+        opacity 0.26s ease,
+        transform 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+        border-color 0.26s ease,
+        color 0.26s ease,
+        box-shadow 0.26s ease;
+}
+
+.room-item-card:hover .quick-eye-button,
+.room-item-card:focus-within .quick-eye-button {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+    box-shadow: 0 18px 44px rgba(2, 6, 23, 0.5), 0 0 0 1px rgba(45, 212, 191, 0.2);
 }
 
 .quick-eye-button:hover i {
     color: #6ee7b7;
+}
+
+.renty-card-carousel {
+    isolation: isolate;
+}
+
+.renty-card-carousel-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transform: scale(1.02);
+    transition: transform 0.6s ease;
+}
+
+.renty-card-carousel-image:first-child {
+    opacity: 1;
+}
+
+.room-item-card:hover .renty-card-carousel-image,
+.room-item-card:focus-within .renty-card-carousel-image {
+    animation: rentyCardCrossfade 8s ease-in-out infinite;
+    animation-delay: var(--carousel-delay, 0s);
+}
+
+.room-report-button {
+    transition:
+        color 0.24s ease,
+        transform 0.24s ease,
+        text-shadow 0.24s ease;
+}
+
+.room-report-button i {
+    transition:
+        color 0.24s ease,
+        transform 0.24s ease,
+        filter 0.24s ease;
+}
+
+.room-item-card:hover .room-report-button,
+.room-item-card:focus-within .room-report-button {
+    color: #fb7185;
+    text-shadow: 0 0 18px rgba(251, 113, 133, 0.22);
+}
+
+.room-item-card:hover .room-report-button i,
+.room-item-card:focus-within .room-report-button i {
+    color: #f43f5e;
+    transform: translateY(-1px) scale(1.18);
+    filter: drop-shadow(0 0 8px rgba(244, 63, 94, 0.42));
 }
 
 .viewed-room-badge {
@@ -1134,8 +1208,8 @@ table tbody tr:nth-child(4n) { animation-delay: 0.075s; }
 
 .room-card:hover,
 .room-item-card:hover {
-    transform: translateY(-5px) scale(1.01);
-    box-shadow: 0 28px 90px rgba(2, 6, 23, 0.38);
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 34px 110px rgba(2, 6, 23, 0.48), 0 16px 42px rgba(15, 23, 42, 0.28);
 }
 
 #portal-admin,
