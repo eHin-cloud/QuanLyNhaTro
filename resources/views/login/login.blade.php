@@ -66,7 +66,7 @@
 
     @if($page === 'list')
         <main class="container mx-auto px-6 py-12 flex-grow relative z-10">
-            <div class="max-w-5xl mx-auto">
+            <div class="max-w-7xl mx-auto">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                     <div>
                         <h1 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Quản Trị Viên</h1>
@@ -82,25 +82,52 @@
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="border-b border-slate-800 bg-slate-900/60 text-xs font-semibold text-slate-400 tracking-wider">
-                                    <th class="px-6 py-4">ID</th>
-                                    <th class="px-6 py-4">Tên</th>
-                                    <th class="px-6 py-4">Email</th>
-                                    <th class="px-6 py-4">Mô Tả / Sở Thích</th>
-                                    <th class="px-6 py-4 text-right">Hành Động</th>
+                                    <th class="px-4 py-4">ID</th>
+                                    <th class="px-4 py-4">Tên</th>
+                                    <th class="px-4 py-4">Email</th>
+                                    <th class="px-4 py-4">Vai tro</th>
+                                    <th class="px-4 py-4">Cap quyen</th>
+                                    <th class="px-4 py-4">Mô Tả / Sở Thích</th>
+                                    <th class="px-4 py-4 text-right">Hành Động</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800/60 text-slate-200">
                                 @foreach($users as $userItem)
                                     <tr class="hover:bg-slate-900/20 transition-colors">
-                                        <td class="px-6 py-4 text-xs font-semibold text-slate-400">#{{ $userItem->id }}</td>
-                                        <td class="px-6 py-4 font-bold text-slate-200">{{ $userItem->name }}</td>
-                                        <td class="px-6 py-4 text-slate-300">{{ $userItem->email }}</td>
-                                        <td class="px-6 py-4 text-slate-400 text-xs italic">{{ $userItem->like }}</td>
-                                        <td class="px-6 py-4 text-right">
-                                            <div class="inline-flex gap-2">
-                                                <a href="{{ route('user.readUser', ['id' => $userItem->id]) }}" class="px-3 py-1.5 bg-slate-950 hover:bg-slate-900 border border-slate-800 rounded-lg text-[10px] font-semibold text-slate-300 transition-all">Chi Tiết</a>
-                                                <a href="{{ route('user.updateUser', ['id' => $userItem->id]) }}" class="px-3 py-1.5 bg-slate-950 hover:bg-slate-900 border border-slate-800 rounded-lg text-[10px] font-semibold text-indigo-400 transition-all">Sửa</a>
-                                                <a href="{{ route('user.deleteUser', ['id' => $userItem->id]) }}" onclick="return confirm('Bạn có chắc chắn muốn xóa admin này?');" class="px-3 py-1.5 bg-rose-550/10 hover:bg-rose-550/20 border border-rose-500/20 rounded-lg text-[10px] font-semibold text-rose-400 transition-all">Xóa</a>
+                                        <td class="px-4 py-4 text-xs font-semibold text-slate-400">#{{ $userItem->id }}</td>
+                                        <td class="px-4 py-4 font-bold text-slate-200">{{ $userItem->name }}</td>
+                                        <td class="px-4 py-4 text-slate-300">{{ $userItem->email }}</td>
+                                        <td class="px-4 py-4">
+                                            <div class="text-xs font-bold text-indigo-300">{{ $userItem->roleName() }}</div>
+                                            <div class="text-[10px] text-slate-500">{{ $userItem->roleSlug() }}</div>
+                                            <div class="text-[10px] text-slate-500 mt-1">{{ $userItem->tenant->name ?? 'Khong gan tenant' }}</div>
+                                        </td>
+                                        <td class="px-4 py-4 min-w-[220px]">
+                                            <form method="POST" action="{{ route('user.updateRole') }}" class="flex flex-col gap-1.5">
+                                                @csrf
+                                                <input type="hidden" name="user_id" value="{{ $userItem->id }}">
+                                                <select name="role_slug" class="px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-[11px] text-slate-200 focus:outline-none focus:border-indigo-500">
+                                                    @foreach($roles as $role)
+                                                        <option value="{{ $role->slug }}" @selected($userItem->roleSlug() === $role->slug)>{{ $role->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <select name="tenant_id" class="px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-[11px] text-slate-200 focus:outline-none focus:border-indigo-500">
+                                                    <option value="">Khong gan tenant</option>
+                                                    @foreach($tenants as $tenant)
+                                                        <option value="{{ $tenant->id }}" @selected($userItem->tenant_id === $tenant->id)>{{ $tenant->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <button type="submit" class="px-2.5 py-1.5 rounded-lg bg-indigo-650 hover:bg-indigo-600 active:scale-[0.98] transition-all text-white text-[10px] font-bold">
+                                                    Cap quyen
+                                                </button>
+                                            </form>
+                                        </td>
+                                        <td class="px-4 py-4 text-slate-400 text-xs italic">{{ $userItem->like }}</td>
+                                        <td class="px-4 py-4 text-right">
+                                            <div class="inline-flex gap-1.5">
+                                                <a href="{{ route('user.readUser', ['id' => $userItem->id]) }}" class="px-2.5 py-1.5 bg-slate-950 hover:bg-slate-900 border border-slate-800 rounded-lg text-[10px] font-semibold text-slate-300 transition-all">Chi Tiết</a>
+                                                <a href="{{ route('user.updateUser', ['id' => $userItem->id]) }}" class="px-2.5 py-1.5 bg-slate-950 hover:bg-slate-900 border border-slate-800 rounded-lg text-[10px] font-semibold text-indigo-400 transition-all">Sửa</a>
+                                                <a href="{{ route('user.deleteUser', ['id' => $userItem->id]) }}" onclick="return confirm('Bạn có chắc chắn muốn xóa admin này?');" class="px-2.5 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 rounded-lg text-[10px] font-semibold text-rose-400 transition-all">Xóa</a>
                                             </div>
                                         </td>
                                     </tr>

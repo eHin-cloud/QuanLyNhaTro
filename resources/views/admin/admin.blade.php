@@ -37,6 +37,9 @@
     @vite(['resources/css/app.css', 'resources/css/style.css', 'resources/js/app.js'])
 </head>
 <body class="bg-[#080b11] text-slate-100 min-h-screen selection:bg-indigo-500 selection:text-white overflow-hidden">
+    @php
+        $isLandlord = Auth::user()?->isLandlord();
+    @endphp
 
     <!-- Decorative glows -->
     <div class="absolute top-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full bg-indigo-600/5 blur-[100px] pointer-events-none"></div>
@@ -76,18 +79,22 @@
                     <i class="fa-solid fa-screwdriver-wrench text-lg"></i>
                     <span>Thiết Bị</span>
                 </a>
-                <a href="{{ route('admin.reports.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                    <i class="fa-solid fa-chart-column text-lg"></i>
-                    <span>Báo Cáo</span>
-                </a>
+                @if($isLandlord)
+                    <a href="{{ route('admin.reports.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
+                        <i class="fa-solid fa-chart-column text-lg"></i>
+                        <span>Báo Cáo</span>
+                    </a>
+                @endif
                 <a href="{{ route('admin.payments.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
                     <i class="fa-solid fa-money-check-dollar text-lg"></i>
                     <span>Thanh Toán</span>
                 </a>
-                <a href="{{ route('admin.activity_logs.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                    <i class="fa-solid fa-clock-rotate-left text-lg"></i>
-                    <span>Lịch Sử Vận Hành</span>
-                </a>
+                @if($isLandlord)
+                    <a href="{{ route('admin.activity_logs.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
+                        <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+                        <span>Lịch Sử Vận Hành</span>
+                    </a>
+                @endif
                 <button onclick="switchTab('utility-section', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
                     <i class="fa-solid fa-bolt text-lg"></i>
                     <span>Chốt Điện Nước</span>
@@ -236,6 +243,7 @@
                     </div>
                 </div>
 
+                @if($isLandlord)
                 <!-- AI insights and assistant -->
                 <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
                     <div class="glass-card rounded-2xl p-6">
@@ -273,6 +281,7 @@
                         </div>
                     </div>
                 </div>
+                @endif
 
                 <!-- Charts Section -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -438,6 +447,7 @@
                     </div>
                 </div>
 
+                @if($isLandlord)
                 <!-- Notification Center -->
                 <div class="glass-card rounded-2xl p-6">
                     <div class="flex flex-col xl:flex-row xl:items-start justify-between gap-6 mb-6">
@@ -528,6 +538,7 @@
                         </table>
                     </div>
                 </div>
+                @endif
 
                 <!-- Recent Events Table -->
                 <div class="glass-card rounded-2xl p-6">
@@ -965,14 +976,16 @@
                                             <button onclick="openRelativesModal({{ $resident->id }}, '{{ addslashes($resident->name) }}')" class="px-2 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-lg text-[10px] font-bold text-cyan-400 transition-all" title="Quản lý người thân tạm trú">
                                                 <i class="fa-solid fa-people-roof"></i>
                                             </button>
-                                            {{-- Nút Xóa cư dân - có chống spam click (disabled sau click) --}}
-                                            <form action="{{ route('smartroom.admin.resident.delete', $resident->id) }}" method="POST" onsubmit="return confirmAndDisable(this, 'Bạn có chắc chắn muốn xóa cư dân này ra khỏi phòng trọ?')" class="inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="anti-spam-btn px-2 py-1.5 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 rounded-lg text-[10px] font-bold text-rose-400 transition-all" title="Xóa cư dân">
-                                                    <i class="fa-regular fa-trash-can"></i>
-                                                </button>
-                                            </form>
+                                            @if($isLandlord)
+                                                {{-- Nút Xóa cư dân - có chống spam click (disabled sau click) --}}
+                                                <form action="{{ route('smartroom.admin.resident.delete', $resident->id) }}" method="POST" onsubmit="return confirmAndDisable(this, 'Bạn có chắc chắn muốn xóa cư dân này ra khỏi phòng trọ?')" class="inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="anti-spam-btn px-2 py-1.5 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 rounded-lg text-[10px] font-bold text-rose-400 transition-all" title="Xóa cư dân">
+                                                        <i class="fa-regular fa-trash-can"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -1105,13 +1118,15 @@
                                             <a href="{{ route('smartroom.contract.sign_view', $c->id) }}" target="_blank" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold border border-slate-750 transition-all flex items-center gap-1.5">
                                                 <i class="fa-solid fa-arrow-up-right-from-square"></i> Xem HĐ
                                             </a>
-                                            <form action="{{ route('smartroom.admin.contract.delete', $c->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa hợp đồng này không?')" class="inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="px-3 py-2 bg-rose-600/10 hover:bg-rose-600 text-rose-400 hover:text-white rounded-xl text-xs font-bold border border-rose-500/25 transition-all">
-                                                    <i class="fa-solid fa-trash-can"></i> Xóa
-                                                </button>
-                                            </form>
+                                            @if($isLandlord)
+                                                <form action="{{ route('smartroom.admin.contract.delete', $c->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa hợp đồng này không?')" class="inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="px-3 py-2 bg-rose-600/10 hover:bg-rose-600 text-rose-400 hover:text-white rounded-xl text-xs font-bold border border-rose-500/25 transition-all">
+                                                        <i class="fa-solid fa-trash-can"></i> Xóa
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -1239,13 +1254,15 @@
                                                     <i class="fa-solid {{ $req->status === 'pending' ? 'fa-check' : 'fa-rotate-left' }}"></i>
                                                 </button>
                                             </form>
-                                            <form action="{{ route('smartroom.admin.contact_request.delete', $req->id) }}" method="POST" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa yêu cầu tư vấn này?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all text-xs" title="Xóa">
-                                                    <i class="fa-solid fa-trash-can"></i>
-                                                </button>
-                                            </form>
+                                            @if($isLandlord)
+                                                <form action="{{ route('smartroom.admin.contact_request.delete', $req->id) }}" method="POST" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa yêu cầu tư vấn này?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all text-xs" title="Xóa">
+                                                        <i class="fa-solid fa-trash-can"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -1637,9 +1654,11 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Điều Khoản Hợp Đồng</label>
-                    <button type="button" onclick="generateContractTermsWithAi(this)" class="mb-2 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> AI soạn điều khoản
-                    </button>
+                    @if($isLandlord)
+                        <button type="button" onclick="generateContractTermsWithAi(this)" class="mb-2 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> AI soạn điều khoản
+                        </button>
+                    @endif
                     <textarea name="terms" id="contract-terms" rows="6" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none resize-none">ĐIỀU KHOẢN HỢP ĐỒNG THUÊ PHÒNG
 
 Điều 1: Bên A (Bên cho thuê) đồng ý cho Bên B (Bên thuê) thuê phòng trọ.
@@ -1660,6 +1679,8 @@
 
     <!-- JS Logic -->
     <script>
+        const currentUserIsLandlord = @json($isLandlord);
+
         // Setup custom toast notification override for alert()
         (function() {
             const toastStyle = document.createElement('style');
@@ -2409,6 +2430,12 @@
                             // Tránh lỗi ký tự đặc biệt khi parse JSON trong inline onclick
                             const relEscaped = JSON.stringify(rel).replace(/'/g, "\\'").replace(/"/g, "&quot;");
                             
+                            const deleteButton = currentUserIsLandlord ? `
+                                    <button onclick="deleteRelative(${rel.id})" class="w-7 h-7 rounded-lg bg-slate-900 hover:bg-rose-950/20 border border-slate-800 hover:border-rose-900/50 flex items-center justify-center text-rose-400 transition-all" title="Xoa">
+                                        <i class="fa-solid fa-trash-can text-[10px]"></i>
+                                    </button>
+                            ` : '';
+
                             card.innerHTML = `
                                 <div>
                                     <div class="flex items-center gap-2">
@@ -2426,9 +2453,7 @@
                                     <button onclick="editRelative(JSON.parse('${JSON.stringify(rel).replace(/'/g, "\\'")}'))" class="w-7 h-7 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 flex items-center justify-center text-cyan-400 transition-all" title="Sửa">
                                         <i class="fa-solid fa-pencil text-[10px]"></i>
                                     </button>
-                                    <button onclick="deleteRelative(${rel.id})" class="w-7 h-7 rounded-lg bg-slate-900 hover:bg-rose-950/20 border border-slate-800 hover:border-rose-900/50 flex items-center justify-center text-rose-400 transition-all" title="Xóa">
-                                        <i class="fa-solid fa-trash-can text-[10px]"></i>
-                                    </button>
+                                    ${deleteButton}
                                 </div>
                             `;
                             container.appendChild(card);

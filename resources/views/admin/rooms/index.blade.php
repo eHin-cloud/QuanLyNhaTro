@@ -55,6 +55,9 @@
     @vite(['resources/css/app.css', 'resources/css/style.css', 'resources/js/app.js'])
 </head>
 <body class="bg-[#080b11] text-slate-100 min-h-screen selection:bg-indigo-500 selection:text-white overflow-hidden">
+    @php
+        $isLandlord = Auth::user()?->isLandlord();
+    @endphp
 
     <!-- Decorative glows -->
     <div class="absolute top-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full bg-indigo-600/5 blur-[100px] pointer-events-none"></div>
@@ -90,10 +93,12 @@
                     <i class="fa-solid fa-screwdriver-wrench text-lg"></i>
                     <span>Thiết Bị</span>
                 </a>
-                <a href="{{ route('admin.activity_logs.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                    <i class="fa-solid fa-clock-rotate-left text-lg"></i>
-                    <span>Lịch Sử Vận Hành</span>
-                </a>
+                @if($isLandlord)
+                    <a href="{{ route('admin.activity_logs.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
+                        <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+                        <span>Lịch Sử Vận Hành</span>
+                    </a>
+                @endif
             </nav>
         </div>
 
@@ -242,14 +247,16 @@
                                             <i class="fa-regular fa-pen-to-square"></i> Sửa
                                         </a>
 
-                                        <!-- Chống xóa bằng GET, bắt buộc POST với CSRF và check xóa trùng -->
-                                        <form action="{{ route('admin.rooms.destroy', $room->id) }}" method="POST" class="delete-form inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" onclick="return confirmDelete(event, '{{ $room->room_number }}')" class="delete-btn px-3 py-2 bg-rose-600/10 hover:bg-rose-600 text-rose-400 hover:text-white rounded-xl text-xs font-bold border border-rose-500/25 transition-all">
-                                                <i class="fa-regular fa-trash-can"></i> Xóa
-                                            </button>
-                                        </form>
+                                        @if($isLandlord)
+                                            <!-- Chống xóa bằng GET, bắt buộc POST với CSRF và check xóa trùng -->
+                                            <form action="{{ route('admin.rooms.destroy', $room->id) }}" method="POST" class="delete-form inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" onclick="return confirmDelete(event, '{{ $room->room_number }}')" class="delete-btn px-3 py-2 bg-rose-600/10 hover:bg-rose-600 text-rose-400 hover:text-white rounded-xl text-xs font-bold border border-rose-500/25 transition-all">
+                                                    <i class="fa-regular fa-trash-can"></i> Xóa
+                                                </button>
+                                            </form>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>

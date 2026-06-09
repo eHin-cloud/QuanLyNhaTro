@@ -21,6 +21,17 @@ class ResidentPortalController extends Controller
                 return redirect()->route('login')->with('error', 'Vui long dang nhap truoc.');
             }
 
+            $user = Auth::user();
+            if (!$user->isResident()) {
+                $route = match (true) {
+                    $user->isAdmin() => 'user.list',
+                    $user->isLandlord(), $user->isManager() => 'smartroom.admin',
+                    default => 'renty.user',
+                };
+
+                return redirect()->route($route)->with('error', 'Tai khoan cua ban khong co quyen truy cap cong cu dan.');
+            }
+
             return $next($request);
         });
     }

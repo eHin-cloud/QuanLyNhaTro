@@ -14,11 +14,23 @@ class AdminMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         if (!auth()->check()) {
-            return redirect()->route('login')->with('error', 'Bạn phải đăng nhập tài khoản quản trị!');
+            return redirect()
+                ->route('login')
+                ->with('error', 'Ban phai dang nhap tai khoan quan tri.');
         }
 
-        if (!auth()->user()->isLandlord()) {
-            return redirect()->route('renty.user')->with('error', 'Tài khoản của bạn không có quyền truy cập cổng Admin!');
+        $user = auth()->user();
+
+        if ($user->isAdmin()) {
+            return redirect()
+                ->route('user.list')
+                ->with('error', 'Admin he thong khong truy cap truc tiep dashboard chu tro.');
+        }
+
+        if (!$user->isLandlord() && !$user->isManager()) {
+            return redirect()
+                ->route($user->isResident() ? 'smartroom.resident' : 'renty.user')
+                ->with('error', 'Tai khoan cua ban khong co quyen truy cap cong Admin.');
         }
 
         return $next($request);
