@@ -76,6 +76,7 @@
                 (int) $signedInUser->tenant_id === (int) $contract->tenant_id
                 || (!$signedInUser->tenant_id && $signedInUser->role === 'admin')
             );
+        $showTenantSignaturePad = !$canLessorSign && $contract->status !== 'active';
     @endphp
 
     <!-- Ambient blur blobs -->
@@ -191,7 +192,7 @@
             <div class="border-t border-slate-800/80 pt-8">
                 @if($contract->status === 'active')
                     <div class="flex flex-col items-center justify-center space-y-4">
-                        <span class="text-xs text-slate-500 uppercase font-bold tracking-wider">Chữ ký điện tử xác nhận</span>
+                        <span class="text-xs text-slate-500 uppercase font-bold tracking-wider">Chữ ký bên thuê</span>
                         <div class="signature-paper border border-slate-700 rounded-2xl p-4 w-full max-w-sm flex items-center justify-center h-40 relative shadow-inner overflow-hidden">
                             @if($contract->signature)
                                 <img src="{{ $contract->signature }}" alt="Tenant Signature" class="{{ str_contains($contract->signature, 'image/svg+xml') ? '' : 'signature-preview-img' }} max-h-28 max-w-full opacity-100 transition-all hover:scale-105 duration-300">
@@ -206,10 +207,10 @@
                         </div>
                         <p class="text-xs text-slate-500 flex items-center gap-1.5">
                             <i class="fa-solid fa-shield-halved text-emerald-400 animate-pulse"></i> 
-                            Ký số bảo mật vào lúc: {{ $contract->updated_at->format('H:i d/m/Y') }}
+                            Bên thuê đã ký vào lúc: {{ $contract->updated_at->format('H:i d/m/Y') }}
                         </p>
                     </div>
-                @else
+                @elseif($showTenantSignaturePad)
                     <form id="sign-form" action="{{ route('smartroom.contract.sign', $contract->id) }}" method="POST" class="space-y-6">
                         @csrf
                         <input type="hidden" name="signature" id="signature-input">
@@ -238,10 +239,14 @@
                         <div class="pt-4">
                             <button type="submit" onclick="submitSignature(event)" class="w-full py-4 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-500 font-bold text-white shadow-lg shadow-indigo-600/30 hover:shadow-indigo-500/40 transition-all duration-300 flex items-center justify-center gap-2 hover:-translate-y-0.5">
                                 <i class="fa-solid fa-pen-nib text-sm"></i>
-                                <span>Xác Nhận Ký & Khởi Tạo Hợp Đồng</span>
+                                <span>Bên thuê xác nhận ký hợp đồng</span>
                             </button>
                         </div>
                     </form>
+                @else
+                    <div class="rounded-2xl border border-slate-800 bg-slate-950/70 p-5 text-center text-xs font-semibold text-slate-500">
+                        Bên thuê chưa ký. Hãy gửi liên kết này cho người thuê để họ ký hợp đồng.
+                    </div>
                 @endif
 
                 <div class="mt-8 pt-8 border-t border-slate-800/80">
@@ -273,7 +278,7 @@
                                         Xóa vẽ lại
                                     </button>
                                     <button type="submit" onclick="submitLessorSignature(event)" class="py-3 rounded-2xl bg-cyan-600 hover:bg-cyan-500 text-xs font-bold text-white shadow-lg shadow-cyan-600/25 transition-all">
-                                        Ký bên cho thuê
+                                        Chủ trọ xác nhận ký
                                     </button>
                                 </div>
                             </form>
@@ -289,7 +294,7 @@
         </div>
     </div>
 
-    @if($contract->status !== 'active')
+    @if($showTenantSignaturePad)
     <script>
         // Setup custom toast notification override for alert()
         (function() {
