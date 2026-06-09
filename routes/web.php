@@ -29,14 +29,14 @@ Route::post('login', [CrudUserController::class, 'authUser'])->name('user.authUs
 Route::get('create', [CrudUserController::class, 'createUser'])->name('user.createUser');
 Route::post('create', [CrudUserController::class, 'postUser'])->name('user.postUser');
 
-Route::get('read', [CrudUserController::class, 'readUser'])->name('user.readUser');
-
-Route::get('delete', [CrudUserController::class, 'deleteUser'])->name('user.deleteUser');
-
-Route::get('update', [CrudUserController::class, 'updateUser'])->name('user.updateUser');
-Route::post('update', [CrudUserController::class, 'postUpdateUser'])->name('user.postUpdateUser');
-
-Route::get('list', [CrudUserController::class, 'listUser'])->name('user.list');
+Route::middleware('role:admin')->group(function () {
+    Route::get('read', [CrudUserController::class, 'readUser'])->name('user.readUser');
+    Route::get('delete', [CrudUserController::class, 'deleteUser'])->name('user.deleteUser');
+    Route::get('update', [CrudUserController::class, 'updateUser'])->name('user.updateUser');
+    Route::post('update', [CrudUserController::class, 'postUpdateUser'])->name('user.postUpdateUser');
+    Route::post('users/role', [CrudUserController::class, 'updateRole'])->name('user.updateRole');
+    Route::get('list', [CrudUserController::class, 'listUser'])->name('user.list');
+});
 
 Route::get('signout', [CrudUserController::class, 'signOut'])->name('signout');
 
@@ -52,36 +52,39 @@ Route::get('/smartroom/resident/bills/{id}/qr', [ResidentPortalController::class
 
 Route::middleware('admin')->group(function () {
     Route::get('/smartroom/admin', [AdminDashboardController::class, 'index'])->name('smartroom.admin');
-    Route::post('/smartroom/admin/ai/dashboard-insight', [AdminDashboardController::class, 'aiDashboardInsight'])->name('smartroom.admin.ai.dashboard_insight');
-    Route::post('/smartroom/admin/ai/assistant', [AdminDashboardController::class, 'aiAssistant'])->name('smartroom.admin.ai.assistant');
-    Route::post('/smartroom/admin/ai/contract-terms', [AdminDashboardController::class, 'aiContractTerms'])->name('smartroom.admin.ai.contract_terms');
-    Route::get('/smartroom/admin/reports', [ReportController::class, 'index'])->name('admin.reports.index');
-    Route::get('/smartroom/admin/activity-logs', [AdminActivityLogController::class, 'index'])->name('admin.activity_logs.index');
     Route::get('/smartroom/admin/payments', [PaymentController::class, 'index'])->name('admin.payments.index');
-    Route::get('/smartroom/admin/payments/export', [PaymentController::class, 'export'])->name('admin.payments.export');
     Route::post('/smartroom/admin/payments/{payment}', [PaymentController::class, 'update'])->name('admin.payments.update');
     Route::post('/smartroom/admin/utility', [AdminDashboardController::class, 'storeUtility'])->name('smartroom.admin.utility.store');
     Route::post('/smartroom/admin/utility/bulk', [AdminDashboardController::class, 'storeUtilityBulk'])->name('smartroom.admin.utility.bulk_store');
     Route::post('/smartroom/admin/resident', [AdminDashboardController::class, 'storeResident'])->name('smartroom.admin.resident.store');
     Route::put('/smartroom/admin/resident/{id}', [AdminDashboardController::class, 'updateResident'])->name('smartroom.admin.resident.update');
-    Route::delete('/smartroom/admin/resident/{id}', [AdminDashboardController::class, 'deleteResident'])->name('smartroom.admin.resident.delete');
     Route::post('/smartroom/admin/utility/{id}/pay', [AdminDashboardController::class, 'payUtility'])->name('smartroom.admin.utility.pay');
     Route::get('/smartroom/admin/utility/{id}/print', [AdminDashboardController::class, 'printUtility'])->name('smartroom.admin.utility.print');
     Route::post('/smartroom/admin/utility/{id}/notify', [AdminDashboardController::class, 'notifyUtility'])->name('smartroom.admin.utility.notify');
-    Route::post('/smartroom/admin/utility/auto-remind', [AdminDashboardController::class, 'autoRemindUtilities'])->name('smartroom.admin.utility.auto_remind');
-    Route::post('/smartroom/admin/notifications/contracts', [AdminDashboardController::class, 'notifyContracts'])->name('smartroom.admin.notifications.contracts');
-    Route::post('/smartroom/admin/notifications/maintenance', [AdminDashboardController::class, 'notifyMaintenance'])->name('smartroom.admin.notifications.maintenance');
-    Route::post('/smartroom/admin/notifications/run-all', [AdminDashboardController::class, 'notifyAll'])->name('smartroom.admin.notifications.run_all');
+
+    Route::middleware('role:landlord')->group(function () {
+        Route::post('/smartroom/admin/ai/dashboard-insight', [AdminDashboardController::class, 'aiDashboardInsight'])->name('smartroom.admin.ai.dashboard_insight');
+        Route::post('/smartroom/admin/ai/assistant', [AdminDashboardController::class, 'aiAssistant'])->name('smartroom.admin.ai.assistant');
+        Route::post('/smartroom/admin/ai/contract-terms', [AdminDashboardController::class, 'aiContractTerms'])->name('smartroom.admin.ai.contract_terms');
+        Route::get('/smartroom/admin/reports', [ReportController::class, 'index'])->name('admin.reports.index');
+        Route::get('/smartroom/admin/activity-logs', [AdminActivityLogController::class, 'index'])->name('admin.activity_logs.index');
+        Route::get('/smartroom/admin/payments/export', [PaymentController::class, 'export'])->name('admin.payments.export');
+        Route::delete('/smartroom/admin/resident/{id}', [AdminDashboardController::class, 'deleteResident'])->name('smartroom.admin.resident.delete');
+        Route::post('/smartroom/admin/utility/auto-remind', [AdminDashboardController::class, 'autoRemindUtilities'])->name('smartroom.admin.utility.auto_remind');
+        Route::post('/smartroom/admin/notifications/contracts', [AdminDashboardController::class, 'notifyContracts'])->name('smartroom.admin.notifications.contracts');
+        Route::post('/smartroom/admin/notifications/maintenance', [AdminDashboardController::class, 'notifyMaintenance'])->name('smartroom.admin.notifications.maintenance');
+        Route::post('/smartroom/admin/notifications/run-all', [AdminDashboardController::class, 'notifyAll'])->name('smartroom.admin.notifications.run_all');
+    });
 
     // Room Management
     Route::prefix('smartroom/admin/rooms')->name('admin.rooms.')->group(function () {
         Route::get('/', [RoomController::class, 'index'])->name('index');
         Route::get('/create', [RoomController::class, 'create'])->name('create');
-        Route::post('/description/ai', [RoomController::class, 'generateDescription'])->name('description.ai');
         Route::post('/store', [RoomController::class, 'store'])->name('store');
         Route::get('/{id}/edit', [RoomController::class, 'edit'])->name('edit');
         Route::post('/{id}/update', [RoomController::class, 'update'])->name('update');
-        Route::delete('/{id}/delete', [RoomController::class, 'destroy'])->name('destroy');
+        Route::post('/description/ai', [RoomController::class, 'generateDescription'])->middleware('role:landlord')->name('description.ai');
+        Route::delete('/{id}/delete', [RoomController::class, 'destroy'])->middleware('role:landlord')->name('destroy');
     });
 
     // Equipment Management
@@ -90,24 +93,24 @@ Route::middleware('admin')->group(function () {
         Route::get('/store', fn () => redirect()->route('admin.equipment.index'))->name('store.redirect');
         Route::post('/store', [EquipmentController::class, 'store'])->name('store');
         Route::post('/{id}/update', [EquipmentController::class, 'update'])->name('update');
-        Route::delete('/{id}/delete', [EquipmentController::class, 'destroy'])->name('destroy');
+        Route::delete('/{id}/delete', [EquipmentController::class, 'destroy'])->middleware('role:landlord')->name('destroy');
         Route::post('/allocate', [EquipmentController::class, 'allocate'])->name('allocate');
         Route::post('/recover', [EquipmentController::class, 'recover'])->name('recover');
     });
 
     // Online Contracts
     Route::post('/smartroom/admin/contract', [AdminDashboardController::class, 'storeContract'])->name('smartroom.admin.contract.store');
-    Route::delete('/smartroom/admin/contract/{id}', [AdminDashboardController::class, 'deleteContract'])->name('smartroom.admin.contract.delete');
+    Route::delete('/smartroom/admin/contract/{id}', [AdminDashboardController::class, 'deleteContract'])->middleware('role:landlord')->name('smartroom.admin.contract.delete');
 
     // Contact Requests Management
     Route::post('/smartroom/admin/contact-request/{id}/status', [AdminDashboardController::class, 'updateContactRequestStatus'])->name('smartroom.admin.contact_request.status');
-    Route::delete('/smartroom/admin/contact-request/{id}', [AdminDashboardController::class, 'deleteContactRequest'])->name('smartroom.admin.contact_request.delete');
+    Route::delete('/smartroom/admin/contact-request/{id}', [AdminDashboardController::class, 'deleteContactRequest'])->middleware('role:landlord')->name('smartroom.admin.contact_request.delete');
 
     // Resident Relative Management (AJAX JSON APIs)
     Route::get('/smartroom/admin/resident/{residentId}/relatives', [AdminDashboardController::class, 'getRelatives'])->name('smartroom.admin.resident.relatives');
     Route::post('/smartroom/admin/resident/{residentId}/relative', [AdminDashboardController::class, 'storeRelative'])->name('smartroom.admin.resident.relative.store');
     Route::put('/smartroom/admin/relative/{id}', [AdminDashboardController::class, 'updateRelative'])->name('smartroom.admin.relative.update');
-    Route::delete('/smartroom/admin/relative/{id}', [AdminDashboardController::class, 'deleteRelative'])->name('smartroom.admin.relative.delete');
+    Route::delete('/smartroom/admin/relative/{id}', [AdminDashboardController::class, 'deleteRelative'])->middleware('role:landlord')->name('smartroom.admin.relative.delete');
 });
 Route::get('/smartroom/contract/{id}/sign', [AdminDashboardController::class, 'signContractView'])->name('smartroom.contract.sign_view');
 Route::post('/smartroom/contract/{id}/sign', [AdminDashboardController::class, 'signContract'])->name('smartroom.contract.sign');

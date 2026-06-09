@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
@@ -60,8 +60,10 @@ class User extends Authenticatable
         }
 
         return match ($this->role) {
-            'admin' => 'landlord',
+            'admin' => 'admin',
+            'manager', 'staff' => 'manager',
             'user' => 'resident',
+            'guest' => 'guest',
             default => $this->role,
         };
     }
@@ -76,10 +78,13 @@ class User extends Authenticatable
             return $roleRecord->name;
         }
 
-        return match ($this->role) {
-            'admin' => 'Quản trị viên',
-            'user' => 'Người thuê',
-            default => 'Quản trị viên',
+        return match ($this->roleSlug()) {
+            'admin' => 'Admin he thong',
+            'landlord' => 'Chu tro',
+            'manager' => 'Nhan vien quan ly',
+            'resident' => 'Cu dan',
+            'guest' => 'Khach xem phong',
+            default => 'Nguoi dung',
         };
     }
 
@@ -96,6 +101,16 @@ class User extends Authenticatable
     public function isLandlord(): bool
     {
         return $this->roleSlug() === 'landlord';
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->roleSlug() === 'admin';
+    }
+
+    public function isManager(): bool
+    {
+        return $this->roleSlug() === 'manager';
     }
 
     public function isResident(): bool

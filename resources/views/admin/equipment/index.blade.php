@@ -39,6 +39,9 @@
     </style>
 </head>
 <body class="bg-[#080b11] text-slate-100 min-h-screen selection:bg-indigo-500 selection:text-white overflow-hidden">
+    @php
+        $isLandlord = Auth::user()?->isLandlord();
+    @endphp
     <div class="absolute top-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full bg-indigo-600/5 blur-[100px] pointer-events-none"></div>
     <div class="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] rounded-full bg-emerald-600/5 blur-[100px] pointer-events-none"></div>
 
@@ -69,14 +72,16 @@
                     <i class="fa-solid fa-screwdriver-wrench text-lg"></i>
                     <span class="sidebar-label">Thiết Bị</span>
                 </a>
-                <a href="{{ route('admin.reports.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all">
-                    <i class="fa-solid fa-chart-column text-lg"></i>
-                    <span>Báo Cáo</span>
-                </a>
-                <a href="{{ route('admin.activity_logs.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all">
-                    <i class="fa-solid fa-clock-rotate-left text-lg"></i>
-                    <span>Lịch Sử Vận Hành</span>
-                </a>
+                @if($isLandlord)
+                    <a href="{{ route('admin.reports.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all">
+                        <i class="fa-solid fa-chart-column text-lg"></i>
+                        <span>Báo Cáo</span>
+                    </a>
+                    <a href="{{ route('admin.activity_logs.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all">
+                        <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+                        <span>Lịch Sử Vận Hành</span>
+                    </a>
+                @endif
             </nav>
         </div>
 
@@ -267,13 +272,15 @@
                                                     <button type="submit" class="submit-btn flex-1 px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold">Cập nhật</button>
                                                 </div>
                                             </form>
-                                            <form action="{{ route('admin.equipment.destroy', $item->id) }}" method="POST" class="secure-form mt-2" data-watch="equipment-delete-{{ $item->id }}">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="submit-btn w-full px-3 py-2 rounded-lg bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white text-xs font-bold" data-confirm="Xóa thiết bị {{ $item->name }} khỏi danh mục?">
-                                                    Xóa thiết bị
-                                                </button>
-                                            </form>
+                                            @if($isLandlord)
+                                                <form action="{{ route('admin.equipment.destroy', $item->id) }}" method="POST" class="secure-form mt-2" data-watch="equipment-delete-{{ $item->id }}">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="submit-btn w-full px-3 py-2 rounded-lg bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white text-xs font-bold" data-confirm="Xóa thiết bị {{ $item->name }} khỏi danh mục?">
+                                                        Xóa thiết bị
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </details>
                                     </td>
                                 </tr>
@@ -391,8 +398,9 @@
             document.getElementById('confirm-modal').classList.remove('flex');
         }
 
-        function normalizeSpaces(value) {
-            return (value || '').replace(/\u3000/g, ' ').replace(/ã€€/g, ' ').trim();
+        function normalizeSpaces(value, trimValue = true) {
+            const normalized = (value || '').replace(/\u3000/g, ' ').replace(/ã€€/g, ' ');
+            return trimValue ? normalized.trim() : normalized;
         }
 
         function toHalfWidthNumber(value) {
@@ -417,7 +425,9 @@
             if (error) error.classList.add('hidden');
         }
 
-        function validateInput(input) {
+        function validateInput(input, options = {}) {
+            const shouldTrim = options.trim !== false;
+
             if (input.dataset.number !== undefined) {
                 input.value = toHalfWidthNumber(input.value).replace(/[^0-9]/g, '');
                 if (input.required && input.value === '') {
@@ -429,8 +439,8 @@
             }
 
             if (input.dataset.text !== undefined) {
-                input.value = stripTags(normalizeSpaces(input.value));
-                if (input.required && input.value === '') {
+                input.value = stripTags(normalizeSpaces(input.value, shouldTrim));
+                if (input.required && input.value.trim() === '') {
                     showFieldError(input, 'Trường này không được bỏ trống.');
                     return false;
                 }
@@ -446,7 +456,7 @@
         }
 
         document.querySelectorAll('[data-number], [data-text]').forEach(input => {
-            input.addEventListener('input', () => validateInput(input));
+            input.addEventListener('input', () => validateInput(input, { trim: false }));
             input.addEventListener('blur', () => validateInput(input));
         });
 
