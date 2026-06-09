@@ -15,9 +15,10 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::create([
-            'name' => 'Admin SmartRoom',
+        User::updateOrCreate([
             'username' => 'admin',
+        ], [
+            'name' => 'Admin SmartRoom',
             'phone' => '0987654321',
             'email' => 'admin@smartroom.com',
             'password' => \Hash::make('admin123'),
@@ -25,9 +26,10 @@ class DatabaseSeeder extends Seeder
             'like' => 'Chủ chung cư mini'
         ]);
 
-        User::create([
-            'name' => 'Test Tenant',
+        User::updateOrCreate([
             'username' => 'tenant',
+        ], [
+            'name' => 'Test Tenant',
             'phone' => '0123456789',
             'email' => 'tenant@example.com',
             'password' => \Hash::make('password'),
@@ -37,5 +39,7 @@ class DatabaseSeeder extends Seeder
         $this->call(SmartRoomSeeder::class);
         $this->call(RoomSeeder::class);
         $this->call(EquipmentSeeder::class);
+        $this->call(SmartAlertSeeder::class);
+        $this->call(AdminActivityLogSeeder::class);
     }
 }

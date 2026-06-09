@@ -8,6 +8,7 @@ use App\Models\RoomEquipment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Services\AdminActivityLogger;
 
 class EquipmentController extends Controller
 {
@@ -66,13 +67,16 @@ class EquipmentController extends Controller
 
         $request->validate($this->equipmentRules(), $this->messages());
 
-        DB::transaction(function () use ($request, $tenantId) {
+        $logContext = [];
+
+        DB::transaction(function () use ($request, $tenantId, &$logContext) {
             $equipment = Equipment::where('tenant_id', $tenantId)
                 ->where('code', $request->code)
                 ->lockForUpdate()
                 ->first();
 
             if ($equipment) {
+                $before = $equipment->only(['code', 'name', 'unit', 'total_quantity', 'allocated_quantity', 'description']);
                 $equipment->update([
                     'name' => $request->name,
                     'unit' => $request->unit,
@@ -80,10 +84,11 @@ class EquipmentController extends Controller
                     'description' => $request->description,
                     'version' => $equipment->version + 1,
                 ]);
+                $logContext = ['action' => 'update', 'equipment' => $equipment->fresh(), 'before' => $before];
                 return;
             }
 
-            Equipment::create([
+            $created = Equipment::create([
                 'tenant_id' => $tenantId,
                 'code' => $request->code,
                 'name' => $request->name,
@@ -93,7 +98,21 @@ class EquipmentController extends Controller
                 'description' => $request->description,
                 'version' => 1,
             ]);
+            $logContext = ['action' => 'create', 'equipment' => $created, 'before' => null];
         });
+
+        $equipment = $logContext['equipment'] ?? null;
+        if ($equipment) {
+            AdminActivityLogger::log(
+                $logContext['action'],
+                'equipment',
+                ($logContext['action'] === 'create' ? 'Nhập thiết bị ' : 'Cập nhật tồn thiết bị ') . $equipment->name,
+                $equipment,
+                ['code' => $equipment->code, 'quantity' => (int) $request->quantity],
+                $logContext['before'],
+                $equipment->only(['code', 'name', 'unit', 'total_quantity', 'allocated_quantity', 'description'])
+            );
+        }
 
         return redirect()->route('admin.equipment.index')->with('success', 'Đã nhập thiết bị vào danh mục.');
     }
@@ -127,6 +146,8 @@ class EquipmentController extends Controller
             return back()->withInput()->with('error', 'Mã thiết bị đã tồn tại trong danh mục.');
         }
 
+        $before = $equipment->only(['code', 'name', 'unit', 'total_quantity', 'allocated_quantity', 'description']);
+
         $equipment->update([
             'code' => $request->code,
             'name' => $request->name,
@@ -135,6 +156,16 @@ class EquipmentController extends Controller
             'description' => $request->description,
             'version' => $equipment->version + 1,
         ]);
+
+        AdminActivityLogger::log(
+            'update',
+            'equipment',
+            'Cập nhật thiết bị ' . $equipment->name,
+            $equipment,
+            ['code' => $equipment->code],
+            $before,
+            $equipment->fresh()->only(['code', 'name', 'unit', 'total_quantity', 'allocated_quantity', 'description'])
+        );
 
         return redirect()->route('admin.equipment.index')->with('success', 'Đã cập nhật thông tin thiết bị.');
     }
@@ -152,7 +183,19 @@ class EquipmentController extends Controller
             return back()->with('error', 'Không thể xóa thiết bị đang được phân bổ cho phòng. Hãy thu hồi trước.');
         }
 
+        $before = $equipment->only(['code', 'name', 'unit', 'total_quantity', 'allocated_quantity', 'description']);
+        $equipmentName = $equipment->name;
+
         $equipment->delete();
+
+        AdminActivityLogger::log(
+            'delete',
+            'equipment',
+            'Xóa thiết bị ' . $equipmentName,
+            $equipment,
+            ['code' => $before['code'] ?? null],
+            $before
+        );
 
         return redirect()->route('admin.equipment.index')->with('success', 'Đã xóa thiết bị khỏi danh mục.');
     }
@@ -166,7 +209,9 @@ class EquipmentController extends Controller
         $request->validate($this->movementRules($tenantId), $this->messages());
 
         try {
-            DB::transaction(function () use ($request, $tenantId) {
+            $logContext = [];
+
+            DB::transaction(function () use ($request, $tenantId, &$logContext) {
                 $equipment = Equipment::where('tenant_id', $tenantId)
                     ->where('id', $request->equipment_id)
                     ->lockForUpdate()
@@ -198,9 +243,25 @@ class EquipmentController extends Controller
                 $equipment->allocated_quantity += $quantity;
                 $equipment->version += 1;
                 $equipment->save();
+
+                $logContext = [
+                    'equipment' => $equipment->fresh(),
+                    'room_number' => $room->room_number,
+                    'quantity' => $quantity,
+                ];
             });
         } catch (\RuntimeException $exception) {
             return back()->withInput()->with('error', $exception->getMessage());
+        }
+
+        if (!empty($logContext['equipment'])) {
+            AdminActivityLogger::log(
+                'allocate',
+                'equipment',
+                'Bàn giao ' . $logContext['quantity'] . ' ' . $logContext['equipment']->unit . ' ' . $logContext['equipment']->name . ' cho phòng ' . $logContext['room_number'],
+                $logContext['equipment'],
+                ['room_number' => $logContext['room_number'], 'quantity' => $logContext['quantity']]
+            );
         }
 
         return redirect()->route('admin.equipment.index')->with('success', 'Đã bàn giao/lắp đặt thiết bị cho phòng.');
@@ -215,7 +276,9 @@ class EquipmentController extends Controller
         $request->validate($this->movementRules($tenantId), $this->messages());
 
         try {
-            DB::transaction(function () use ($request, $tenantId) {
+            $logContext = [];
+
+            DB::transaction(function () use ($request, $tenantId, &$logContext) {
                 $equipment = Equipment::where('tenant_id', $tenantId)
                     ->where('id', $request->equipment_id)
                     ->lockForUpdate()
@@ -240,9 +303,25 @@ class EquipmentController extends Controller
                 $equipment->allocated_quantity = max(0, $equipment->allocated_quantity - $quantity);
                 $equipment->version += 1;
                 $equipment->save();
+
+                $logContext = [
+                    'equipment' => $equipment->fresh(),
+                    'room_number' => $allocation->room?->room_number ?? $request->room_id,
+                    'quantity' => $quantity,
+                ];
             });
         } catch (\RuntimeException $exception) {
             return back()->withInput()->with('error', $exception->getMessage());
+        }
+
+        if (!empty($logContext['equipment'])) {
+            AdminActivityLogger::log(
+                'recover',
+                'equipment',
+                'Thu hồi ' . $logContext['quantity'] . ' ' . $logContext['equipment']->unit . ' ' . $logContext['equipment']->name . ' từ phòng ' . $logContext['room_number'],
+                $logContext['equipment'],
+                ['room_number' => $logContext['room_number'], 'quantity' => $logContext['quantity']]
+            );
         }
 
         return redirect()->route('admin.equipment.index')->with('success', 'Đã thu hồi thiết bị về tồn kho.');

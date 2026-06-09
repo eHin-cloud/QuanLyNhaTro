@@ -22,45 +22,55 @@ class SmartRoomSeeder extends Seeder
     public function run(): void
     {
         // 1. Tạo các vai trò (Roles)
-        $roleLandlord = Role::create([
-            'name' => 'Chủ trọ / Quản lý',
+        $roleLandlord = Role::updateOrCreate([
             'slug' => 'landlord',
+        ], [
+            'name' => 'Chủ trọ / Quản lý',
             'description' => 'Quản lý phòng trọ, hóa đơn, cư dân và xử lý sự cố.'
         ]);
 
-        $roleResident = Role::create([
-            'name' => 'Cư dân thuê phòng',
+        $roleResident = Role::updateOrCreate([
             'slug' => 'resident',
+        ], [
+            'name' => 'Cư dân thuê phòng',
             'description' => 'Khách thuê phòng nội bộ, xem hóa đơn, gửi yêu cầu báo hỏng.'
         ]);
 
-        $roleGuest = Role::create([
-            'name' => 'Người tìm trọ',
+        $roleGuest = Role::updateOrCreate([
             'slug' => 'guest',
+        ], [
+            'name' => 'Người tìm trọ',
             'description' => 'Khách vãng lai tìm kiếm phòng trọ, viết đánh giá.'
         ]);
 
         // 2. Tạo 2 Tenants (2 Chủ trọ khác nhau để demo Multi-tenant)
-        $tenant1 = Tenant::create([
-            'name' => 'Hệ thống SmartRoom Cầu Giấy',
+        $tenant1 = Tenant::updateOrCreate([
             'email' => 'contact@smartroom-caugiay.vn',
+        ], [
+            'name' => 'Hệ thống SmartRoom Cầu Giấy',
             'phone' => '0988123456',
             'bank_name' => 'MB',
             'bank_account_no' => '9999888889999',
             'bank_account_name' => 'NGUYEN VAN CHU NHA'
         ]);
 
-        $tenant2 = Tenant::create([
-            'name' => 'Hệ thống Renty Home Thanh Xuân',
-            'email' => 'contact@renty-thanhxuan.vn',
+        $tenant2 = Tenant::whereIn('email', [
+            'contact@rentry-thanhxuan.vn',
+            'contact@renty-thanhxuan.vn',
+        ])->first() ?? new Tenant();
+        $tenant2->fill([
+            'name' => 'Hệ thống Rentry Home Thanh Xuân',
+            'email' => 'contact@rentry-thanhxuan.vn',
             'phone' => '0977222333',
             'bank_name' => 'VCB',
             'bank_account_no' => '1234567890',
             'bank_account_name' => 'LE ANH QUAN LY'
-        ]);
+        ])->save();
 
         // 3. Tạo tài khoản Tenant Admins (Chủ trọ)
-        $landlord1 = User::create([
+        $landlord1 = User::updateOrCreate([
+            'username' => 'landlord1',
+        ], [
             'tenant_id' => $tenant1->id,
             'role_id' => $roleLandlord->id,
             'name' => 'Nguyễn Văn Chủ Nhà',
@@ -69,7 +79,9 @@ class SmartRoomSeeder extends Seeder
             'password' => Hash::make('password')
         ]);
 
-        $landlord2 = User::create([
+        $landlord2 = User::updateOrCreate([
+            'username' => 'landlord2',
+        ], [
             'tenant_id' => $tenant2->id,
             'role_id' => $roleLandlord->id,
             'name' => 'Lê Anh Quản Lý',
@@ -79,29 +91,35 @@ class SmartRoomSeeder extends Seeder
         ]);
 
         // Tạo tài khoản Demo Guest
-        User::create([
+        User::updateOrCreate([
+            'username' => 'guest',
+        ], [
             'tenant_id' => null,
             'role_id' => $roleGuest->id,
             'name' => 'Nguyễn Tìm Phòng',
             'email' => 'guest@gmail.com',
-            'phone' => '0912345678',
+            'phone' => '0900000001',
             'password' => Hash::make('password')
         ]);
 
         // 4. Tạo các Tòa nhà (Buildings)
-        $building1 = Building::create([
+        $building1 = Building::updateOrCreate([
             'tenant_id' => $tenant1->id,
             'name' => 'SmartRoom Cầu Giấy',
+        ], [
             'address' => 'Số 12 Ngõ 105 Xuân Thủy, Cầu Giấy, Hà Nội',
             'description' => 'Chung cư mini cao cấp, gần ĐH Sư Phạm, ĐH Quốc Gia. Đầy đủ khóa vân tay, camera an ninh, gác lửng.'
         ]);
 
-        $building2 = Building::create([
+        $building2 = Building::where('tenant_id', $tenant2->id)
+            ->whereIn('name', ['Rentry Home Thanh Xuân', 'Renty Home Thanh Xuân'])
+            ->first() ?? new Building(['tenant_id' => $tenant2->id]);
+        $building2->fill([
             'tenant_id' => $tenant2->id,
-            'name' => 'Renty Home Thanh Xuân',
+            'name' => 'Rentry Home Thanh Xuân',
             'address' => 'Số 85 Vũ Tông Phan, Thanh Xuân, Hà Nội',
             'description' => 'Tòa nhà mới xây, phòng studio có ban công rộng, đầy đủ đồ cơ bản.'
-        ]);
+        ])->save();
 
         // 5. Tạo các Phòng trọ (Rooms) cho Building 1 (Cầu Giấy - Tenant 1)
         $roomDataT1 = [
@@ -128,7 +146,13 @@ class SmartRoomSeeder extends Seeder
         foreach ($roomDataT1 as $data) {
             $data['building_id'] = $building1->id;
             $data['tenant_id'] = $tenant1->id;
-            $roomsT1[$data['room_number']] = Room::create($data);
+            $roomsT1[$data['room_number']] = Room::updateOrCreate(
+                [
+                    'building_id' => $building1->id,
+                    'room_number' => $data['room_number'],
+                ],
+                $data
+            );
         }
 
         // Tạo các Phòng trọ cho Building 2 (Thanh Xuân - Tenant 2)
@@ -143,14 +167,20 @@ class SmartRoomSeeder extends Seeder
         foreach ($roomDataT2 as $data) {
             $data['building_id'] = $building2->id;
             $data['tenant_id'] = $tenant2->id;
-            $roomsT2[$data['room_number']] = Room::create($data);
+            $roomsT2[$data['room_number']] = Room::updateOrCreate(
+                [
+                    'building_id' => $building2->id,
+                    'room_number' => $data['room_number'],
+                ],
+                $data
+            );
         }
 
         // 6. Tạo Cư dân (Residents) & liên kết User Account cho Cư dân để đăng nhập
         // Cư dân Tenant 1
         $resDataT1 = [
             '101' => ['name' => 'Trần Thanh Hùng', 'phone' => '0912345678', 'email' => 'hung.tran@gmail.com', 'cccd' => '001096001234', 'start_date' => '2026-01-15'],
-            '102' => ['name' => 'Nguyễn Thị Lan',  'phone' => '0987654321', 'email' => 'lan.nguyen@gmail.com',  'cccd' => '001096005678', 'start_date' => '2026-02-10'],
+            '102' => ['name' => 'Nguyễn Thị Lan',  'phone' => '0987654322', 'email' => 'lan.nguyen@gmail.com',  'cccd' => '001096005678', 'start_date' => '2026-02-10'],
             '103' => ['name' => 'Lê Hoàng Nam',    'phone' => '0905123456', 'email' => 'nam.le@gmail.com',      'cccd' => '001096009999', 'start_date' => '2026-01-05'],
             '201' => ['name' => 'Phạm Minh Tuấn',  'phone' => '0933999888', 'email' => 'tuan.pham@gmail.com',  'cccd' => '002096001111', 'start_date' => '2026-03-01'],
             '202' => ['name' => 'Vũ Thu Trang',    'phone' => '0944888777', 'email' => 'trang.vu@gmail.com',    'cccd' => '002096002222', 'start_date' => '2026-03-15'],
@@ -162,7 +192,9 @@ class SmartRoomSeeder extends Seeder
 
         foreach ($resDataT1 as $roomNum => $res) {
             // Tạo tài khoản User cho cư dân
-            $u = User::create([
+            $u = User::updateOrCreate([
+                'username' => 'resident-t1-' . $roomNum,
+            ], [
                 'tenant_id' => $tenant1->id,
                 'role_id' => $roleResident->id,
                 'name' => $res['name'],
@@ -171,7 +203,9 @@ class SmartRoomSeeder extends Seeder
                 'password' => Hash::make('password')
             ]);
 
-            Resident::create([
+            Resident::updateOrCreate([
+                'email' => $res['email'],
+            ], [
                 'tenant_id' => $tenant1->id,
                 'room_id' => $roomsT1[$roomNum]->id,
                 'user_id' => $u->id,
@@ -192,7 +226,9 @@ class SmartRoomSeeder extends Seeder
 
         foreach ($resDataT2 as $roomNum => $res) {
             // Tạo tài khoản User cho cư dân
-            $u = User::create([
+            $u = User::updateOrCreate([
+                'username' => 'resident-t2-' . $roomNum,
+            ], [
                 'tenant_id' => $tenant2->id,
                 'role_id' => $roleResident->id,
                 'name' => $res['name'],
@@ -201,7 +237,9 @@ class SmartRoomSeeder extends Seeder
                 'password' => Hash::make('password')
             ]);
 
-            Resident::create([
+            Resident::updateOrCreate([
+                'email' => $res['email'],
+            ], [
                 'tenant_id' => $tenant2->id,
                 'room_id' => $roomsT2[$roomNum]->id,
                 'user_id' => $u->id,
@@ -252,10 +290,11 @@ class SmartRoomSeeder extends Seeder
                 $meter['elec'] = $newElec;
                 $meter['water'] = $newWater;
 
-                $log = ElectricWaterLog::create([
-                    'tenant_id' => $tenant1->id,
+                $log = ElectricWaterLog::updateOrCreate([
                     'room_id' => $room->id,
                     'billing_month' => $month,
+                ], [
+                    'tenant_id' => $tenant1->id,
                     'old_electricity' => $oldElec,
                     'new_electricity' => $newElec,
                     'old_water' => $oldWater,
@@ -289,11 +328,12 @@ class SmartRoomSeeder extends Seeder
                     }
                 }
 
-                Bill::create([
-                    'tenant_id' => $tenant1->id,
+                Bill::updateOrCreate([
                     'room_id' => $room->id,
-                    'electric_water_log_id' => $log->id,
                     'billing_month' => $month,
+                ], [
+                    'tenant_id' => $tenant1->id,
+                    'electric_water_log_id' => $log->id,
                     'room_price' => $room->price,
                     'electricity_usage' => $elecUsage,
                     'electricity_cost' => $elecCost,
@@ -336,10 +376,11 @@ class SmartRoomSeeder extends Seeder
                 $meter['elec'] = $newElec;
                 $meter['water'] = $newWater;
 
-                $log = ElectricWaterLog::create([
-                    'tenant_id' => $tenant2->id,
+                $log = ElectricWaterLog::updateOrCreate([
                     'room_id' => $room->id,
                     'billing_month' => $month,
+                ], [
+                    'tenant_id' => $tenant2->id,
                     'old_electricity' => $oldElec,
                     'new_electricity' => $newElec,
                     'old_water' => $oldWater,
@@ -366,11 +407,12 @@ class SmartRoomSeeder extends Seeder
                     $paymentDate = null;
                 }
 
-                Bill::create([
-                    'tenant_id' => $tenant2->id,
+                Bill::updateOrCreate([
                     'room_id' => $room->id,
-                    'electric_water_log_id' => $log->id,
                     'billing_month' => $month,
+                ], [
+                    'tenant_id' => $tenant2->id,
+                    'electric_water_log_id' => $log->id,
                     'room_price' => $room->price,
                     'electricity_usage' => $elecUsage,
                     'electricity_cost' => $elecCost,
@@ -390,11 +432,13 @@ class SmartRoomSeeder extends Seeder
         foreach ($resDataT1 as $roomNum => $res) {
             $room = $roomsT1[$roomNum];
             $resident = Resident::where('room_id', $room->id)->first();
-            Contract::create([
+            $contractCode = 'HĐ-' . $room->room_number . '-' . date('Ymd', strtotime($resident->start_date));
+            Contract::updateOrCreate([
+                'contract_code' => $contractCode,
+            ], [
                 'tenant_id' => $tenant1->id,
                 'room_id' => $room->id,
                 'resident_id' => $resident->id,
-                'contract_code' => 'HĐ-' . $room->room_number . '-' . date('Ymd', strtotime($resident->start_date)),
                 'start_date' => $resident->start_date,
                 'end_date' => Carbon::parse($resident->start_date)->addYear()->toDateString(),
                 'deposit' => $room->price,
@@ -412,11 +456,13 @@ class SmartRoomSeeder extends Seeder
         foreach ($resDataT2 as $roomNum => $res) {
             $room = $roomsT2[$roomNum];
             $resident = Resident::where('room_id', $room->id)->first();
-            Contract::create([
+            $contractCode = 'HĐ-' . $room->room_number . '-' . date('Ymd', strtotime($resident->start_date));
+            Contract::updateOrCreate([
+                'contract_code' => $contractCode,
+            ], [
                 'tenant_id' => $tenant2->id,
                 'room_id' => $room->id,
                 'resident_id' => $resident->id,
-                'contract_code' => 'HĐ-' . $room->room_number . '-' . date('Ymd', strtotime($resident->start_date)),
                 'start_date' => $resident->start_date,
                 'end_date' => Carbon::parse($resident->start_date)->addYear()->toDateString(),
                 'deposit' => $room->price,
@@ -433,22 +479,24 @@ class SmartRoomSeeder extends Seeder
         // 9. Tạo sự cố báo hỏng (Tickets)
         // Tenant 1 Tickets
         $res103 = Resident::where('room_id', $roomsT1['103']->id)->first();
-        Ticket::create([
-            'tenant_id' => $tenant1->id,
+        Ticket::updateOrCreate([
             'room_id' => $roomsT1['103']->id,
-            'resident_id' => $res103->id,
             'title' => 'Hỏng vòi sen nhà tắm',
+        ], [
+            'tenant_id' => $tenant1->id,
+            'resident_id' => $res103->id,
             'description' => 'Vòi sen tắm bị rỉ nước liên tục làm thất thoát nước và ẩm ướt nhà tắm.',
             'category' => 'nước',
             'status' => 'pending'
         ]);
 
         $res203 = Resident::where('room_id', $roomsT1['203']->id)->first();
-        Ticket::create([
-            'tenant_id' => $tenant1->id,
+        Ticket::updateOrCreate([
             'room_id' => $roomsT1['203']->id,
-            'resident_id' => $res203->id,
             'title' => 'Điều hòa không mát',
+        ], [
+            'tenant_id' => $tenant1->id,
+            'resident_id' => $res203->id,
             'description' => 'Điều hòa bật lên gió thổi nhẹ và không lạnh chút nào, cục nóng chạy kêu to.',
             'category' => 'điện',
             'status' => 'processing',
@@ -457,11 +505,12 @@ class SmartRoomSeeder extends Seeder
 
         // Tenant 2 Tickets
         $res101T2 = Resident::where('room_id', $roomsT2['101']->id)->first();
-        Ticket::create([
-            'tenant_id' => $tenant2->id,
+        Ticket::updateOrCreate([
             'room_id' => $roomsT2['101']->id,
-            'resident_id' => $res101T2->id,
             'title' => 'Kẹt khóa cửa phòng',
+        ], [
+            'tenant_id' => $tenant2->id,
+            'resident_id' => $res101T2->id,
             'description' => 'Khóa cơ phòng 101 bị rít, rất khó cắm chìa khóa để vặn mở cửa.',
             'category' => 'nội thất',
             'status' => 'resolved',
@@ -491,11 +540,12 @@ class SmartRoomSeeder extends Seeder
         foreach ($reviewsData as $roomNum => $reviews) {
             if (isset($roomsT1[$roomNum])) {
                 foreach ($reviews as $rev) {
-                    Review::create([
+                    Review::updateOrCreate([
                         'room_id' => $roomsT1[$roomNum]->id,
-                        'rating' => $rev['rating'],
+                        'author_name' => $rev['author_name'],
                         'comment' => $rev['comment'],
-                        'author_name' => $rev['author_name']
+                    ], [
+                        'rating' => $rev['rating'],
                     ]);
                 }
             }

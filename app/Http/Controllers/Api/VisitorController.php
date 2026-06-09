@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Room;
 use App\Models\Review;
+use App\Services\AiManagementService;
 use Illuminate\Support\Facades\Auth;
 
 class VisitorController extends Controller
@@ -139,6 +140,37 @@ class VisitorController extends Controller
             'rating_avg' => round($room->reviews->avg('rating') ?: 0, 1),
             'reviews_count' => $room->reviews->count(),
             'reviews' => $room->reviews
+        ]);
+    }
+
+    public function reviewSummary($roomId, AiManagementService $aiManagementService)
+    {
+        $room = Room::with(['building', 'reviews' => function ($query) {
+            $query->latest()->take(30);
+        }])->find($roomId);
+
+        if (!$room) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Phong khong ton tai',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'summary' => $aiManagementService->summarizeReviews([
+                'room_number' => $room->room_number,
+                'price' => (int) $room->price,
+                'area' => (int) $room->area,
+                'building' => $room->building->name ?? null,
+                'address' => $room->building->address ?? null,
+                'rating_avg' => round($room->reviews->avg('rating') ?: 0, 1),
+                'reviews_count' => $room->reviews->count(),
+            ], $room->reviews->map(fn (Review $review) => [
+                'rating' => (int) $review->rating,
+                'comment' => $review->comment,
+                'author_name' => $review->author_name,
+            ])->values()->all()),
         ]);
     }
 

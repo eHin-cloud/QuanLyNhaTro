@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Room extends Model
 {
+    public const MAX_OCCUPANTS = 5;
+
     protected $fillable = [
         'building_id',
         'tenant_id',
@@ -20,11 +22,14 @@ class Room extends Model
         'amenities',
         'description',
         'image',
+        'images',
+        'video',
         'version'
     ];
 
     protected $casts = [
         'amenities' => 'array',
+        'images' => 'array',
     ];
 
     public function building(): BelongsTo
@@ -80,5 +85,64 @@ class Room extends Model
     public function equipmentAllocations(): HasMany
     {
         return $this->hasMany(RoomEquipment::class);
+    }
+
+    public function activeResidents(): HasMany
+    {
+        return $this->hasMany(Resident::class)->where('status', 'active');
+    }
+
+    public function occupancyCount(?int $excludeResidentId = null): int
+    {
+        $residentQuery = $this->activeResidents();
+
+        if ($excludeResidentId) {
+            $residentQuery->where('id', '!=', $excludeResidentId);
+        }
+
+        $residentIds = $residentQuery->pluck('id');
+
+        return $residentIds->count()
+            + ResidentRelative::whereIn('resident_id', $residentIds)->count();
+    }
+
+    public function availableOccupancySlots(?int $excludeResidentId = null): int
+    {
+        return max(0, self::MAX_OCCUPANTS - $this->occupancyCount($excludeResidentId));
+    }
+
+    public function canAcceptOccupants(int $additionalOccupants, ?int $excludeResidentId = null): bool
+    {
+        return $this->availableOccupancySlots($excludeResidentId) >= $additionalOccupants;
+    }
+
+    public function syncOccupancyStatus(): void
+    {
+        if ($this->status === 'maintenance') {
+            return;
+        }
+
+        $hasActiveResidents = $this->activeResidents()->exists();
+
+        if (!$hasActiveResidents) {
+            $this->update(['status' => 'empty']);
+            return;
+        }
+
+        if ($this->status === 'empty') {
+            $this->update(['status' => 'occupied']);
+        }
+    }
+
+    public static function syncOccupancyStatusById($roomId): void
+    {
+        if (!$roomId) {
+            return;
+        }
+
+        $room = self::find($roomId);
+        if ($room) {
+            $room->syncOccupancyStatus();
+        }
     }
 }

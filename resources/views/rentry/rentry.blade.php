@@ -33,6 +33,7 @@
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-[#080b11] text-slate-100 min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-emerald-500 selection:text-white">
 
@@ -95,7 +96,7 @@
             <div class="flex flex-col md:flex-row gap-3">
                 <div class="flex-grow relative">
                     <i class="fa-solid fa-location-dot absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
-                    <input type="text" id="search-input" onkeyup="filterItems()" class="w-full pl-12 pr-4 py-3 bg-[#0a0e17] border border-slate-800 rounded-2xl text-slate-200 placeholder-slate-500 focus:border-emerald-500 focus:outline-none text-sm font-semibold" placeholder="Tìm trọ gần: Đại học Bách Khoa, Cầu Giấy, Quận 10...">
+                    <input type="text" id="search-input" onkeyup="filterItems()" class="w-full pl-12 pr-4 py-3 bg-[#0a0e17] border border-slate-800 rounded-2xl text-slate-200 placeholder-slate-500 focus:border-emerald-500 focus:outline-none text-sm font-semibold" placeholder="VD: Tìm phòng dưới 3 triệu ở Cầu Giấy, gần đại học Bách Khoa...">
                 </div>
                 <div class="flex gap-2">
                     <button onclick="toggleFilterDrawer()" class="px-4 py-3 bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-slate-100 rounded-2xl text-sm font-bold flex items-center gap-2 transition-all">
@@ -160,20 +161,21 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16" id="rooms-grid">
             @foreach($rooms as $room)
             <div class="room-item-card glass-card rounded-2xl overflow-hidden group flex flex-col justify-between" 
+                 data-room-id="{{ $room['id'] }}"
                  data-price="{{ $room['price'] }}" 
                  data-rating="{{ $room['rating'] }}" 
                  data-pets="{{ $room['pets'] }}" 
                  data-loft="{{ $room['loft'] }}" 
                  data-balcony="{{ $room['balcony'] }}" 
                  data-distance="{{ $room['distance'] }}" 
+                 data-area-name="{{ $room['area_name'] }}"
+                 data-viewed="false"
                  data-title="{{ $room['title'] }}">
                 <div>
-                    <!-- Thumbnail image with ambient neon look -->
-                    <div class="h-44 bg-slate-950 relative overflow-hidden flex items-center justify-center border-b border-slate-900 group">
-                        <!-- Glowing circular backdrops -->
-                        <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-purple-500/5 to-emerald-500/5 opacity-55 transition-all group-hover:scale-110 duration-500"></div>
-                        <div class="absolute -top-12 -right-12 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl group-hover:bg-indigo-500/20 transition-all duration-500"></div>
-                        <div class="absolute -bottom-12 -left-12 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition-all duration-500"></div>
+                    <!-- Room photo -->
+                    <div class="h-48 bg-slate-950 relative overflow-hidden border-b border-slate-900 group">
+                        <img src="{{ $room['cover_image'] }}" alt="Ảnh phòng {{ $room['room_number'] }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/10 to-transparent"></div>
 
                         @if($room['status'] === 'empty')
                             <span class="absolute top-4 left-4 px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[9px] font-extrabold uppercase tracking-wider shadow-sm z-10 flex items-center gap-1.5">
@@ -187,11 +189,21 @@
                             </span>
                         @endif
 
-                        <div class="text-center relative z-10">
-                            <span class="inline-flex w-14 h-14 items-center justify-center rounded-2xl bg-slate-900/80 border border-slate-800 text-indigo-400 group-hover:text-emerald-400 group-hover:border-emerald-500/30 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-300 transform group-hover:scale-105">
-                                <i class="fa-solid fa-house-circle-check text-xl"></i>
+                        @if($room['price_warning'])
+                            <span class="absolute top-4 right-4 px-2.5 py-1 bg-amber-500/10 text-amber-300 border border-amber-500/25 rounded-lg text-[9px] font-extrabold uppercase tracking-wider shadow-sm z-10 flex items-center gap-1.5" title="{{ $room['price_warning']['message'] }}">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                {{ $room['price_warning']['type'] === 'low' ? 'Giá quá rẻ' : 'Giá cao' }}
                             </span>
-                            <span class="block text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-2.5 group-hover:text-slate-400 transition-colors">SmartRoom Cầu Giấy</span>
+                        @endif
+
+                        <div class="absolute left-4 right-4 bottom-4 z-10 flex items-end justify-between gap-3">
+                            <div>
+                                <span class="block text-[10px] font-extrabold text-white uppercase tracking-widest drop-shadow">Ảnh thực tế phòng</span>
+                                <span class="block text-[10px] font-semibold text-slate-300 mt-0.5">Phòng {{ $room['room_number'] }} · {{ count($room['image_urls']) }} ảnh</span>
+                            </div>
+                            <span class="w-9 h-9 rounded-xl bg-slate-950/70 border border-white/10 backdrop-blur flex items-center justify-center text-emerald-300">
+                                <i class="fa-solid fa-images"></i>
+                            </span>
                         </div>
                     </div>
                     <!-- Details -->
@@ -209,6 +221,12 @@
                                 <span class="text-xl font-extrabold text-emerald-400">{{ number_format($room['price'], 0, ',', '.') }}đ</span>
                                 <span class="text-[10px] text-slate-500 font-semibold">/ tháng</span>
                             </div>
+                            @if($room['price_warning'])
+                                <div class="mb-3 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-200 font-bold flex items-start gap-2">
+                                    <i class="fa-solid fa-circle-exclamation mt-0.5"></i>
+                                    <span>{{ $room['price_warning']['label'] }}</span>
+                                </div>
+                            @endif
                         </div>
                         <div class="flex flex-wrap gap-1.5">
                             @if($room['loft'] === 'true')
@@ -237,139 +255,70 @@
             </div>
             @endforeach
         </div>
+
+        <section id="viewed-rooms-section" class="hidden mb-16">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-emerald-400"></i>
+                        Phòng bạn đã xem gần đây
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-1">Lưu nhanh trên trình duyệt để tránh mở nhầm lại cùng một phòng.</p>
+                </div>
+                <button type="button" onclick="clearViewedRooms()" class="text-xs font-bold text-slate-500 hover:text-slate-200">
+                    Xóa lịch sử
+                </button>
+            </div>
+            <div id="viewed-rooms-list" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+        </section>
     </main>
 
-    <!-- FLOATING COMPARE BOX / DOCK (HIDDEN BY DEFAULT) -->
-    <div id="compare-dock" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-[#0c111e]/90 backdrop-blur-md border border-slate-800 px-6 py-4 rounded-2xl shadow-2xl flex items-center justify-between gap-8 max-w-lg w-11/12 hidden animate-fade-in">
-        <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+    <!-- FLOATING COMPARE BAR -->
+    <div id="compare-dock" class="compare-floating-bar hidden">
+        <div class="compare-floating-copy">
+            <div class="compare-floating-icon">
                 <i class="fa-solid fa-code-compare"></i>
             </div>
             <div>
-                <strong class="text-xs block text-slate-200" id="compare-count-label">Đang chọn 1 phòng trọ</strong>
-                <span class="text-[10px] text-slate-500">So sánh các thông số trọ trực quan</span>
+                <strong id="compare-count-label">Đang chọn 1 phòng trọ</strong>
+                <span>Tối đa 3 phòng để so sánh</span>
             </div>
         </div>
-        
-        <div class="flex items-center gap-2">
-            <button onclick="clearCompare()" class="px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200 font-semibold transition-all">
+
+        <div class="compare-floating-actions">
+            <button type="button" onclick="clearCompare()">
                 Hủy
             </button>
-            <button onclick="openCompareModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-600/20 transition-all">
-                So Sánh Ngay
+            <button type="button" onclick="openCompareModal()">
+                So sánh ngay
             </button>
         </div>
     </div>
 
     <!-- ROOM COMPARISON MODAL -->
-    <div id="compare-modal" class="fixed inset-0 z-50 bg-[#04060b]/90 backdrop-blur-md hidden flex items-center justify-center p-4">
-        <div class="w-full max-w-5xl bg-[#0a0f1d] border border-slate-800 rounded-3xl p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto animate-fade-in">
-            <button onclick="closeCompareModal()" class="absolute top-6 right-6 w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-all">
+    <div id="compare-modal" class="compare-modal hidden">
+        <div class="compare-panel animate-fade-in">
+            <button type="button" onclick="closeCompareModal()" class="compare-close">
                 <i class="fa-solid fa-xmark"></i>
             </button>
 
-            <h2 class="text-xl font-bold mb-6 text-slate-100 flex items-center gap-2">
-                <i class="fa-solid fa-code-compare text-emerald-400"></i> Bảng So Sánh Các Phòng Trọ Đã Chọn
-            </h2>
-
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-                <!-- Left: Radar Chart (5/12 cols) -->
-                <div class="lg:col-span-5 p-6 rounded-2xl bg-[#0e1424]/60 border border-slate-800/80 flex flex-col justify-between items-center min-h-[360px]">
-                    <div class="w-full text-center">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Biểu Đồ Radar Chỉ Số</span>
-                        <span class="text-[9px] text-slate-500 block leading-tight">So sánh trực quan thang điểm 10 (càng xa tâm càng tốt)</span>
-                    </div>
-                    <div class="w-full h-72 flex items-center justify-center mt-4 relative">
-                        <canvas id="compareRadarChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Right: Detailed Table (7/12 cols) -->
-                <div class="lg:col-span-7 flex flex-col justify-between">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs text-slate-300 border-collapse">
-                            <thead>
-                                <tr class="border-b border-slate-900 pb-2">
-                                    <th class="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase">Tiêu chí</th>
-                                    <th class="px-3 py-3 font-bold text-xs text-emerald-400 max-w-[120px] truncate" id="compare-col-1-title">Phòng 1</th>
-                                    <th class="px-3 py-3 font-bold text-xs text-indigo-400 max-w-[120px] truncate" id="compare-col-2-title">Phòng 2</th>
-                                    <th class="px-3 py-3 font-bold text-xs text-cyan-400 max-w-[120px] truncate" id="compare-col-3-title">Phòng 3</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-900/60">
-                                <!-- Rent price -->
-                                <tr>
-                                    <td class="px-3 py-3 font-bold text-slate-400">Giá thuê / tháng</td>
-                                    <td class="px-3 py-3 font-extrabold text-slate-200" id="compare-val-1-price">-</td>
-                                    <td class="px-3 py-3 font-extrabold text-slate-200" id="compare-val-2-price">-</td>
-                                    <td class="px-3 py-3 font-extrabold text-slate-200" id="compare-val-3-price">-</td>
-                                </tr>
-                                <!-- Distance to campus -->
-                                <tr>
-                                    <td class="px-3 py-3 font-bold text-slate-400">Khoảng cách trường</td>
-                                    <td class="px-3 py-3 text-slate-300" id="compare-val-1-dist">-</td>
-                                    <td class="px-3 py-3 text-slate-300" id="compare-val-2-dist">-</td>
-                                    <td class="px-3 py-3 text-slate-300" id="compare-val-3-dist">-</td>
-                                </tr>
-                                <!-- Overall score -->
-                                <tr>
-                                    <td class="px-3 py-3 font-bold text-slate-400">Đánh giá chung</td>
-                                    <td class="px-3 py-3 font-bold text-amber-400" id="compare-val-1-rating">-</td>
-                                    <td class="px-3 py-3 font-bold text-amber-400" id="compare-val-2-rating">-</td>
-                                    <td class="px-3 py-3 font-bold text-amber-400" id="compare-val-3-rating">-</td>
-                                </tr>
-                                <!-- Owner Score -->
-                                <tr>
-                                    <td class="px-3 py-3 font-bold text-slate-400">Điểm chủ nhà</td>
-                                    <td class="px-3 py-3 text-slate-300" id="compare-val-1-owner">-</td>
-                                    <td class="px-3 py-3 text-slate-300" id="compare-val-2-owner">-</td>
-                                    <td class="px-3 py-3 text-slate-300" id="compare-val-3-owner">-</td>
-                                </tr>
-                                <!-- Security Score -->
-                                <tr>
-                                    <td class="px-3 py-3 font-bold text-slate-400">An ninh & Khóa</td>
-                                    <td class="px-3 py-3 text-slate-300" id="compare-val-1-sec">-</td>
-                                    <td class="px-3 py-3 text-slate-300" id="compare-val-2-sec">-</td>
-                                    <td class="px-3 py-3 text-slate-300" id="compare-val-3-sec">-</td>
-                                </tr>
-                                <!-- Pets allowed -->
-                                <tr>
-                                    <td class="px-3 py-3 font-bold text-slate-400">Cho nuôi thú cưng</td>
-                                    <td class="px-3 py-3" id="compare-val-1-pets">-</td>
-                                    <td class="px-3 py-3" id="compare-val-2-pets">-</td>
-                                    <td class="px-3 py-3" id="compare-val-3-pets">-</td>
-                                </tr>
-                                <!-- Has loft -->
-                                <tr>
-                                    <td class="px-3 py-3 font-bold text-slate-400">Có gác lửng</td>
-                                    <td class="px-3 py-3" id="compare-val-1-loft">-</td>
-                                    <td class="px-3 py-3" id="compare-val-2-loft">-</td>
-                                    <td class="px-3 py-3" id="compare-val-3-loft">-</td>
-                                </tr>
-                                <!-- Has balcony -->
-                                <tr>
-                                    <td class="px-3 py-3 font-bold text-slate-400">Ban công thoáng</td>
-                                    <td class="px-3 py-3" id="compare-val-1-balcony">-</td>
-                                    <td class="px-3 py-3" id="compare-val-2-balcony">-</td>
-                                    <td class="px-3 py-3" id="compare-val-3-balcony">-</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+            <div class="compare-panel-header">
+                <h2><i class="fa-solid fa-code-compare text-emerald-400"></i> So sánh phòng đã chọn</h2>
+                <p>Vuốt ngang trên điện thoại để xem đủ các phòng.</p>
             </div>
 
-            <div class="mt-8 pt-4 border-t border-slate-900 flex justify-end">
-                <button onclick="closeCompareModal()" class="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-slate-800 hover:bg-slate-700 transition-all">
-                    Đóng bảng so sánh
-                </button>
+            <div class="compare-table-wrap">
+                <table class="compare-table">
+                    <thead id="compare-table-head"></thead>
+                    <tbody id="compare-table-body"></tbody>
+                </table>
             </div>
         </div>
     </div>
 
     <!-- ROOM DETAIL & REVIEWS MODAL -->
     <div id="room-detail-modal" class="fixed inset-0 z-50 bg-[#04060b]/90 backdrop-blur-md hidden flex items-center justify-center p-4">
-        <div class="w-full max-w-2xl bg-[#0a0f1d] border border-slate-800 rounded-3xl p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto animate-fade-in">
+        <div class="room-detail-panel w-full max-w-3xl bg-[#0a0f1d] border border-slate-800 rounded-3xl p-5 md:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto animate-fade-in">
             <button onclick="closeRoomDetailModal()" class="absolute top-6 right-6 w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-all">
                 <i class="fa-solid fa-xmark"></i>
             </button>
@@ -379,46 +328,132 @@
                 <i class="fa-solid fa-location-dot text-slate-600"></i> <span id="detail-room-address">Số 12 Ngõ 105 Xuân Thủy, Cầu Giấy</span>
             </p>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <!-- Info Left -->
-                <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800/40 space-y-3">
-                    <div class="flex justify-between text-sm">
-                        <span class="text-slate-500">Giá thuê:</span>
-                        <strong class="text-emerald-400 font-extrabold" id="detail-room-price">3.200.000đ/tháng</strong>
-                    </div>
-                    <div class="flex justify-between text-sm">
-                        <span class="text-slate-500">Đánh giá trung bình:</span>
-                        <strong class="text-amber-400 font-bold" id="detail-room-rating">4.5 ⭐</strong>
-                    </div>
-                    <div class="flex justify-between text-sm">
-                        <span class="text-slate-500">Chủ nhà & Dịch vụ:</span>
-                        <span class="text-slate-300 text-xs" id="detail-room-owner">⭐⭐⭐⭐⭐</span>
-                    </div>
-                    <div class="flex justify-between text-sm">
-                        <span class="text-slate-500">An ninh & Khóa:</span>
-                        <span class="text-slate-300 text-xs" id="detail-room-sec">⭐⭐⭐⭐⭐</span>
+            <div class="mb-6">
+                <div class="relative h-72 rounded-2xl overflow-hidden bg-slate-950 border border-slate-800">
+                    <img id="detail-main-image" src="" alt="Ảnh phòng trọ" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none"></div>
+                    <div class="absolute left-4 bottom-4">
+                        <span class="px-3 py-1.5 rounded-lg bg-slate-950/70 border border-white/10 backdrop-blur text-xs font-bold text-slate-100">
+                            <i class="fa-solid fa-camera text-emerald-300 mr-1.5"></i><span id="detail-image-count">Ảnh phòng</span>
+                        </span>
                     </div>
                 </div>
+                <div id="detail-image-thumbs" class="mt-3 grid grid-cols-3 gap-3">
+                </div>
+            </div>
 
-                <!-- Info Right -->
-                <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800/40 space-y-3">
-                    <div class="flex justify-between text-sm">
-                        <span class="text-slate-500">Nuôi thú cưng:</span>
-                        <strong class="text-slate-200" id="detail-room-pets">Có</strong>
+            <div class="mb-6">
+                <div class="flex items-center justify-between gap-3 mb-3">
+                    <h3 class="text-sm font-extrabold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-table-cells-large text-emerald-400"></i>
+                        Thông tin phòng
+                    </h3>
+                    <strong class="text-amber-400 text-xs" id="detail-room-rating">4.5 sao</strong>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div class="detail-info-tile">
+                        <span><i class="fa-solid fa-tag"></i></span>
+                        <small>Giá</small>
+                        <strong id="detail-room-price">3.200.000đ/tháng</strong>
                     </div>
-                    <div class="flex justify-between text-sm">
-                        <span class="text-slate-500">Có gác lửng:</span>
-                        <strong class="text-slate-200" id="detail-room-loft">Có</strong>
+                    <div class="detail-info-tile">
+                        <span><i class="fa-solid fa-ruler-combined"></i></span>
+                        <small>Diện tích</small>
+                        <strong id="detail-room-area">0 m²</strong>
                     </div>
-                    <div class="flex justify-between text-sm">
-                        <span class="text-slate-500">Có ban công:</span>
-                        <strong class="text-slate-200" id="detail-room-balcony">Có</strong>
+                    <div class="detail-info-tile">
+                        <span><i class="fa-solid fa-location-dot"></i></span>
+                        <small>Địa chỉ</small>
+                        <strong id="detail-room-area-name">Khu vực trung tâm</strong>
+                    </div>
+                    <div class="detail-info-tile">
+                        <span><i class="fa-solid fa-shield-halved"></i></span>
+                        <small>Cọc</small>
+                        <strong>1 tháng</strong>
+                    </div>
+                    <div class="detail-info-tile">
+                        <span><i class="fa-solid fa-bolt"></i></span>
+                        <small>Điện</small>
+                        <strong>3.5k/kWh</strong>
+                    </div>
+                    <div class="detail-info-tile">
+                        <span><i class="fa-solid fa-droplet"></i></span>
+                        <small>Nước</small>
+                        <strong>20k/người</strong>
                     </div>
                 </div>
             </div>
 
+            <div id="detail-price-warning" class="hidden mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-100 text-xs leading-relaxed">
+                <div class="flex items-start gap-3">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-300 mt-0.5"></i>
+                    <div>
+                        <strong class="block text-amber-200 mb-1" id="detail-price-warning-title">Cảnh báo giá</strong>
+                        <span id="detail-price-warning-message"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-6 p-5 rounded-2xl bg-slate-900/45 border border-slate-800/60">
+                <div class="flex items-center justify-between gap-3 mb-3">
+                    <h3 class="text-sm font-extrabold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-align-left text-emerald-400"></i>
+                        Mô tả chi tiết
+                    </h3>
+                    <div class="hidden">
+                        <span id="detail-room-owner"></span>
+                        <span id="detail-room-sec"></span>
+                        <span id="detail-room-pets"></span>
+                        <span id="detail-room-loft"></span>
+                        <span id="detail-room-balcony"></span>
+                    </div>
+                </div>
+                <p class="detail-description detail-description-clamped text-xs text-slate-300 leading-relaxed" id="detail-full-description"></p>
+                <button type="button" onclick="toggleDetailDescription(this)" class="mt-3 text-xs font-extrabold text-emerald-400 hover:text-emerald-300">
+                    Xem thêm
+                </button>
+            </div>
+
+            <div class="mb-6 p-5 rounded-2xl bg-[#070b13] border border-slate-800/70">
+                <div class="flex items-start justify-between gap-3 mb-4">
+                    <div>
+                        <h3 class="text-sm font-extrabold text-slate-100 flex items-center gap-2">
+                            <i class="fa-solid fa-calculator text-cyan-300"></i>
+                            Chi phí dự kiến khi vào ở
+                        </h3>
+                        <p class="text-[11px] text-slate-500 mt-1">Ước tính nhanh, có thể điều chỉnh theo số người và số xe.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                    <div class="cost-stepper">
+                        <span>Số người ở</span>
+                        <div>
+                            <button type="button" id="cost-people-minus" onclick="updateMoveInCost('people', -1)">-</button>
+                            <strong id="cost-people">2</strong>
+                            <button type="button" id="cost-people-plus" onclick="updateMoveInCost('people', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="cost-stepper">
+                        <span>Số lượng xe</span>
+                        <div>
+                            <button type="button" onclick="updateMoveInCost('vehicles', -1)">-</button>
+                            <strong id="cost-vehicles">1</strong>
+                            <button type="button" onclick="updateMoveInCost('vehicles', 1)">+</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-2 text-xs">
+                    <div class="cost-row"><span>Tiền phòng</span><strong id="cost-room">3.200.000đ</strong></div>
+                    <div class="cost-row"><span>Cọc</span><strong id="cost-deposit">3.200.000đ</strong></div>
+                    <div class="cost-row"><span>Điện dự kiến</span><strong id="cost-electric">350.000đ</strong></div>
+                    <div class="cost-row"><span>Nước</span><strong id="cost-water">40.000đ</strong></div>
+                    <div class="cost-row"><span>Phí dịch vụ / xe</span><strong id="cost-service">150.000đ</strong></div>
+                    <div class="cost-row cost-total"><span>Tổng ban đầu</span><strong id="cost-total">6.940.000đ</strong></div>
+                </div>
+            </div>
+
             <!-- Contact landlord and request consultation -->
-            <div class="border-t border-slate-800/60 pt-6 mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="border-t border-slate-800/60 pt-6 mb-6">
                 <div>
                     <h3 class="text-sm font-bold text-slate-300 mb-3"><i class="fa-solid fa-phone-volume text-emerald-400 mr-1.5"></i>Liên hệ Chủ nhà</h3>
                     <div class="p-4 rounded-xl bg-[#070b13] border border-slate-800/60 space-y-4">
@@ -472,52 +507,86 @@
                     </form>
                 </div>
 
-                <div>
-                    <h3 class="text-sm font-bold text-slate-300 mb-3"><i class="fa-solid fa-comments text-amber-400 mr-1.5"></i>Đánh giá thực tế từ người ở trước</h3>
-                    <div class="space-y-4 max-h-[460px] overflow-y-auto pr-2" id="detail-reviews-container">
-                        <!-- Dynamic list of reviews -->
+            </div>
+
+            <!-- Reviews: summary, list, and write form in one place -->
+            <div class="reviews-end-section border-t border-slate-800/60 pt-6">
+                <div class="flex items-center justify-between gap-3 mb-3">
+                    <h3 class="text-sm font-bold text-slate-300"><i class="fa-solid fa-comments text-amber-400 mr-1.5"></i>Đánh giá thực tế</h3>
+                    <button type="button" id="review-summary-btn" onclick="loadReviewSummary(this)" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> AI tóm tắt
+                    </button>
+                </div>
+                <div id="review-summary-box" class="hidden mb-3 rounded-xl bg-slate-900/70 border border-slate-800 p-3 text-xs text-slate-300"></div>
+                <div class="p-4 rounded-xl bg-[#070b13] border border-slate-800/60 mb-4">
+                    <div class="flex flex-col md:flex-row md:items-start gap-4 mb-4">
+                        <div class="min-w-20">
+                            <strong class="block text-4xl leading-none text-slate-100" id="review-average-score">4.8</strong>
+                            <span class="block text-amber-400 text-xs mt-1" id="review-average-stars">★★★★★</span>
+                            <small class="block text-[10px] text-slate-500 mt-1" id="review-count-label">24 đánh giá</small>
+                        </div>
+                        <div class="flex-1 space-y-2" id="review-score-bars"></div>
                     </div>
+                    <a href="https://zalo.me/0987654321" target="_blank" class="w-full min-h-10 rounded-lg bg-blue-600/20 border border-blue-500/30 text-blue-200 text-xs font-extrabold flex items-center justify-center gap-2 hover:bg-blue-600/30 transition-all">
+                        <i class="fa-solid fa-comments"></i> Chat Zalo để hỏi phòng
+                    </a>
+                </div>
+                <div class="space-y-3" id="detail-reviews-container">
+                    <!-- Dynamic list of reviews -->
+                </div>
+                <button type="button" id="show-all-reviews-btn" onclick="toggleAllReviews()" class="hidden mt-3 w-full min-h-11 rounded-xl border border-slate-800 bg-slate-900/50 text-slate-200 text-xs font-extrabold hover:border-slate-700">
+                    Xem tất cả đánh giá
+                </button>
+
+                <div class="mt-6 pt-6 border-t border-slate-800/60">
+                    <h3 class="text-sm font-bold text-slate-300 mb-3">Gửi đánh giá của bạn</h3>
+                    <form id="write-review-form" action="" method="POST" class="space-y-4">
+                        @csrf
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Tên của bạn</label>
+                                @auth
+                                    <input type="text" name="author_name" value="{{ Auth::user()->name }}" readonly class="w-full px-4 py-2.5 rounded-xl bg-[#0a0e17] border border-slate-800 text-slate-400 text-xs cursor-not-allowed">
+                                @else
+                                    <input type="text" name="author_name" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-emerald-500 focus:outline-none" placeholder="Nguyễn Văn A">
+                                @endauth
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Điểm đánh giá (1-5)</label>
+                                <select name="rating" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-emerald-500 focus:outline-none">
+                                    <option value="5">5 ⭐⭐⭐⭐⭐ (Xuất sắc)</option>
+                                    <option value="4">4 ⭐⭐⭐⭐ (Tốt)</option>
+                                    <option value="3">3 ⭐⭐⭐ (Trung bình)</option>
+                                    <option value="2">2 ⭐⭐ (Kém)</option>
+                                    <option value="1">1 ⭐ (Rất kém)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Bình luận trải nghiệm thực tế</label>
+                            <textarea name="comment" required rows="3" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-emerald-500 focus:outline-none" placeholder="Hãy chia sẻ trải nghiệm về chủ nhà, an ninh, phòng ốc..."></textarea>
+                        </div>
+                        <div class="flex justify-end gap-3">
+                            <button type="button" onclick="closeRoomDetailModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 bg-transparent hover:bg-slate-900 border border-transparent hover:border-slate-800 transition-all">
+                                Hủy bỏ
+                            </button>
+                            <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-600/20 transition-all">
+                                Gửi Đánh Giá
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
-            <!-- Write Review Form -->
-            <div class="border-t border-slate-800/60 pt-6">
-                <h3 class="text-sm font-bold text-slate-300 mb-3">Gửi đánh giá của bạn</h3>
-                <form id="write-review-form" action="" method="POST" class="space-y-4">
-                    @csrf
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Tên của bạn</label>
-                            @auth
-                                <input type="text" name="author_name" value="{{ Auth::user()->name }}" readonly class="w-full px-4 py-2.5 rounded-xl bg-[#0a0e17] border border-slate-800 text-slate-400 text-xs cursor-not-allowed">
-                            @else
-                                <input type="text" name="author_name" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-emerald-500 focus:outline-none" placeholder="Nguyễn Văn A">
-                            @endauth
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Điểm đánh giá (1-5)</label>
-                            <select name="rating" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-emerald-500 focus:outline-none">
-                                <option value="5">5 ⭐⭐⭐⭐⭐ (Xuất sắc)</option>
-                                <option value="4">4 ⭐⭐⭐⭐ (Tốt)</option>
-                                <option value="3">3 ⭐⭐⭐ (Trung bình)</option>
-                                <option value="2">2 ⭐⭐ (Kém)</option>
-                                <option value="1">1 ⭐ (Rất kém)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Bình luận trải nghiệm thực tế</label>
-                        <textarea name="comment" required rows="3" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:border-emerald-500 focus:outline-none" placeholder="Hãy chia sẻ trải nghiệm về chủ nhà, an ninh, phòng ốc..."></textarea>
-                    </div>
-                    <div class="flex justify-end gap-3">
-                        <button type="button" onclick="closeRoomDetailModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 bg-transparent hover:bg-slate-900 border border-transparent hover:border-slate-800 transition-all">
-                            Hủy bỏ
-                        </button>
-                        <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-600/20 transition-all">
-                            Gửi Đánh Giá
-                        </button>
-                    </div>
-                </form>
+            <div class="sticky-contact-bar">
+                <div class="sticky-price">
+                    <span>Giá thuê</span>
+                    <strong id="sticky-room-price">3.2tr/tháng</strong>
+                </div>
+                <div class="sticky-actions">
+                    <a href="tel:0987654321" class="sticky-call-button"><i class="fa-solid fa-phone"></i> Gọi điện</a>
+                    <a href="https://zalo.me/0987654321" target="_blank" class="sticky-zalo-button"><i class="fa-solid fa-comments"></i> Chat Zalo</a>
+                </div>
             </div>
         </div>
     </div>
@@ -715,20 +784,331 @@
             drawer.classList.toggle('hidden');
         }
 
+        let currentDetailRoomId = null;
+        let activeRoomReviews = [];
+        const MOVE_IN_MAX_PEOPLE = 5;
+        let activeRoomCost = {
+            room: 0,
+            people: 2,
+            vehicles: 1
+        };
+
+        function formatCurrency(value) {
+            return Number(value || 0).toLocaleString('vi-VN') + 'đ';
+        }
+
+        function formatShortPrice(value) {
+            const millions = Number(value || 0) / 1000000;
+            return `${millions.toFixed(millions % 1 === 0 ? 0 : 1)}tr/tháng`;
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function updateMoveInCost(type, delta) {
+            if (type === 'people') {
+                activeRoomCost.people = Math.min(MOVE_IN_MAX_PEOPLE, Math.max(1, activeRoomCost.people + delta));
+            }
+
+            if (type === 'vehicles') {
+                activeRoomCost.vehicles = Math.max(0, activeRoomCost.vehicles + delta);
+            }
+
+            const room = Number(activeRoomCost.room || 0);
+            const deposit = room;
+            const electric = 350000;
+            const water = activeRoomCost.people * 20000;
+            const service = 100000 + activeRoomCost.vehicles * 50000;
+            const total = room + deposit + electric + water + service;
+
+            document.getElementById('cost-people').textContent = activeRoomCost.people;
+            document.getElementById('cost-vehicles').textContent = activeRoomCost.vehicles;
+            document.getElementById('cost-room').textContent = formatCurrency(room);
+            document.getElementById('cost-deposit').textContent = formatCurrency(deposit);
+            document.getElementById('cost-electric').textContent = formatCurrency(electric);
+            document.getElementById('cost-water').textContent = formatCurrency(water);
+            document.getElementById('cost-service').textContent = formatCurrency(service);
+            document.getElementById('cost-total').textContent = formatCurrency(total);
+
+            const peopleMinus = document.getElementById('cost-people-minus');
+            const peoplePlus = document.getElementById('cost-people-plus');
+            peopleMinus.disabled = activeRoomCost.people <= 1;
+            peoplePlus.disabled = activeRoomCost.people >= MOVE_IN_MAX_PEOPLE;
+            peopleMinus.classList.toggle('opacity-40', peopleMinus.disabled);
+            peoplePlus.classList.toggle('opacity-40', peoplePlus.disabled);
+            peopleMinus.classList.toggle('cursor-not-allowed', peopleMinus.disabled);
+            peoplePlus.classList.toggle('cursor-not-allowed', peoplePlus.disabled);
+        }
+
+        function toggleDetailDescription(button) {
+            const description = document.getElementById('detail-full-description');
+            description.classList.toggle('detail-description-clamped');
+            button.textContent = description.classList.contains('detail-description-clamped') ? 'Xem thêm' : 'Thu gọn';
+        }
+
+        function renderReviewSummary(data) {
+            const average = Number(data.rating || 0);
+            const reviewCount = Array.isArray(data.reviews) ? data.reviews.length : 0;
+            const criteria = [
+                ['Sạch sẽ', Math.min(5, average + 0.1)],
+                ['Vị trí', Math.max(3.5, average - 0.1)],
+                ['Chủ nhà', Math.min(5, average + 0.05)],
+                ['Giá cả', Math.max(3.5, average - 0.2)]
+            ];
+
+            document.getElementById('review-average-score').textContent = average.toFixed(1);
+            document.getElementById('review-average-stars').textContent = '★'.repeat(Math.round(average)) + '☆'.repeat(5 - Math.round(average));
+            document.getElementById('review-count-label').textContent = reviewCount > 0 ? `${reviewCount} đánh giá` : 'Chưa có đánh giá';
+            document.getElementById('review-score-bars').innerHTML = criteria.map(([label, score]) => `
+                <div class="review-score-row">
+                    <span>${label}</span>
+                    <div><i style="width: ${(score / 5) * 100}%"></i></div>
+                    <strong>${score.toFixed(1)}</strong>
+                </div>
+            `).join('');
+        }
+
+        function renderReviews(showAll = false) {
+            const container = document.getElementById('detail-reviews-container');
+            const button = document.getElementById('show-all-reviews-btn');
+            container.innerHTML = '';
+
+            if (!activeRoomReviews.length) {
+                container.innerHTML = `
+                    <div class="py-4 text-center text-xs text-slate-500 italic">
+                        Chưa có đánh giá thực tế nào cho phòng này. Hãy là người đầu tiên đánh giá!
+                    </div>
+                `;
+                button.classList.add('hidden');
+                return;
+            }
+
+            activeRoomReviews.slice(0, showAll ? activeRoomReviews.length : 2).forEach(rev => {
+                const rating = Math.max(1, Math.min(5, Number(rev.rating || 5)));
+                const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+                const item = document.createElement('div');
+                item.className = 'p-3 rounded-xl bg-slate-900/60 border border-slate-800/50 space-y-1.5';
+                item.innerHTML = `
+                    <div class="flex justify-between items-center text-xs gap-3">
+                        <span class="font-bold text-slate-300">${escapeHtml(rev.author_name)}</span>
+                        <span class="text-amber-400 font-semibold whitespace-nowrap">${stars}</span>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">${escapeHtml(rev.comment)}</p>
+                    <span class="block text-[9px] text-slate-600">${escapeHtml(rev.created_at)}</span>
+                `;
+                container.appendChild(item);
+            });
+
+            if (activeRoomReviews.length > 2) {
+                button.classList.remove('hidden');
+                button.textContent = showAll ? 'Thu gọn đánh giá' : 'Xem tất cả đánh giá';
+                button.dataset.expanded = showAll ? 'true' : 'false';
+            } else {
+                button.classList.add('hidden');
+            }
+        }
+
+        function toggleAllReviews() {
+            const button = document.getElementById('show-all-reviews-btn');
+            renderReviews(button.dataset.expanded !== 'true');
+        }
+
+        function getViewedRoomIds() {
+            try {
+                return JSON.parse(localStorage.getItem('renty_viewed_rooms') || '[]');
+            } catch (error) {
+                return [];
+            }
+        }
+
+        function saveViewedRoom(roomId) {
+            const normalizedId = String(roomId);
+            const viewedIds = getViewedRoomIds().filter(id => id !== normalizedId);
+            viewedIds.unshift(normalizedId);
+            localStorage.setItem('renty_viewed_rooms', JSON.stringify(viewedIds.slice(0, 6)));
+            renderViewedRooms();
+        }
+
+        function clearViewedRooms() {
+            localStorage.removeItem('renty_viewed_rooms');
+            document.querySelectorAll('.room-item-card').forEach(card => {
+                card.dataset.viewed = 'false';
+                card.classList.remove('room-card-viewed');
+                card.querySelector('.viewed-room-badge')?.remove();
+            });
+            renderViewedRooms();
+        }
+
+        function renderViewedRooms() {
+            const section = document.getElementById('viewed-rooms-section');
+            const list = document.getElementById('viewed-rooms-list');
+            const viewedIds = getViewedRoomIds();
+
+            document.querySelectorAll('.room-item-card').forEach(card => {
+                const isViewed = viewedIds.includes(String(card.dataset.roomId));
+                card.dataset.viewed = isViewed ? 'true' : 'false';
+                card.classList.toggle('room-card-viewed', isViewed);
+
+                if (isViewed && !card.querySelector('.viewed-room-badge')) {
+                    const badge = document.createElement('span');
+                    badge.className = 'viewed-room-badge absolute left-4 top-14 px-2.5 py-1 rounded-lg bg-slate-950/75 border border-white/10 text-[9px] text-slate-200 font-extrabold z-10 backdrop-blur';
+                    badge.innerHTML = '<i class="fa-solid fa-eye mr-1"></i> Đã xem';
+                    card.querySelector('.h-48')?.appendChild(badge);
+                }
+
+                if (!isViewed) {
+                    card.querySelector('.viewed-room-badge')?.remove();
+                }
+            });
+
+            if (!section || !list) return;
+
+            const viewedRooms = viewedIds.map(id => mockRooms[id]).filter(Boolean);
+            if (!viewedRooms.length) {
+                section.classList.add('hidden');
+                list.innerHTML = '';
+                return;
+            }
+
+            section.classList.remove('hidden');
+            list.innerHTML = viewedRooms.map(room => `
+                <button type="button" onclick="openRoomDetailModal('${room.id}')" class="viewed-room-chip">
+                    <img src="${room.cover_image}" alt="Phòng ${room.room_number}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
+                    <span>
+                        <strong>${escapeHtml(room.title)}</strong>
+                        <small>${Number(room.price || 0).toLocaleString('vi-VN')}đ/tháng · ${escapeHtml(room.area_text || '')}</small>
+                    </span>
+                </button>
+            `).join('');
+        }
+
+        function parseNaturalSearch(query) {
+            const normalized = query
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/đ/g, 'd');
+
+            const parsed = {
+                maxPrice: null,
+                keywords: normalized.split(/\s+/).filter(Boolean),
+                locations: [],
+                amenities: {
+                    pets: normalized.includes('thu cung') || normalized.includes('pet'),
+                    loft: normalized.includes('gac') || normalized.includes('gac lung'),
+                    balcony: normalized.includes('ban cong')
+                },
+                near: []
+            };
+
+            const priceMatch = normalized.match(/(?:duoi|nho hon|toi da|<=?)\s*(\d+(?:[.,]\d+)?)\s*(trieu|tr|m|000000)?/);
+            if (priceMatch) {
+                const amount = parseFloat(priceMatch[1].replace(',', '.'));
+                parsed.maxPrice = amount < 100000 ? amount * 1000000 : amount;
+            }
+
+            const locationAliases = [
+                ['cau giay', 'cầu giấy'],
+                ['thanh xuan', 'thanh xuân'],
+                ['quan 10', 'quận 10'],
+                ['bach khoa', 'bách khoa'],
+                ['dai hoc bach khoa', 'đại học bách khoa'],
+                ['su pham', 'sư phạm'],
+                ['quoc gia', 'quốc gia'],
+                ['xuan thuy', 'xuân thủy']
+            ];
+
+            locationAliases.forEach(([plain, label]) => {
+                if (normalized.includes(plain)) {
+                    parsed.locations.push(plain);
+                    parsed.near.push(label);
+                }
+            });
+
+            return parsed;
+        }
+
+        function normalizeText(value) {
+            return String(value || '')
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/đ/g, 'd');
+        }
+
         // Room details modal
         function openRoomDetailModal(roomId) {
             const data = mockRooms[roomId];
             if (!data) return;
 
+            currentDetailRoomId = roomId;
+            const summaryBox = document.getElementById('review-summary-box');
+            summaryBox.classList.add('hidden');
+            summaryBox.innerHTML = '';
+
             document.getElementById('detail-room-title').textContent = data.title;
             document.getElementById('detail-room-address').textContent = data.address;
             document.getElementById('detail-room-price').textContent = data.price.toLocaleString('vi-VN') + "đ/tháng";
+            document.getElementById('sticky-room-price').textContent = formatShortPrice(data.price);
             document.getElementById('detail-room-rating').textContent = data.rating + " ⭐";
             document.getElementById('detail-room-owner').textContent = data.owner;
             document.getElementById('detail-room-sec').textContent = data.sec;
             document.getElementById('detail-room-pets').textContent = data.pets_txt;
             document.getElementById('detail-room-loft').textContent = data.loft_txt;
             document.getElementById('detail-room-balcony').textContent = data.balcony_txt;
+            document.getElementById('detail-room-area').textContent = data.area_text;
+            document.getElementById('detail-room-area-name').textContent = (data.address || '').split('(')[0].trim() || 'Khu vực trung tâm';
+
+            const fullDescription = [
+                data.location_description,
+                data.scenery_description,
+                data.space_description,
+                `Tiện ích nổi bật: ${data.loft_txt === 'Có' ? 'có gác lửng' : 'không gác lửng'}, ${data.balcony_txt === 'Có' ? 'có ban công' : 'không ban công'}, ${data.pets_txt === 'Có' ? 'có thể nuôi thú cưng' : 'không nuôi thú cưng'}.`
+            ].filter(Boolean).join(' ');
+            const description = document.getElementById('detail-full-description');
+            description.textContent = fullDescription;
+            description.classList.add('detail-description-clamped');
+            const descButton = description.nextElementSibling;
+            if (descButton) descButton.textContent = 'Xem thêm';
+
+            activeRoomCost = {
+                room: Number(data.price || 0),
+                people: 2,
+                vehicles: 1
+            };
+            updateMoveInCost();
+
+            const images = Array.isArray(data.image_urls) && data.image_urls.length > 0 ? data.image_urls : [data.cover_image];
+            const mainImage = document.getElementById('detail-main-image');
+            const imageCount = document.getElementById('detail-image-count');
+            const thumbs = document.getElementById('detail-image-thumbs');
+
+            mainImage.src = images[0];
+            mainImage.alt = `Ảnh phòng ${data.room_number}`;
+            imageCount.textContent = `${images.length} ảnh phòng ${data.room_number}`;
+            thumbs.innerHTML = '';
+
+            images.slice(0, 6).forEach((src, index) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'h-20 rounded-xl overflow-hidden border border-slate-800 hover:border-emerald-500/70 transition-all focus:outline-none focus:border-emerald-400';
+                button.innerHTML = `<img src="${src}" alt="Ảnh phòng ${data.room_number} ${index + 1}" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">`;
+                button.addEventListener('click', () => {
+                    mainImage.src = src;
+                    document.querySelectorAll('#detail-image-thumbs button').forEach(btn => btn.classList.remove('border-emerald-400'));
+                    button.classList.add('border-emerald-400');
+                });
+                if (index === 0) {
+                    button.classList.add('border-emerald-400');
+                }
+                thumbs.appendChild(button);
+            });
 
             // Set form action route
             const form = document.getElementById('write-review-form');
@@ -737,219 +1117,83 @@
             // Set contact request hidden input
             document.getElementById('contact-room-id').value = roomId;
 
-            // Populate reviews
-            const container = document.getElementById('detail-reviews-container');
-            container.innerHTML = '';
+            activeRoomReviews = Array.isArray(data.reviews) ? data.reviews : [];
+            renderReviewSummary(data);
+            renderReviews(false);
 
-            if (data.reviews && data.reviews.length > 0) {
-                data.reviews.forEach(rev => {
-                    const stars = '⭐'.repeat(rev.rating) + '☆'.repeat(5 - rev.rating);
-                    const item = document.createElement('div');
-                    item.className = 'p-3 rounded-xl bg-slate-900/60 border border-slate-800/50 space-y-1.5';
-                    item.innerHTML = `
-                        <div class="flex justify-between items-center text-xs">
-                            <span class="font-bold text-slate-300">${rev.author_name}</span>
-                            <span class="text-amber-400 font-semibold">${stars}</span>
-                        </div>
-                        <p class="text-xs text-slate-400 leading-relaxed">${rev.comment}</p>
-                        <span class="block text-[9px] text-slate-600">${rev.created_at}</span>
-                    `;
-                    container.appendChild(item);
-                });
+            const warningBox = document.getElementById('detail-price-warning');
+            if (data.price_warning) {
+                document.getElementById('detail-price-warning-title').textContent = data.price_warning.label;
+                document.getElementById('detail-price-warning-message').textContent = data.price_warning.message;
+                warningBox.classList.remove('hidden');
             } else {
-                container.innerHTML = `
-                    <div class="py-4 text-center text-xs text-slate-500 italic">
-                        Chưa có đánh giá thực tế nào cho phòng này. Hãy là người đầu tiên đánh giá!
-                    </div>
-                `;
+                warningBox.classList.add('hidden');
             }
 
+            saveViewedRoom(roomId);
+
             document.getElementById('room-detail-modal').classList.remove('hidden');
+        }
+
+        function loadReviewSummary(btn) {
+            if (!currentDetailRoomId) return;
+
+            const box = document.getElementById('review-summary-box');
+            const original = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang tóm tắt...';
+            box.classList.remove('hidden');
+            box.textContent = 'AI đang đọc các review...';
+
+            fetch(`/api/renty/rooms/${currentDetailRoomId}/reviews/summary`)
+                .then(res => res.json())
+                .then(data => {
+                    btn.disabled = false;
+                    btn.innerHTML = original;
+
+                    if (!data.success) {
+                        box.textContent = 'Không thể tóm tắt review.';
+                        return;
+                    }
+
+                    const summary = data.summary;
+                    const pros = (summary.pros || []).map(item => `<li>${escapeHtml(item)}</li>`).join('');
+                    const cons = (summary.cons || []).map(item => `<li>${escapeHtml(item)}</li>`).join('');
+                    box.innerHTML = `
+                        <div class="font-bold text-slate-200">${escapeHtml(summary.summary || '')}</div>
+                        ${pros ? `<div class="mt-2 text-emerald-300 font-bold">Ưu điểm</div><ul class="list-disc pl-5">${pros}</ul>` : ''}
+                        ${cons ? `<div class="mt-2 text-amber-300 font-bold">Cần lưu ý</div><ul class="list-disc pl-5">${cons}</ul>` : ''}
+                    `;
+                })
+                .catch(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = original;
+                    box.textContent = 'Không thể kết nối AI để tóm tắt review.';
+                });
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
         }
 
         function closeRoomDetailModal() {
             document.getElementById('room-detail-modal').classList.add('hidden');
         }
 
-        // Room lists mock database object for comparison
+        // Room lists mock database object for detail and comparison.
         const mockRooms = {!! json_encode($rooms->keyBy('id')) !!};
-
-        // Track selected comparison rooms
-        let selectedRooms = [];
-
-        function toggleCompare(roomId, checkbox) {
-            if (checkbox.checked) {
-                if (selectedRooms.length >= 3) {
-                    alert('Chỉ được so sánh tối đa 3 phòng trọ cùng lúc!');
-                    checkbox.checked = false;
-                    return;
-                }
-                selectedRooms.push(roomId);
-            } else {
-                selectedRooms = selectedRooms.filter(id => id !== roomId);
-            }
-
-            updateCompareDock();
-        }
-
-        function updateCompareDock() {
-            const dock = document.getElementById('compare-dock');
-            const label = document.getElementById('compare-count-label');
-
-            if (selectedRooms.length > 0) {
-                dock.classList.remove('hidden');
-                label.textContent = `Đang chọn ${selectedRooms.length} phòng trọ`;
-            } else {
-                dock.classList.add('hidden');
-            }
-        }
-
-        function clearCompare() {
-            selectedRooms = [];
-            document.querySelectorAll('.compare-checkbox').forEach(cb => cb.checked = false);
-            updateCompareDock();
-        }
-
-        // Track radar chart instance
-        let compareChartInstance = null;
-
-        function openCompareModal() {
-            if (selectedRooms.length === 0) return;
-            
-            const modal = document.getElementById('compare-modal');
-            
-            // Pre-clear table values
-            for (let col = 1; col <= 3; col++) {
-                document.getElementById(`compare-col-${col}-title`).textContent = "-";
-                document.getElementById(`compare-val-${col}-price`).textContent = "-";
-                document.getElementById(`compare-val-${col}-dist`).textContent = "-";
-                document.getElementById(`compare-val-${col}-rating`).textContent = "-";
-                document.getElementById(`compare-val-${col}-owner`).textContent = "-";
-                document.getElementById(`compare-val-${col}-sec`).textContent = "-";
-                document.getElementById(`compare-val-${col}-pets`).textContent = "-";
-                document.getElementById(`compare-val-${col}-loft`).textContent = "-";
-                document.getElementById(`compare-val-${col}-balcony`).textContent = "-";
-            }
-
-            // Construct query string with selected IDs
-            const queryParams = selectedRooms.map(id => `ids[]=${id}`).join('&');
-            
-            fetch(`/api/rooms/compare?${queryParams}`)
-                .then(res => res.json())
-                .then(response => {
-                    if (!response.success || !response.data) return;
-                    
-                    const roomsData = response.data;
-                    const datasets = [];
-                    const colors = [
-                        { stroke: '#10b981', fill: 'rgba(16, 185, 129, 0.15)' }, // Emerald
-                        { stroke: '#6366f1', fill: 'rgba(99, 102, 241, 0.15)' },  // Indigo
-                        { stroke: '#06b6d4', fill: 'rgba(6, 182, 212, 0.15)' }    // Cyan
-                    ];
-
-                    roomsData.forEach((room, idx) => {
-                        const col = idx + 1;
-                        
-                        // Populate Table
-                        document.getElementById(`compare-col-${col}-title`).textContent = `Phòng ${room.room_number}`;
-                        document.getElementById(`compare-val-${col}-price`).textContent = room.price_formatted;
-                        document.getElementById(`compare-val-${col}-dist`).textContent = room.distance + " km";
-                        document.getElementById(`compare-val-${col}-rating`).textContent = room.rating + " ⭐";
-                        document.getElementById(`compare-val-${col}-owner`).textContent = "⭐".repeat(room.owner_stars) + "☆".repeat(5 - room.owner_stars) + ` (${room.owner_stars}/5)`;
-                        document.getElementById(`compare-val-${col}-sec`).textContent = "⭐".repeat(room.security_stars) + "☆".repeat(5 - room.security_stars) + ` (${room.security_stars}/5)`;
-                        
-                        const petsElem = document.getElementById(`compare-val-${col}-pets`);
-                        petsElem.textContent = room.pets;
-                        petsElem.className = room.pets === 'Có' ? 'px-3 py-3 text-xs font-bold text-emerald-400' : 'px-3 py-3 text-xs text-slate-500';
-
-                        const loftElem = document.getElementById(`compare-val-${col}-loft`);
-                        loftElem.textContent = room.loft;
-                        loftElem.className = room.loft === 'Có' ? 'px-3 py-3 text-xs font-bold text-emerald-400' : 'px-3 py-3 text-xs text-slate-500';
-
-                        const balconyElem = document.getElementById(`compare-val-${col}-balcony`);
-                        balconyElem.textContent = room.balcony;
-                        balconyElem.className = room.balcony === 'Có' ? 'px-3 py-3 text-xs font-bold text-emerald-400' : 'px-3 py-3 text-xs text-slate-500';
-
-                        // Add to Radar Datasets
-                        datasets.push({
-                            label: `Phòng ${room.room_number}`,
-                            data: [
-                                room.scores.price,
-                                room.scores.distance,
-                                room.scores.security,
-                                room.scores.owner
-                            ],
-                            borderColor: colors[idx].stroke,
-                            backgroundColor: colors[idx].fill,
-                            borderWidth: 2.5,
-                            pointBackgroundColor: colors[idx].stroke,
-                            pointBorderColor: '#0a0f1d',
-                            pointHoverBackgroundColor: '#fff',
-                            pointHoverBorderColor: colors[idx].stroke,
-                            pointRadius: 4,
-                            pointHoverRadius: 6
-                        });
-                    });
-
-                    // Render Radar Chart
-                    const ctxRadar = document.getElementById('compareRadarChart').getContext('2d');
-                    
-                    if (compareChartInstance) {
-                        compareChartInstance.destroy();
-                    }
-
-                    compareChartInstance = new Chart(ctxRadar, {
-                        type: 'radar',
-                        data: {
-                            labels: ['Giá cả', 'Khoảng cách', 'An ninh', 'Chủ nhà'],
-                            datasets: datasets
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    labels: {
-                                        color: '#cbd5e1',
-                                        font: { size: 10, weight: 'bold' }
-                                    }
-                                }
-                            },
-                            scales: {
-                                r: {
-                                    angleLines: {
-                                        color: 'rgba(255, 255, 255, 0.08)'
-                                    },
-                                    grid: {
-                                        color: 'rgba(255, 255, 255, 0.08)'
-                                    },
-                                    pointLabels: {
-                                        color: '#94a3b8',
-                                        font: { size: 10, weight: 'bold' }
-                                    },
-                                    ticks: {
-                                        display: false,
-                                        stepSize: 2
-                                    },
-                                    min: 0,
-                                    max: 10
-                                }
-                            }
-                        }
-                    });
-                })
-                .catch(err => console.error("Error loading comparison details:", err));
-
-            modal.classList.remove('hidden');
-        }
-
-        function closeCompareModal() {
-            document.getElementById('compare-modal').classList.add('hidden');
-        }
+        window.rentyRooms = mockRooms;
 
         // Search and filter function
         function filterItems() {
-            const query = document.getElementById('search-input').value.toLowerCase();
+            const query = document.getElementById('search-input').value;
+            const parsedSearch = parseNaturalSearch(query);
+            const normalizedQuery = normalizeText(query);
             const filterPrice = document.getElementById('filter-price').value;
             const filterRating = document.getElementById('filter-rating').value;
             
@@ -966,12 +1210,20 @@
                 const pets = card.getAttribute('data-pets') === 'true';
                 const loft = card.getAttribute('data-loft') === 'true';
                 const balcony = card.getAttribute('data-balcony') === 'true';
+                const searchableText = normalizeText(`${card.getAttribute('data-title')} ${card.getAttribute('data-area-name')} ${card.textContent}`);
 
-                let matchesQuery = title.includes(query) || card.textContent.toLowerCase().includes(query);
+                let matchesQuery = true;
+                if (normalizedQuery.trim() !== '') {
+                    const importantTerms = parsedSearch.keywords.filter(term => !['tim', 'phong', 'tro', 'duoi', 'o', 'gan', 'dai', 'hoc', 'trieu', 'tr', 'gia'].includes(term));
+                    matchesQuery = importantTerms.length === 0 || importantTerms.some(term => searchableText.includes(term));
+                }
                 
                 let matchesPrice = true;
                 if (filterPrice !== 'all') {
                     matchesPrice = price <= parseInt(filterPrice);
+                }
+                if (parsedSearch.maxPrice) {
+                    matchesPrice = matchesPrice && price <= parsedSearch.maxPrice;
                 }
 
                 let matchesRating = true;
@@ -983,8 +1235,16 @@
                 if (petChecked && !pets) matchesTags = false;
                 if (loftChecked && !loft) matchesTags = false;
                 if (balconyChecked && !balcony) matchesTags = false;
+                if (parsedSearch.amenities.pets && !pets) matchesTags = false;
+                if (parsedSearch.amenities.loft && !loft) matchesTags = false;
+                if (parsedSearch.amenities.balcony && !balcony) matchesTags = false;
 
-                if (matchesQuery && matchesPrice && matchesRating && matchesTags) {
+                let matchesLocation = true;
+                if (parsedSearch.locations.length > 0) {
+                    matchesLocation = parsedSearch.locations.some(location => searchableText.includes(location));
+                }
+
+                if (matchesQuery && matchesPrice && matchesRating && matchesTags && matchesLocation) {
                     card.classList.remove('hidden');
                     matchesCount++;
                 } else {
@@ -994,6 +1254,8 @@
 
             document.getElementById('results-count').textContent = `Danh sách phòng trọ (${matchesCount} kết quả)`;
         }
+
+        window.addEventListener('DOMContentLoaded', renderViewedRooms);
 
         function openHotAreasModal() {
             document.getElementById('hot-areas-modal').classList.remove('hidden');

@@ -11,87 +11,109 @@ class RoomSeeder extends Seeder
 {
     public function run(): void
     {
-        $tenant = Tenant::orderBy('id')->first();
-
-        if (!$tenant) {
-            $tenant = Tenant::create([
-                'name' => 'SmartRoom Demo',
-                'email' => 'demo@smartroom.local',
-                'phone' => '0900000000',
-                'bank_name' => 'MB',
-                'bank_account_no' => '9999888889999',
-                'bank_account_name' => 'SMARTROOM DEMO',
-            ]);
-        }
-
-        $building = Building::firstOrCreate(
+        $areas = [
             [
-                'tenant_id' => $tenant->id,
-                'name' => 'SmartRoom Demo Building',
+                'tenant' => [
+                    'name' => 'Hệ thống SmartRoom Cầu Giấy',
+                    'email' => 'contact@smartroom-caugiay.vn',
+                    'phone' => '0988123456',
+                ],
+                'building' => [
+                    'name' => 'SmartRoom Cầu Giấy',
+                    'address' => 'Số 12 Ngõ 105 Xuân Thủy, Cầu Giấy, Hà Nội',
+                    'description' => 'Khu nhà gần ĐH Sư Phạm, ĐH Quốc Gia và trục Cầu Giấy - Hồ Tùng Mậu.',
+                ],
+                'rooms' => [
+                    ['401', 4, 'occupied', 'normal', 3700000, 28, ['gác lửng', 'điều hòa', 'nước nóng', 'ban công']],
+                    ['402', 4, 'maintenance', 'normal', 3700000, 28, ['gác lửng', 'điều hòa', 'nước nóng']],
+                    ['403', 4, 'empty', 'vip', 4000000, 32, ['gác lửng', 'điều hòa', 'nước nóng', 'tủ lạnh', 'ban công']],
+                    ['404', 4, 'occupied', 'normal', 3900000, 30, ['gác lửng', 'điều hòa', 'nước nóng', 'tự do']],
+                    ['501', 5, 'empty', 'normal', 4100000, 32, ['gác lửng', 'điều hòa', 'nước nóng', 'ban công']],
+                    ['502', 5, 'occupied', 'vip', 4300000, 35, ['gác lửng', 'điều hòa', 'nước nóng', 'tủ lạnh', 'máy giặt riêng']],
+                ],
             ],
             [
-                'address' => '12 Ngo 105 Xuan Thuy, Cau Giay, Ha Noi',
-                'description' => 'Toa nha mau dung cho du lieu phong.',
-            ]
-        );
-
-        $rooms = [
-            ['101', 1, 'occupied', 'normal', 3200000, 25],
-            ['102', 1, 'occupied', 'normal', 3200000, 25],
-            ['103', 1, 'overdue', 'vip', 3500000, 28],
-            ['104', 1, 'empty', 'normal', 3500000, 28],
-            ['201', 2, 'occupied', 'normal', 3300000, 25],
-            ['202', 2, 'occupied', 'normal', 3300000, 25],
-            ['203', 2, 'overdue', 'vip', 3600000, 28],
-            ['204', 2, 'empty', 'normal', 3600000, 28],
-            ['301', 3, 'occupied', 'normal', 3500000, 27],
-            ['302', 3, 'occupied', 'normal', 3500000, 27],
-            ['303', 3, 'overdue', 'vip', 3800000, 30],
-            ['304', 3, 'empty', 'normal', 3800000, 30],
-            ['401', 4, 'occupied', 'normal', 3700000, 28],
-            ['402', 4, 'maintenance', 'normal', 3700000, 28],
-            ['403', 4, 'empty', 'vip', 4000000, 32],
-            ['404', 4, 'occupied', 'normal', 3900000, 30],
-            ['501', 5, 'empty', 'normal', 4100000, 32],
-            ['502', 5, 'occupied', 'vip', 4300000, 35],
-            ['503', 5, 'maintenance', 'normal', 4100000, 32],
-            ['504', 5, 'empty', 'vip', 4500000, 36],
+                'tenant' => [
+                    'name' => 'Hệ thống Rentry Home Thanh Xuân',
+                    'email' => 'contact@rentry-thanhxuan.vn',
+                    'phone' => '0977222333',
+                ],
+                'building' => [
+                    'name' => 'Rentry Home Thanh Xuân',
+                    'address' => 'Số 85 Vũ Tông Phan, Thanh Xuân, Hà Nội',
+                    'description' => 'Khu studio gần Royal City, Ngã Tư Sở và các tuyến xe buýt lớn.',
+                ],
+                'rooms' => [
+                    ['301', 3, 'empty', 'normal', 4400000, 34, ['điều hòa', 'tủ lạnh', 'nước nóng', 'ban công']],
+                    ['302', 3, 'occupied', 'vip', 4600000, 36, ['điều hòa', 'tủ lạnh', 'máy giặt riêng', 'nước nóng', 'ban công']],
+                    ['303', 3, 'empty', 'normal', 4400000, 34, ['điều hòa', 'tủ lạnh', 'nước nóng']],
+                    ['401', 4, 'occupied', 'vip', 4900000, 38, ['điều hòa', 'tủ lạnh', 'máy giặt riêng', 'nước nóng', 'cho nuôi thú cưng']],
+                    ['402', 4, 'empty', 'normal', 4700000, 36, ['điều hòa', 'tủ lạnh', 'nước nóng', 'ban công']],
+                ],
+            ],
+            [
+                'tenant' => [
+                    'name' => 'Hệ thống Rentry Studio Quận 10',
+                    'email' => 'contact@rentry-quan10.vn',
+                    'phone' => '0966888999',
+                ],
+                'building' => [
+                    'name' => 'Rentry Studio Quận 10',
+                    'address' => 'Số 42 Thành Thái, Quận 10, TP. Hồ Chí Minh',
+                    'description' => 'Khu studio gần Đại học Bách Khoa, Học viện Hành chính và trung tâm Quận 10.',
+                ],
+                'rooms' => [
+                    ['101', 1, 'empty', 'normal', 5200000, 30, ['điều hòa', 'nước nóng', 'tủ quần áo']],
+                    ['102', 1, 'occupied', 'normal', 5300000, 31, ['điều hòa', 'nước nóng', 'ban công']],
+                    ['201', 2, 'empty', 'vip', 5800000, 35, ['điều hòa', 'nước nóng', 'tủ lạnh', 'máy giặt riêng']],
+                    ['202', 2, 'maintenance', 'normal', 5400000, 32, ['điều hòa', 'nước nóng', 'tủ quần áo']],
+                    ['301', 3, 'occupied', 'vip', 6200000, 38, ['điều hòa', 'nước nóng', 'tủ lạnh', 'máy giặt riêng', 'ban công']],
+                ],
+            ],
         ];
 
-        foreach ($rooms as [$roomNumber, $floor, $status, $roomType, $price, $area]) {
-            Room::updateOrCreate(
+        foreach ($areas as $area) {
+            $tenant = Tenant::updateOrCreate(
+                ['email' => $area['tenant']['email']],
                 [
-                    'building_id' => $building->id,
-                    'room_number' => $roomNumber,
-                ],
-                [
-                    'tenant_id' => $tenant->id,
-                    'floor' => $floor,
-                    'status' => $status,
-                    'room_type' => $roomType,
-                    'price' => $price,
-                    'area' => $area,
-                    'amenities' => $this->amenitiesFor($roomType, $floor),
-                    'description' => 'Phong mau ' . $roomNumber . ' phuc vu quan ly nha tro.',
-                    'version' => 1,
+                    'name' => $area['tenant']['name'],
+                    'phone' => $area['tenant']['phone'],
+                    'bank_name' => 'MB',
+                    'bank_account_no' => '9999888889999',
+                    'bank_account_name' => 'SMARTROOM RENTAL',
                 ]
             );
+
+            $building = Building::updateOrCreate(
+                [
+                    'tenant_id' => $tenant->id,
+                    'name' => $area['building']['name'],
+                ],
+                [
+                    'address' => $area['building']['address'],
+                    'description' => $area['building']['description'],
+                ]
+            );
+
+            foreach ($area['rooms'] as [$roomNumber, $floor, $status, $roomType, $price, $roomArea, $amenities]) {
+                Room::updateOrCreate(
+                    [
+                        'building_id' => $building->id,
+                        'room_number' => $roomNumber,
+                    ],
+                    [
+                        'tenant_id' => $tenant->id,
+                        'floor' => $floor,
+                        'status' => $status,
+                        'room_type' => $roomType,
+                        'price' => $price,
+                        'area' => $roomArea,
+                        'amenities' => $amenities,
+                        'description' => $area['building']['name'] . ' - phòng ' . $roomNumber . ' thuộc khu vực riêng.',
+                        'version' => 1,
+                    ]
+                );
+            }
         }
-    }
-
-    private function amenitiesFor(string $roomType, int $floor): array
-    {
-        $amenities = ['gac lung', 'dieu hoa', 'nuoc nong'];
-
-        if ($roomType === 'vip') {
-            $amenities[] = 'tu lanh';
-            $amenities[] = 'may giat rieng';
-        }
-
-        if ($floor >= 3) {
-            $amenities[] = 'ban cong';
-        }
-
-        return $amenities;
     }
 }

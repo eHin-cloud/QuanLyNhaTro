@@ -117,10 +117,11 @@ echo    [6] INITIALIZE        - Tai moi thu vien (Composer Install + NPM Install
 echo    [7] UPGRADE SYSTEM    - [SUA LOI] Dong bo hoa va Cap nhat lai khoa composer.lock
 echo    [8] HEALTH DIAGNOSTIC - [MOI] Kiem tra suc khoe toan dien he thong du an
 echo    [9] LOG MANAGEMENT    - [MOI] Xem, theo doi va xoa sach nhat ky loi Laravel
-echo    [10] EXIT             - Thoat
+echo    [10] DOCKER RUN       - [MOI] Chay bang Docker Compose + MySQL rieng
+echo    [11] EXIT             - Thoat
 echo.
 echo    ----------------------------------------------------------------------------------------
-set /p choice="   >> Nhap lua chon cua ban (1-10): "
+set /p choice="   >> Nhap lua chon cua ban (1-11): "
 
 if "%choice%"=="1" goto DEV_MODE
 if "%choice%"=="2" goto STABLE_RUN
@@ -131,7 +132,8 @@ if "%choice%"=="6" goto INITIALIZE
 if "%choice%"=="7" goto UPGRADE_ALL
 if "%choice%"=="8" goto DIAGNOSTICS
 if "%choice%"=="9" goto LOG_MGMT
-if "%choice%"=="10" goto EXIT_CLEAN
+if "%choice%"=="10" goto DOCKER_RUN
+if "%choice%"=="11" goto EXIT_CLEAN
 goto MENU
 
 :INITIALIZE
@@ -157,6 +159,46 @@ if "!setup_choice!"=="1" goto INITIALIZE_FAST
 if "!setup_choice!"=="2" goto INITIALIZE_DB
 if "!setup_choice!"=="3" goto INITIALIZE_CLEAN
 goto INITIALIZE
+
+:DOCKER_RUN
+cls
+color 0b
+echo.
+echo    +======================================================================================+
+echo    ^|                    SmartRoom DOCKER RUNNER - CHAY MOI TRUONG DOCKER                  ^|
+echo    +======================================================================================+
+echo.
+echo    [!] Che do nay se chay Laravel tren Docker Compose kem MySQL rieng.
+echo        - Website: http://localhost:8000
+echo        - MySQL tren may host: localhost:3307
+echo        - Database: quan_ly_nha_tro / User: smartroom / Password: smartroom
+echo.
+
+where docker >nul 2>&1
+if %errorlevel% neq 0 (
+    color 0c
+    echo    [ LOI ] Khong tim thay Docker CLI. Vui long cai Docker Desktop truoc.
+    pause
+    goto MENU
+)
+
+if not exist docker-start.ps1 (
+    color 0c
+    echo    [ LOI ] Khong tim thay tep docker-start.ps1 trong thu muc du an.
+    pause
+    goto MENU
+)
+
+echo    [ HANH DONG ] Dang goi Docker Compose. Neu gap loi permission, hay mo terminal bang Run as administrator
+echo                 hoac them user Windows vao nhom docker-users.
+echo.
+echo    [ GOI Y ] Nhan Ctrl+C de dung Docker Compose va quay lai menu.
+echo.
+powershell -NoProfile -ExecutionPolicy Bypass -File ".\docker-start.ps1"
+echo.
+echo    [ INFO ] Docker Compose da dung hoac thoat.
+pause
+goto MENU
 
 :INITIALIZE_FAST
 cls
@@ -968,19 +1010,27 @@ echo    ====================================================================
 echo    [ CONG CU ] DANG TIEN HANH KHOI TAO PHAN CONG TU DONG HOA...
 echo    ====================================================================
 echo.
-echo    [ STEP 1 ] KIEM TRA MANG LIEN KET MYSQL...
-tasklist /fi "imagename eq mysqld.exe" | findstr /i "mysqld.exe" > nul
-if %errorlevel% neq 0 (
-    color 0c
-    echo    [ LOI ] Co so du lieu MySQL chua bat! Vui long bat MySQL tren XAMPP/Laragon.
-    pause
-    goto MENU
-)
-echo    [+] MySQL dang ket noi tot (CSDL: !DB_NAME!, Cong CSDL: !DB_PORT!).
-
 if not exist .env (
     copy .env.example .env > nul
     call !PHP_CMD! artisan key:generate
+)
+
+echo    [ STEP 1 ] KIEM TRA KET NOI CO SO DU LIEU...
+findstr /C:"DB_CONNECTION=sqlite" .env > nul
+if !errorlevel! equ 0 (
+    if not exist database\database.sqlite (
+        type nul > database\database.sqlite
+    )
+    echo    [+] Dang dung SQLite, bo qua kiem tra MySQL.
+) else (
+    tasklist /fi "imagename eq mysqld.exe" | findstr /i "mysqld.exe" > nul
+    if !errorlevel! neq 0 (
+        color 0c
+        echo    [ LOI ] Co so du lieu MySQL chua bat! Vui long bat MySQL tren XAMPP/Laragon.
+        pause
+        goto MENU
+    )
+    echo    [+] MySQL dang ket noi tot - CSDL: !DB_NAME!, Cong CSDL: !DB_PORT!.
 )
 
 echo    [ STEP 1.5 ] LAM SACH CACHE TOAN DIEN...
@@ -1018,13 +1068,28 @@ echo    [ STEP 3 ] PHAT HANH BAN SERVERS CONG !PORT!...
 start "SmartRoom ^& Renty Laravel Server" cmd /c "!PHP_CMD! artisan serve --port=!PORT!"
 if "%MODE%"=="DEV" (
     start "Vite Hot-Reload Server" cmd /c "npm run dev"
-    timeout /t 8 > nul
-) else (
-    timeout /t 3 > nul
 )
 
-:: Tu dong mo trinh duyet khi server khoi chay thanh cong
-start http://127.0.0.1:!PORT!/
+set "AUTO_OPEN_PATH=/renty"
+set "AUTO_OPEN_URL=http://127.0.0.1:!PORT!!AUTO_OPEN_PATH!"
+set "SERVER_READY=0"
+echo    [ STEP 4 ] DOI SERVER SAN SANG ROI TU DONG MO WEB...
+for /l %%i in (1,1,30) do (
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "try { $r = Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:!PORT!/' -TimeoutSec 1; if ($r.StatusCode -ge 200) { exit 0 } } catch { exit 1 }" > nul 2>&1
+    if !errorlevel! equ 0 (
+        set "SERVER_READY=1"
+        goto OPEN_WEB_AFTER_READY
+    )
+    timeout /t 1 > nul
+)
+
+:OPEN_WEB_AFTER_READY
+if "!SERVER_READY!"=="1" (
+    echo    [+] Server da san sang. Dang mo: !AUTO_OPEN_URL!
+) else (
+    echo    [!] Chua xac nhan duoc server san sang, van mo web de ban kiem tra.
+)
+start "" "!AUTO_OPEN_URL!"
 
 cls
 color 0b
@@ -1033,9 +1098,10 @@ echo    +=======================================================================
 echo    ^|                 SmartRoom ^& Renty CHAY TU DONG HOA THANH CONG                        ^|
 echo    +======================================================================================+
 echo    ^|                                                                                      ^|
-echo    ^|  [+] Localhost URL:       http://127.0.0.1:!PORT!/                                     ^|
+echo    ^|  [+] Website nguoi thue:  http://127.0.0.1:!PORT!/renty                              ^|
+echo    ^|  [+] Localhost URL:       http://127.0.0.1:!PORT!/                                    ^|
 echo    ^|  [+] Local Network URL:   http://!LOCAL_IP!:!PORT!/                                   ^|
-echo    ^|  [+] Admin Portal:        http://127.0.0.1:!PORT!/admin                              ^|
+echo    ^|  [+] Admin Portal:        http://127.0.0.1:!PORT!/smartroom/admin                    ^|
 echo    ^|                                                                                      ^|
 echo    ^|  [*] Meo kiem thu: Dung dien thoai / may tinh bang ket noi cung mang Wi-Fi voi may   ^|
 echo    ^|      tinh, roi truy cap vao duong dan Local Network URL o tren de test thiet bi di   ^|
