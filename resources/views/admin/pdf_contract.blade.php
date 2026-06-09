@@ -229,7 +229,15 @@
                 <td>
                     BÊN CHO THUÊ NHÀ
                     <span class="hint">(Ký, ghi rõ họ tên)</span>
-                    <div class="name-line">........................................</div>
+                    @if($contract->lessor_signature && str_contains($contract->lessor_signature, 'image/svg+xml'))
+                        <img src="{{ $contract->lessor_signature }}" class="signature-image" alt="Chữ ký bên cho thuê">
+                    @elseif($contract->lessor_signature && function_exists('imagecreatefrompng'))
+                        <img src="{{ $contract->lessor_signature }}" class="signature-image" alt="Chữ ký bên cho thuê">
+                    @elseif($contract->lessor_signature)
+                        <div class="signed-mark">Đã ký điện tử</div>
+                    @else
+                        <div class="name-line">........................................</div>
+                    @endif
                 </td>
             </tr>
         </table>

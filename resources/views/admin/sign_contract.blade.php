@@ -69,6 +69,14 @@
     </style>
 </head>
 <body class="text-slate-100 min-h-screen py-12 px-4 bg-grid relative flex flex-col items-center justify-center">
+    @php
+        $signedInUser = Auth::user();
+        $canLessorSign = $signedInUser
+            && (
+                (int) $signedInUser->tenant_id === (int) $contract->tenant_id
+                || (!$signedInUser->tenant_id && $signedInUser->role === 'admin')
+            );
+    @endphp
 
     <!-- Ambient blur blobs -->
     <div class="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[120px] -z-10 animate-pulse" style="animation-duration: 8s;"></div>
@@ -235,6 +243,47 @@
                         </div>
                     </form>
                 @endif
+
+                <div class="mt-8 pt-8 border-t border-slate-800/80">
+                    <div class="flex flex-col items-center justify-center space-y-4">
+                        <span class="text-xs text-slate-500 uppercase font-bold tracking-wider">Chữ ký bên cho thuê</span>
+                        @if($contract->lessor_signature)
+                            <div class="signature-paper border border-slate-700 rounded-2xl p-4 w-full max-w-sm flex items-center justify-center h-40 relative shadow-inner overflow-hidden">
+                                <img src="{{ $contract->lessor_signature }}" alt="Lessor Signature" class="{{ str_contains($contract->lessor_signature, 'image/svg+xml') ? '' : 'signature-preview-img' }} max-h-28 max-w-full opacity-100 transition-all hover:scale-105 duration-300">
+                                <span class="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-cyan-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-sm">
+                                    Chủ trọ đã ký
+                                </span>
+                                <div class="absolute bottom-2 right-4 text-[9px] text-slate-400 font-bold uppercase tracking-widest pointer-events-none">
+                                    Lessor Verified
+                                </div>
+                            </div>
+                        @elseif($canLessorSign)
+                            <form id="lessor-sign-form" action="{{ route('smartroom.contract.lessor_sign', $contract->id) }}" method="POST" class="w-full max-w-sm space-y-4">
+                                @csrf
+                                <input type="hidden" name="lessor_signature" id="lessor-signature-input">
+                                <div class="bg-slate-950 border border-slate-800/80 rounded-2xl overflow-hidden relative group" style="height: 180px;">
+                                    <div class="absolute bottom-10 left-8 right-8 h-[1px] border-b border-dashed border-slate-800/60 pointer-events-none"></div>
+                                    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] text-slate-600 uppercase tracking-widest font-bold pointer-events-none select-none">
+                                        Chủ trọ ký vào khung này
+                                    </div>
+                                    <canvas id="lessor-signature-pad" class="w-full h-full cursor-crosshair z-10 relative"></canvas>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <button type="button" onclick="clearLessorSignature()" class="py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-bold text-slate-300 transition-all">
+                                        Xóa vẽ lại
+                                    </button>
+                                    <button type="submit" onclick="submitLessorSignature(event)" class="py-3 rounded-2xl bg-cyan-600 hover:bg-cyan-500 text-xs font-bold text-white shadow-lg shadow-cyan-600/25 transition-all">
+                                        Ký bên cho thuê
+                                    </button>
+                                </div>
+                            </form>
+                        @else
+                            <div class="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-950/70 p-5 text-center text-xs font-semibold text-slate-500">
+                                Bên cho thuê chưa ký online.
+                            </div>
+                        @endif
+                    </div>
+                </div>
             </div>
 
         </div>
@@ -483,6 +532,81 @@
             document.getElementById('signature-input').value = dataURL;
             document.getElementById('sign-form').submit();
         }
+    </script>
+    @endif
+    @if($canLessorSign && !$contract->lessor_signature)
+    <script>
+        const lessorCanvas = document.getElementById('lessor-signature-pad');
+        const lessorCtx = lessorCanvas.getContext('2d');
+        let isDrawingLessor = false;
+
+        function resizeLessorCanvas() {
+            const rect = lessorCanvas.getBoundingClientRect();
+            lessorCanvas.width = rect.width;
+            lessorCanvas.height = rect.height;
+            lessorCtx.lineWidth = 3.5;
+            lessorCtx.lineCap = 'round';
+            lessorCtx.lineJoin = 'round';
+            lessorCtx.strokeStyle = '#ffffff';
+        }
+
+        function getLessorCoords(e) {
+            const rect = lessorCanvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        function startLessorDrawing(e) {
+            isDrawingLessor = true;
+            const coords = getLessorCoords(e);
+            lessorCtx.beginPath();
+            lessorCtx.moveTo(coords.x, coords.y);
+            e.preventDefault();
+        }
+
+        function drawLessor(e) {
+            if (!isDrawingLessor) return;
+            const coords = getLessorCoords(e);
+            lessorCtx.lineTo(coords.x, coords.y);
+            lessorCtx.stroke();
+            e.preventDefault();
+        }
+
+        function stopLessorDrawing() {
+            isDrawingLessor = false;
+        }
+
+        function clearLessorSignature() {
+            lessorCtx.clearRect(0, 0, lessorCanvas.width, lessorCanvas.height);
+        }
+
+        function submitLessorSignature(e) {
+            e.preventDefault();
+            const buffer = new Uint32Array(lessorCtx.getImageData(0, 0, lessorCanvas.width, lessorCanvas.height).data.buffer);
+            const isCanvasEmpty = !buffer.some(color => color !== 0);
+
+            if (isCanvasEmpty) {
+                alert('Vui lòng vẽ chữ ký bên cho thuê trước khi xác nhận.');
+                return;
+            }
+
+            document.getElementById('lessor-signature-input').value = lessorCanvas.toDataURL('image/png');
+            document.getElementById('lessor-sign-form').submit();
+        }
+
+        lessorCanvas.addEventListener('mousedown', startLessorDrawing);
+        lessorCanvas.addEventListener('mousemove', drawLessor);
+        lessorCanvas.addEventListener('mouseup', stopLessorDrawing);
+        lessorCanvas.addEventListener('mouseleave', stopLessorDrawing);
+        lessorCanvas.addEventListener('touchstart', startLessorDrawing);
+        lessorCanvas.addEventListener('touchmove', drawLessor);
+        lessorCanvas.addEventListener('touchend', stopLessorDrawing);
+        window.addEventListener('resize', resizeLessorCanvas);
+        setTimeout(resizeLessorCanvas, 100);
     </script>
     @endif
 </body>

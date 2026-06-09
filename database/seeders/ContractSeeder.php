@@ -45,6 +45,7 @@ class ContractSeeder extends Seeder
                 'status' => $status,
                 'terms' => $this->terms($tenant, $building, $room, $resident, $startDate, $endDate),
                 'signature' => $status === 'active' ? $this->signatureDataUrl($resident->name) : null,
+                'lessor_signature' => $status === 'active' ? $this->signatureDataUrl($tenant?->bank_account_name ?: $tenant?->name ?: 'Chủ nhà') : null,
             ]);
         }
     }

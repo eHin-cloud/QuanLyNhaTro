@@ -1638,9 +1638,10 @@
                                         @php
                                             $buildingName = $r->building?->name ?? 'Chưa rõ tòa';
                                             $buildingAddress = $r->building?->address ?? '';
-                                            $roomSearchText = 'Phòng ' . $r->room_number . ' ' . $buildingName . ' ' . $buildingAddress;
+                                            $roomLabel = 'Phòng ' . $r->room_number . ' - ' . $buildingName;
+                                            $roomSearchText = $roomLabel . ' Phòng' . $r->room_number . ' ' . $buildingAddress;
                                         @endphp
-                                        <button type="button" onclick="selectContractRoom(this)" data-id="{{ $r->id }}" data-price="{{ $r->price }}" data-area="{{ $r->area }}" data-room="{{ $r->room_number }}" data-address="{{ $buildingAddress }}" data-label="Phòng {{ $r->room_number }} - {{ $buildingName }}" data-search="{{ mb_strtolower($roomSearchText) }}" class="contract-room-option w-full text-left px-3 py-2.5 rounded-xl hover:bg-indigo-600/20 transition-all">
+                                        <button type="button" onclick="selectContractRoom(this)" data-id="{{ $r->id }}" data-price="{{ $r->price }}" data-area="{{ $r->area }}" data-room="{{ $r->room_number }}" data-address="{{ $buildingAddress }}" data-label="{{ $roomLabel }}" data-search="{{ mb_strtolower($roomSearchText) }}" class="contract-room-option w-full text-left px-3 py-2.5 rounded-xl hover:bg-indigo-600/20 transition-all">
                                             <span class="block text-sm font-bold text-slate-100">Phòng {{ $r->room_number }}</span>
                                             <span class="block text-[11px] text-slate-500">{{ $buildingName }}</span>
                                         </button>
@@ -1984,11 +1985,19 @@
             const empty = document.getElementById('contract-room-empty');
             if (!results) return;
 
-            const normalizedKeyword = keyword.trim().toLowerCase();
+            const normalize = (value) => (value || '')
+                .toString()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^\w\s]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .toLowerCase();
+            const normalizedKeyword = normalize(keyword);
             let visibleCount = 0;
 
             document.querySelectorAll('.contract-room-option').forEach(option => {
-                const haystack = option.dataset.search || '';
+                const haystack = normalize(`${option.dataset.search || ''} ${option.dataset.label || ''}`);
                 const isVisible = !normalizedKeyword || haystack.includes(normalizedKeyword);
                 option.classList.toggle('hidden', !isVisible);
                 if (isVisible) visibleCount++;

@@ -66,7 +66,7 @@ class AdminDashboardController extends Controller
         }
 
         // 3. Room Map (with active residents and latest billing information)
-        $rooms = Room::with(['residents' => function($q) {
+        $rooms = Room::where('tenant_id', $tenantId)->with(['residents' => function($q) {
             $q->where('status', 'active');
         }, 'utilityRecords' => function($q) {
             $q->orderBy('billing_month', 'desc');
@@ -76,7 +76,7 @@ class AdminDashboardController extends Controller
 
         // 4. Utility Readings Tab
         // Rooms that are rented (occupied/overdue) need meter readings
-        $utilityRooms = Room::where('status', '!=', 'empty')
+        $utilityRooms = Room::where('tenant_id', $tenantId)->where('status', '!=', 'empty')
             ->with(['residents' => function($q) {
                 $q->where('status', 'active');
             }, 'utilityRecords' => function($q) {
@@ -89,8 +89,9 @@ class AdminDashboardController extends Controller
         $residentFilters = [
             'q' => trim((string) $request->query('resident_q', '')),
         ];
-        $residentStats = Resident::query()->get();
+        $residentStats = Resident::where('tenant_id', $tenantId)->get();
         $residents = Resident::with('room')
+            ->where('tenant_id', $tenantId)
             ->when($residentFilters['q'] !== '', function ($query) use ($residentFilters) {
                 $identityKeyword = $this->prefixLike($residentFilters['q']);
                 $nameKeyword = $this->containsLike($residentFilters['q']);
@@ -103,10 +104,10 @@ class AdminDashboardController extends Controller
             })
             ->orderBy('id', 'desc')
             ->get();
-        $emptyRoomsList = Room::where('status', 'empty')->orderBy('room_number')->get();
+        $emptyRoomsList = Room::where('tenant_id', $tenantId)->where('status', 'empty')->orderBy('room_number')->get();
 
         // 6. Contracts Tab
-        $contracts = Contract::with(['room', 'resident'])->orderBy('id', 'desc')->get();
+        $contracts = Contract::with(['room', 'resident'])->where('tenant_id', $tenantId)->orderBy('id', 'desc')->get();
 
         // 8. Contact Requests Tab
         $contactRequests = \App\Models\ContactRequest::with('room')->orderBy('id', 'desc')->get();
@@ -1104,15 +1105,16 @@ class AdminDashboardController extends Controller
             'payment_method' => 'nullable|string|max:255',
         ]);
 
-        $room = Room::findOrFail($request->room_id);
-        $resident = Resident::findOrFail($request->resident_id);
-        $tenant = Tenant::find($this->currentTenantId());
+        $tenantId = $this->currentTenantId();
+        $room = Room::where('tenant_id', $tenantId)->findOrFail($request->room_id);
+        $resident = Resident::where('tenant_id', $tenantId)->findOrFail($request->resident_id);
+        $tenant = Tenant::find($tenantId);
 
         $code = 'HĐ-' . $room->room_number . '-' . date('Ymd', strtotime($request->start_date));
         $terms = $this->buildRentalContractTerms($request, $room, $resident, $tenant);
 
         $contract = \App\Models\Contract::create([
-            'tenant_id' => $this->currentTenantId(),
+            'tenant_id' => $tenantId,
             'room_id' => $room->id,
             'resident_id' => $resident->id,
             'contract_code' => $code,
@@ -1254,7 +1256,7 @@ class AdminDashboardController extends Controller
 
     public function signContractView($id)
     {
-        $contract = \App\Models\Contract::with(['room', 'resident'])->findOrFail($id);
+        $contract = \App\Models\Contract::with(['tenant', 'room.building', 'resident'])->findOrFail($id);
         return view('admin.sign_contract', compact('contract'));
     }
 
@@ -1290,6 +1292,31 @@ class AdminDashboardController extends Controller
         );
 
         return redirect()->route('smartroom.contract.sign_view', $id)->with('success', 'Ký hợp đồng online thành công!');
+    }
+
+    public function signLessorContract(Request $request, $id)
+    {
+        $request->validate([
+            'lessor_signature' => 'required|string',
+        ]);
+
+        $contract = \App\Models\Contract::where('tenant_id', $this->currentTenantId())->findOrFail($id);
+        $before = $contract->only(['lessor_signature']);
+        $contract->update([
+            'lessor_signature' => $request->lessor_signature,
+        ]);
+
+        AdminActivityLogger::log(
+            'update',
+            'contracts',
+            'Bên cho thuê đã ký hợp đồng ' . $contract->contract_code,
+            $contract,
+            ['contract_code' => $contract->contract_code],
+            $before,
+            $contract->fresh()->only(['lessor_signature'])
+        );
+
+        return redirect()->route('smartroom.contract.sign_view', $id)->with('success', 'Bên cho thuê đã ký hợp đồng online thành công!');
     }
 
     public function storeContactRequest(Request $request)
