@@ -1105,6 +1105,9 @@
                                             <a href="{{ route('smartroom.contract.sign_view', $c->id) }}" target="_blank" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold border border-slate-750 transition-all flex items-center gap-1.5">
                                                 <i class="fa-solid fa-arrow-up-right-from-square"></i> Xem HĐ
                                             </a>
+                                            <a href="{{ route('smartroom.contract.pdf', $c->id) }}" target="_blank" class="px-3 py-2 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded-xl text-xs font-bold border border-cyan-500/25 transition-all flex items-center gap-1.5">
+                                                <i class="fa-solid fa-file-pdf"></i> In/PDF
+                                            </a>
                                             <form action="{{ route('smartroom.admin.contract.delete', $c->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa hợp đồng này không?')" class="inline">
                                                 @csrf
                                                 @method('DELETE')
@@ -1592,36 +1595,77 @@
 
     <!-- ADD CONTRACT MODAL (POPUP) -->
     <div id="add-contract-modal" class="fixed inset-0 z-50 bg-[#04060b]/80 backdrop-blur-sm hidden flex items-center justify-center transition-opacity duration-300">
-        <div class="w-full max-w-xl bg-[#0a0f1d] border border-slate-800 p-8 rounded-3xl shadow-2xl relative animate-fade-in mx-4">
+        <div class="w-full max-w-5xl bg-[#0a0f1d] border border-slate-800 p-8 rounded-3xl shadow-2xl relative animate-fade-in mx-4 max-h-[92vh] overflow-y-auto">
             <button onclick="toggleAddContractModal(false)" class="absolute top-6 right-6 w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-all">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             <h2 class="text-xl font-bold mb-4 text-slate-100 flex items-center gap-2">
                 <i class="fa-solid fa-file-signature text-indigo-400"></i> Tạo Hợp Đồng Thuê Nhà Mới
             </h2>
-            <form action="{{ route('smartroom.admin.contract.store') }}" method="POST" class="space-y-4">
+            <form action="{{ route('smartroom.admin.contract.store') }}" method="POST" class="space-y-6">
                 @csrf
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Nơi ký</label>
+                        <input type="text" name="contract_place" value="Hà Nội" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Ngày</label>
+                        <input type="number" name="sign_day" min="1" max="31" value="{{ date('d') }}" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tháng</label>
+                        <input type="number" name="sign_month" min="1" max="12" value="{{ date('m') }}" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Năm</label>
+                        <input type="number" name="sign_year" min="1900" max="2100" value="{{ date('Y') }}" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Chọn Cư Dân Đại Diện</label>
-                        <select name="resident_id" id="contract-resident-id" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <select name="resident_id" id="contract-resident-id" required onchange="fillContractResident(this)" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
                             @foreach($residents as $res)
-                                <option value="{{ $res->id }}">{{ $res->name }} (P. {{ $res->room ? $res->room->room_number : 'N/A' }})</option>
+                                <option value="{{ $res->id }}" data-name="{{ $res->name }}" data-phone="{{ $res->phone }}" data-cccd="{{ $res->cccd }}" data-hometown="{{ $res->hometown }}">{{ $res->name }} (P. {{ $res->room ? $res->room->room_number : 'N/A' }})</option>
                             @endforeach
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Chọn Phòng Trọ</label>
-                        <select name="room_id" id="contract-room-id" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <select name="room_id" id="contract-room-id" required onchange="fillContractRoom(this)" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
                             @foreach($rooms as $r)
                                 @if($r->status !== 'empty')
-                                    <option value="{{ $r->id }}">Phòng {{ $r->room_number }}</option>
+                                    <option value="{{ $r->id }}" data-price="{{ $r->price }}" data-area="{{ $r->area }}" data-room="{{ $r->room_number }}" data-address="{{ $r->building ? $r->building->address : '' }}">Phòng {{ $r->room_number }}</option>
                                 @endif
                             @endforeach
                         </select>
                     </div>
                 </div>
-                <div class="grid grid-cols-3 gap-4">
+
+                <div class="rounded-2xl border border-slate-800 bg-slate-950/30 p-4">
+                    <h3 class="text-sm font-extrabold text-slate-200 mb-3">I. Bên cho thuê nhà (Bên A)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="text" name="lessor_name" required value="{{ Auth::user()->name ?? 'Chủ trọ SmartRoom' }}" placeholder="Ông/Bà bên A" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="text" name="lessor_id_number" placeholder="CMTND/CCCD bên A" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="text" name="lessor_phone" value="{{ Auth::user()->phone ?? '' }}" placeholder="Điện thoại bên A" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="text" name="lessor_address" placeholder="HKTT/Chỗ ở hiện tại bên A" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="rounded-2xl border border-slate-800 bg-slate-950/30 p-4">
+                    <h3 class="text-sm font-extrabold text-slate-200 mb-3">II. Bên thuê nhà ở (Bên B)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="text" name="lessee_name" id="lessee-name" required placeholder="Ông/Bà bên B" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="text" name="lessee_id_number" id="lessee-id-number" placeholder="CMND/CCCD bên B" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="text" name="lessee_phone" id="lessee-phone" placeholder="Điện thoại bên B" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="text" name="lessee_permanent_address" id="lessee-permanent-address" placeholder="HKTT bên B" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="text" name="lessee_current_address" placeholder="Chỗ ở hiện tại bên B" class="md:col-span-2 w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Ngày Bắt Đầu</label>
                         <input type="date" name="start_date" id="contract-start-date" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
@@ -1635,16 +1679,22 @@
                         <input type="number" name="deposit" id="contract-deposit" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none" placeholder="3000000">
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Điều Khoản Hợp Đồng</label>
-                    <button type="button" onclick="generateContractTermsWithAi(this)" class="mb-2 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> AI soạn điều khoản
-                    </button>
-                    <textarea name="terms" id="contract-terms" rows="6" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none resize-none">ĐIỀU KHOẢN HỢP ĐỒNG THUÊ PHÒNG
 
-Điều 1: Bên A (Bên cho thuê) đồng ý cho Bên B (Bên thuê) thuê phòng trọ.
-Điều 2: Tiền thuê phòng đóng định kỳ trước ngày 10 hàng tháng. Tiền đặt cọc bảo đảm nghĩa vụ thực hiện hợp đồng.
-Điều 3: Bên thuê cam kết bảo quản tài sản phòng trọ, tuân thủ các quy định phòng chống cháy nổ và khai báo tạm trú theo quy định của pháp luật.</textarea>
+                <div class="rounded-2xl border border-slate-800 bg-slate-950/30 p-4 space-y-4">
+                    <h3 class="text-sm font-extrabold text-slate-200">Nội dung thuê và thanh toán</h3>
+                    <input type="text" name="rental_address" id="rental-address" required placeholder="Địa chỉ nhà/phòng cho thuê" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                    <textarea name="rental_area_description" id="rental-area-description" rows="2" placeholder="Diện tích cho thuê" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none resize-none"></textarea>
+                    <textarea name="equipment_list" rows="4" placeholder="Trang thiết bị kèm theo..." class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none resize-none"></textarea>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <input type="text" name="rental_purpose" value="ở" placeholder="Mục đích thuê" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="number" name="occupant_count" min="1" max="20" value="1" placeholder="Số người ở" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="number" name="rent_price" id="contract-rent-price" required placeholder="Giá thuê/tháng" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="number" name="payment_cycle_months" min="1" max="12" value="3" placeholder="Chu kỳ thanh toán tháng" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="text" name="first_payment_date" placeholder="Thời điểm thanh toán lần đầu" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="text" name="payment_method" placeholder="Hình thức thanh toán" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                    </div>
                 </div>
                 <div class="pt-4 flex justify-end gap-3">
                     <button type="button" onclick="toggleAddContractModal(false)" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 bg-transparent hover:bg-slate-900 border border-transparent hover:border-slate-800 transition-all">
@@ -1881,8 +1931,59 @@
             const modal = document.getElementById('add-contract-modal');
             if (show) {
                 modal.classList.remove('hidden');
+                fillContractResident(document.getElementById('contract-resident-id'));
+                fillContractRoom(document.getElementById('contract-room-id'));
             } else {
                 modal.classList.add('hidden');
+            }
+        }
+
+        function fillContractResident(select) {
+            const option = select?.selectedOptions?.[0];
+            if (!option) return;
+
+            const fields = {
+                'lessee-name': option.dataset.name || '',
+                'lessee-id-number': option.dataset.cccd || '',
+                'lessee-phone': option.dataset.phone || '',
+                'lessee-permanent-address': option.dataset.hometown || '',
+            };
+
+            Object.entries(fields).forEach(([id, value]) => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.value = value;
+                }
+            });
+        }
+
+        function fillContractRoom(select) {
+            const option = select?.selectedOptions?.[0];
+            if (!option) return;
+
+            const roomNumber = option.dataset.room || '';
+            const area = option.dataset.area || '';
+            const address = option.dataset.address || '';
+            const price = option.dataset.price || '';
+
+            const rentalAddress = document.getElementById('rental-address');
+            const areaDescription = document.getElementById('rental-area-description');
+            const rentPrice = document.getElementById('contract-rent-price');
+            const deposit = document.getElementById('contract-deposit');
+
+            if (rentalAddress) {
+                rentalAddress.value = [address, roomNumber ? `Phòng ${roomNumber}` : ''].filter(Boolean).join(' - ');
+            }
+            if (areaDescription) {
+                areaDescription.value = roomNumber
+                    ? `Phòng ${roomNumber}${area ? `, diện tích ${area} m²` : ''}.`
+                    : '';
+            }
+            if (rentPrice) {
+                rentPrice.value = price;
+            }
+            if (deposit && price) {
+                deposit.value = price;
             }
         }
 

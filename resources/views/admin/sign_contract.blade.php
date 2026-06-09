@@ -74,8 +74,12 @@
                 </span>
                 Quay lại Trang Chủ
             </a>
-            <div class="text-right">
+            <div class="flex items-center gap-3 text-right">
                 <span class="text-[10px] uppercase font-bold tracking-widest text-slate-500">Hệ thống hợp đồng online</span>
+                <a href="{{ route('smartroom.contract.pdf', $contract->id) }}" target="_blank" class="h-9 px-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-indigo-500/50 text-xs font-bold text-slate-300 hover:text-white transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-file-pdf text-rose-400"></i>
+                    In/PDF
+                </a>
             </div>
         </div>
 

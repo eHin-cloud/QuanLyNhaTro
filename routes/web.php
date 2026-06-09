@@ -110,6 +110,7 @@ Route::middleware('admin')->group(function () {
     Route::delete('/smartroom/admin/relative/{id}', [AdminDashboardController::class, 'deleteRelative'])->name('smartroom.admin.relative.delete');
 });
 Route::get('/smartroom/contract/{id}/sign', [AdminDashboardController::class, 'signContractView'])->name('smartroom.contract.sign_view');
+Route::get('/smartroom/contract/{id}/pdf', [AdminDashboardController::class, 'printContractPdf'])->name('smartroom.contract.pdf');
 Route::post('/smartroom/contract/{id}/sign', [AdminDashboardController::class, 'signContract'])->name('smartroom.contract.sign');
 Route::post('/renty/contact-request', [AdminDashboardController::class, 'storeContactRequest'])->name('renty.contact_request.store');
 
