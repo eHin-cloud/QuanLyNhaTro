@@ -1671,6 +1671,7 @@
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tên bên thuê</label>
                             <select name="resident_id" id="contract-resident-id" required onchange="fillContractResident(this)" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                                <option value="" selected disabled>Chọn bên thuê</option>
                                 @foreach($residents as $res)
                                     <option value="{{ $res->id }}" data-name="{{ $res->name }}" data-phone="{{ $res->phone }}" data-cccd="{{ $res->cccd }}" data-hometown="{{ $res->hometown }}">{{ $res->name }} (P. {{ $res->room ? $res->room->room_number : 'N/A' }})</option>
                                 @endforeach
@@ -1949,16 +1950,43 @@
         function toggleAddContractModal(show) {
             const modal = document.getElementById('add-contract-modal');
             if (show) {
+                resetContractDraftFields();
                 modal.classList.remove('hidden');
-                fillContractResident(document.getElementById('contract-resident-id'));
-                const firstRoom = document.querySelector('.contract-room-option');
-                if (firstRoom && !document.getElementById('contract-room-id')?.value) {
-                    selectContractRoom(firstRoom);
-                }
             } else {
                 modal.classList.add('hidden');
                 closeContractRoomResults();
             }
+        }
+
+        function resetContractDraftFields() {
+            const valuesToClear = [
+                'contract-room-search',
+                'contract-room-id',
+                'lessee-name',
+                'lessee-id-number',
+                'lessee-phone',
+                'lessee-permanent-address',
+                'rental-address',
+                'rental-area-description',
+                'contract-rent-price',
+                'contract-deposit',
+            ];
+
+            valuesToClear.forEach(id => {
+                const input = document.getElementById(id);
+                if (input) input.value = '';
+            });
+
+            const currentAddress = document.querySelector('[name="lessee_current_address"]');
+            if (currentAddress) currentAddress.value = '';
+
+            const equipmentList = document.querySelector('[name="equipment_list"]');
+            if (equipmentList) equipmentList.value = '';
+
+            const residentSelect = document.getElementById('contract-resident-id');
+            if (residentSelect) residentSelect.value = '';
+
+            closeContractRoomResults();
         }
 
         function fillContractResident(select) {
