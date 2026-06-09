@@ -1,0 +1,44 @@
+body.sidebar-collapsed #admin-sidebar {
+    width: 5rem;
+}
+
+body.sidebar-collapsed #admin-shell {
+    margin-left: 5rem;
+}
+
+body.sidebar-collapsed #admin-sidebar nav a,
+body.sidebar-collapsed #admin-sidebar nav button,
+body.sidebar-collapsed #admin-sidebar .sidebar-user,
+body.sidebar-collapsed #admin-sidebar .sidebar-logout {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+body.sidebar-collapsed #admin-sidebar > div:first-child > div:first-child {
+    justify-content: center;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+
+body.sidebar-collapsed #admin-sidebar .sidebar-brand {
+    display: none;
+}
+
+body.sidebar-collapsed #admin-sidebar nav span,
+body.sidebar-collapsed #admin-sidebar .sidebar-brand span,
+body.sidebar-collapsed #admin-sidebar .sidebar-logout span,
+body.sidebar-collapsed #admin-sidebar .sidebar-text,
+body.sidebar-collapsed #admin-sidebar .sidebar-profile,
+body.sidebar-collapsed #admin-sidebar .sidebar-badge {
+    display: none;
+}
+
+body.sidebar-collapsed #admin-sidebar .sidebar-footer {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+
+body.sidebar-collapsed #sidebar-toggle i {
+    transform: rotate(180deg);
+}

@@ -17,7 +17,7 @@ class AdminMiddleware
             return redirect()->route('login')->with('error', 'Bạn phải đăng nhập tài khoản quản trị!');
         }
 
-        if (auth()->user()->role !== 'admin') {
+        if (!auth()->user()->isLandlord()) {
             return redirect()->route('renty.user')->with('error', 'Tài khoản của bạn không có quyền truy cập cổng Admin!');
         }
 

@@ -25,56 +25,68 @@
         ::-webkit-scrollbar-track { background: #080b11; }
         ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 99px; }
         ::-webkit-scrollbar-thumb:hover { background: #4f46e5; }
+        body.sidebar-collapsed #admin-sidebar { width: 5rem; }
+        body.sidebar-collapsed #admin-shell { margin-left: 5rem; }
+        body.sidebar-collapsed #admin-sidebar .sidebar-label,
+        body.sidebar-collapsed #admin-sidebar .sidebar-profile { display: none; }
+        body.sidebar-collapsed #admin-sidebar > div:first-child > div:first-child { justify-content: center; padding-left: 0.75rem; padding-right: 0.75rem; }
+        body.sidebar-collapsed #admin-sidebar .sidebar-brand { display: none; }
+        body.sidebar-collapsed #admin-sidebar .sidebar-link { justify-content: center; padding-left: 0; padding-right: 0; }
+        body.sidebar-collapsed #admin-sidebar .sidebar-footer { padding-left: 0.75rem; padding-right: 0.75rem; }
+        body.sidebar-collapsed #sidebar-toggle i { transform: rotate(180deg); }
     </style>
 </head>
-<body class="bg-[#080b11] text-slate-100 min-h-screen flex selection:bg-indigo-500 selection:text-white overflow-hidden">
+<body class="bg-[#080b11] text-slate-100 min-h-screen selection:bg-indigo-500 selection:text-white overflow-hidden">
     <div class="absolute top-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full bg-indigo-600/5 blur-[100px] pointer-events-none"></div>
     <div class="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] rounded-full bg-emerald-600/5 blur-[100px] pointer-events-none"></div>
 
-    <aside class="w-64 bg-[#0d121f] border-r border-slate-900 flex flex-col justify-between h-screen shrink-0 relative z-20">
+    <aside id="admin-sidebar" class="fixed inset-y-0 left-0 w-64 bg-[#0d121f] border-r border-slate-900 flex flex-col justify-between h-screen z-30 transition-[width] duration-200">
         <div>
-            <div class="p-6 border-b border-slate-900">
-                <a href="{{ route('smartroom.admin') }}" class="flex items-center gap-3">
+            <div class="p-6 border-b border-slate-900 flex items-center justify-between gap-2">
+                <a href="{{ route('smartroom.admin') }}" class="sidebar-brand sidebar-link flex items-center gap-3 min-w-0">
                     <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
                         <i class="fa-solid fa-hotel text-white text-sm"></i>
                     </div>
-                    <span class="text-lg font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">SmartRoom</span>
+                    <span class="sidebar-label text-lg font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">SmartRoom</span>
                 </a>
+                <button type="button" id="sidebar-toggle" class="w-8 h-8 rounded-lg border border-slate-800 text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 transition-all" title="Thu gọn/mở rộng sidebar">
+                    <i class="fa-solid fa-angles-left transition-transform"></i>
+                </button>
             </div>
 
             <nav class="p-4 space-y-1">
-                <a href="{{ route('smartroom.admin') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all">
+                <a href="{{ route('smartroom.admin') }}" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all">
                     <i class="fa-solid fa-chart-pie text-lg"></i>
-                    <span>Tổng Quan</span>
+                    <span class="sidebar-label">Tổng Quan</span>
                 </a>
-                <a href="{{ route('admin.rooms.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all">
+                <a href="{{ route('admin.rooms.index') }}" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all">
                     <i class="fa-solid fa-door-open text-lg"></i>
-                    <span>Quản Lý Phòng</span>
+                    <span class="sidebar-label">Quản Lý Phòng</span>
                 </a>
-                <a href="{{ route('admin.equipment.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/10 transition-all">
+                <a href="{{ route('admin.equipment.index') }}" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/10 transition-all">
                     <i class="fa-solid fa-screwdriver-wrench text-lg"></i>
-                    <span>Thiết Bị</span>
+                    <span class="sidebar-label">Thiết Bị</span>
                 </a>
             </nav>
         </div>
 
-        <div class="p-4 border-t border-slate-900">
-            <div class="flex items-center gap-3 p-2 rounded-xl bg-slate-900/50 border border-slate-800/40">
+        <div class="sidebar-footer p-4 border-t border-slate-900">
+            <div class="sidebar-link flex items-center gap-3 p-2 rounded-xl bg-slate-900/50 border border-slate-800/40">
                 <div class="w-9 h-9 rounded-lg bg-indigo-900/50 border border-indigo-500/30 flex items-center justify-center font-bold text-indigo-400 text-sm">
                     {{ substr(Auth::user()->name ?? 'AD', 0, 2) }}
                 </div>
-                <div class="overflow-hidden">
+                <div class="sidebar-profile overflow-hidden">
                     <h4 class="text-xs font-bold text-slate-200 truncate">{{ Auth::user()->name ?? 'Người dùng' }}</h4>
-                    <p class="text-[10px] text-slate-500 truncate">{{ Auth::user()->role->name ?? 'Quản trị viên' }}</p>
+                    <p class="text-[10px] text-slate-500 truncate">{{ Auth::user()->roleName() }}</p>
                 </div>
             </div>
-            <a href="{{ route('signout') }}" class="mt-3 w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-semibold text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 transition-all">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng Xuất
+            <a href="{{ route('signout') }}" class="sidebar-link mt-3 w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-semibold text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 transition-all">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> <span class="sidebar-label">Đăng Xuất</span>
             </a>
         </div>
     </aside>
 
-    <div class="flex-grow flex flex-col h-screen overflow-y-auto relative z-10">
+    <div id="admin-shell" class="ml-64 min-w-0 flex flex-col h-screen overflow-y-auto relative z-10 transition-[margin-left] duration-200">
         <header class="h-16 border-b border-slate-900 bg-[#080b11]/80 backdrop-blur-md flex items-center justify-between px-8 sticky top-0 z-20">
             <h2 class="text-lg font-bold text-slate-100">Quản Lý Thông Tin Thiết Bị</h2>
             <div class="text-sm font-semibold text-slate-400 bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl flex items-center gap-2">
@@ -84,6 +96,8 @@
         </header>
 
         <main class="p-8 flex-grow overflow-y-auto space-y-6">
+            <div id="toast-stack" class="fixed top-5 right-5 z-50 w-[min(360px,calc(100vw-2rem))] space-y-3 pointer-events-none"></div>
+
             @if(session('success'))
                 <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-semibold flex items-center gap-2">
                     <i class="fa-solid fa-circle-check"></i>
@@ -246,7 +260,7 @@
                                             <form action="{{ route('admin.equipment.destroy', $item->id) }}" method="POST" class="secure-form mt-2" data-watch="equipment-delete-{{ $item->id }}">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="submit-btn w-full px-3 py-2 rounded-lg bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white text-xs font-bold" onclick="return confirm('Xóa thiết bị {{ $item->name }} khỏi danh mục?')">
+                                                <button type="submit" class="submit-btn w-full px-3 py-2 rounded-lg bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white text-xs font-bold" data-confirm="Xóa thiết bị {{ $item->name }} khỏi danh mục?">
                                                     Xóa thiết bị
                                                 </button>
                                             </form>
@@ -297,8 +311,75 @@
         </main>
     </div>
 
+    <div id="confirm-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-slate-950/70 backdrop-blur-sm px-4">
+        <div class="w-full max-w-md rounded-2xl border border-slate-800 bg-[#0d121f] p-6 shadow-2xl shadow-black/30">
+            <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-slate-100">Xác nhận thao tác</h3>
+                    <p id="confirm-message" class="mt-2 text-sm leading-6 text-slate-400"></p>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end gap-3">
+                <button type="button" id="confirm-cancel" class="px-4 py-2 rounded-xl border border-slate-700 text-xs font-bold text-slate-300 hover:bg-slate-800 transition-all">
+                    Hủy
+                </button>
+                <button type="button" id="confirm-accept" class="px-4 py-2 rounded-xl bg-rose-600 text-xs font-bold text-white hover:bg-rose-500 transition-all">
+                    Xóa
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         window.__trustedSubmit = false;
+        let pendingConfirmForm = null;
+
+        function notify(message, type = 'info') {
+            const stack = document.getElementById('toast-stack');
+            if (!stack) return;
+
+            const styles = {
+                success: ['fa-circle-check', 'text-emerald-300', 'bg-emerald-500/10', 'border-emerald-500/20'],
+                warning: ['fa-triangle-exclamation', 'text-amber-300', 'bg-amber-500/10', 'border-amber-500/20'],
+                error: ['fa-circle-exclamation', 'text-rose-300', 'bg-rose-500/10', 'border-rose-500/20'],
+                info: ['fa-circle-info', 'text-indigo-300', 'bg-indigo-500/10', 'border-indigo-500/20'],
+            };
+            const [icon, color, bg, border] = styles[type] || styles.info;
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto flex items-start gap-3 rounded-2xl border ${border} ${bg} bg-[#0d121f]/95 p-4 text-sm text-slate-200 shadow-xl shadow-black/20 backdrop-blur transition-all duration-200`;
+            toast.innerHTML = `
+                <i class="fa-solid ${icon} ${color} mt-0.5"></i>
+                <div class="flex-1 leading-5"></div>
+                <button type="button" class="text-slate-500 hover:text-slate-200 transition-colors" aria-label="Đóng thông báo">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+            toast.querySelector('div').textContent = message;
+
+            const close = () => {
+                toast.classList.add('opacity-0', 'translate-x-3');
+                setTimeout(() => toast.remove(), 180);
+            };
+            toast.querySelector('button').addEventListener('click', close);
+            stack.appendChild(toast);
+            setTimeout(close, 4200);
+        }
+
+        function openConfirm(message, form) {
+            pendingConfirmForm = form;
+            document.getElementById('confirm-message').textContent = message;
+            document.getElementById('confirm-modal').classList.remove('hidden');
+            document.getElementById('confirm-modal').classList.add('flex');
+        }
+
+        function closeConfirm() {
+            pendingConfirmForm = null;
+            document.getElementById('confirm-modal').classList.add('hidden');
+            document.getElementById('confirm-modal').classList.remove('flex');
+        }
 
         function normalizeSpaces(value) {
             return (value || '').replace(/\u3000/g, ' ').replace(/ã€€/g, ' ').trim();
@@ -361,6 +442,13 @@
 
         document.querySelectorAll('.secure-form').forEach(form => {
             form.addEventListener('submit', event => {
+                const confirmButton = event.submitter?.dataset.confirm ? event.submitter : null;
+                if (confirmButton && !form.dataset.confirmed) {
+                    event.preventDefault();
+                    openConfirm(confirmButton.dataset.confirm, form);
+                    return false;
+                }
+
                 let isValid = true;
                 form.querySelectorAll('[data-number], [data-text]').forEach(input => {
                     isValid = validateInput(input) && isValid;
@@ -368,7 +456,7 @@
 
                 if (!isValid) {
                     event.preventDefault();
-                    alert('Vui lòng kiểm tra lại dữ liệu trước khi lưu.');
+                    notify('Vui lòng kiểm tra lại dữ liệu trước khi lưu.', 'warning');
                     return false;
                 }
 
@@ -381,36 +469,62 @@
                 });
             });
 
-            // Chống F12 sửa DOM: chỉ theo dõi sau khi form đã render ổn định, bỏ qua thay đổi do submit hợp lệ.
+            // Chỉ cảnh báo thay đổi nhạy cảm trên input ẩn; spinner/toast và trạng thái nút là cập nhật UI hợp lệ.
             const observer = new MutationObserver(mutations => {
                 if (window.__trustedSubmit) return;
-                const tampered = mutations.some(mutation => mutation.type === 'childList' || mutation.attributeName === 'disabled' || mutation.attributeName === 'hidden' || mutation.attributeName === 'type');
+                const tampered = mutations.some(mutation => {
+                    if (mutation.type !== 'attributes') return false;
+                    const target = mutation.target;
+                    return target.matches('input[type="hidden"]') && ['name', 'value', 'type'].includes(mutation.attributeName);
+                });
                 if (tampered) {
-                    alert('Phát hiện hành vi can thiệp hệ thống!');
-                    window.location.reload();
+                    notify('Phát hiện thay đổi bất thường trên dữ liệu ẩn. Vui lòng tải lại trang trước khi thao tác tiếp.', 'error');
                 }
             });
-            observer.observe(form, { attributes: true, childList: true, subtree: true });
+            observer.observe(form, { attributes: true, subtree: true });
         });
 
         document.addEventListener('keydown', event => {
             if (event.key === 'F12' || event.keyCode === 123) {
                 event.preventDefault();
-                alert('Hành động can thiệp hệ thống bị chặn!');
+                notify('Phím tắt này đã được tắt trong khu vực quản lý thiết bị.', 'warning');
             }
             if (event.ctrlKey && event.shiftKey && ['I', 'J', 'C'].includes(event.key.toUpperCase())) {
                 event.preventDefault();
-                alert('Hành động can thiệp hệ thống bị chặn!');
+                notify('Phím tắt này đã được tắt trong khu vực quản lý thiết bị.', 'warning');
             }
             if (event.ctrlKey && event.key.toUpperCase() === 'U') {
                 event.preventDefault();
-                alert('Hành động can thiệp hệ thống bị chặn!');
+                notify('Phím tắt này đã được tắt trong khu vực quản lý thiết bị.', 'warning');
             }
         });
 
         document.addEventListener('contextmenu', event => {
             event.preventDefault();
-            alert('Chuột phải đã bị vô hiệu hóa trong khu vực quản lý thiết bị.');
+            notify('Chuột phải đã được tắt trong khu vực quản lý thiết bị.', 'info');
+        });
+
+        document.getElementById('confirm-cancel').addEventListener('click', closeConfirm);
+        document.getElementById('confirm-modal').addEventListener('click', event => {
+            if (event.target.id === 'confirm-modal') closeConfirm();
+        });
+        document.getElementById('confirm-accept').addEventListener('click', () => {
+            if (!pendingConfirmForm) return;
+            pendingConfirmForm.dataset.confirmed = 'true';
+            pendingConfirmForm.requestSubmit();
+        });
+
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebarCollapsedKey = 'smartroom.sidebar.collapsed';
+
+        function setSidebarCollapsed(collapsed) {
+            document.body.classList.toggle('sidebar-collapsed', collapsed);
+            localStorage.setItem(sidebarCollapsedKey, collapsed ? '1' : '0');
+        }
+
+        setSidebarCollapsed(localStorage.getItem(sidebarCollapsedKey) === '1');
+        sidebarToggle?.addEventListener('click', () => {
+            setSidebarCollapsed(!document.body.classList.contains('sidebar-collapsed'));
         });
     </script>
 </body>
