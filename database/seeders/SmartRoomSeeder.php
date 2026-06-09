@@ -146,6 +146,7 @@ class SmartRoomSeeder extends Seeder
         foreach ($roomDataT1 as $data) {
             $data['building_id'] = $building1->id;
             $data['tenant_id'] = $tenant1->id;
+            $data = array_merge($data, $this->mediaForRoom($building1->name, $data['room_number']));
             $roomsT1[$data['room_number']] = Room::updateOrCreate(
                 [
                     'building_id' => $building1->id,
@@ -167,6 +168,7 @@ class SmartRoomSeeder extends Seeder
         foreach ($roomDataT2 as $data) {
             $data['building_id'] = $building2->id;
             $data['tenant_id'] = $tenant2->id;
+            $data = array_merge($data, $this->mediaForRoom($building2->name, $data['room_number']));
             $roomsT2[$data['room_number']] = Room::updateOrCreate(
                 [
                     'building_id' => $building2->id,
@@ -550,5 +552,43 @@ class SmartRoomSeeder extends Seeder
                 }
             }
         }
+    }
+
+    private function mediaForRoom(string $buildingName, string $roomNumber): array
+    {
+        $sets = [
+            [
+                'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1400&q=85',
+                'https://images.unsplash.com/photo-1588153203274-4a392d28ed9f?auto=format&fit=crop&w=1400&q=85',
+                'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1400&q=85',
+                'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1400&q=85',
+            ],
+            [
+                'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1400&q=85',
+                'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?auto=format&fit=crop&w=1400&q=85',
+                'https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=1400&q=85',
+                'https://images.unsplash.com/photo-1560448075-bb485b067938?auto=format&fit=crop&w=1400&q=85',
+            ],
+            [
+                'https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=1400&q=85',
+                'https://images.unsplash.com/photo-1620626011761-996317b8d101?auto=format&fit=crop&w=1400&q=85',
+                'https://images.unsplash.com/photo-1560185127-6ed189bf02f4?auto=format&fit=crop&w=1400&q=85',
+                'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1400&q=85',
+            ],
+        ];
+        $videos = [
+            'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
+            'https://www.w3schools.com/html/mov_bbb.mp4',
+            'https://media.w3.org/2010/05/sintel/trailer.mp4',
+        ];
+
+        $index = abs(crc32($buildingName . $roomNumber)) % count($sets);
+        $images = $sets[$index];
+
+        return [
+            'image' => $images[0],
+            'images' => $images,
+            'video' => $videos[$index % count($videos)],
+        ];
     }
 }

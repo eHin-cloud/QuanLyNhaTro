@@ -13,6 +13,7 @@
         tailwind.config = { theme: { extend: { fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] } } } }
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    @vite(['resources/css/app.css', 'resources/css/style.css', 'resources/js/app.js'])
     <style>
         .panel { background: rgba(13, 18, 31, 0.72); border: 1px solid rgba(30, 41, 59, 0.86); }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -82,8 +83,13 @@
                 <h1 class="text-lg font-bold text-slate-100">Lịch Sử Vận Hành</h1>
                 <p class="text-xs text-slate-500 mt-0.5">Tra cứu các sự kiện đã xảy ra với phòng, cư dân, hóa đơn, hợp đồng và thiết bị.</p>
             </div>
-            <div class="text-xs font-semibold text-slate-400 bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl">
-                {{ now()->format('d/m/Y H:i') }}
+            <div class="flex items-center gap-3">
+                <button type="button" onclick="toggleThemeMode()" class="theme-toggle-button" aria-label="Chuyển chế độ sáng tối">
+                    <i class="fa-solid fa-moon" data-theme-icon></i>
+                </button>
+                <div class="text-xs font-semibold text-slate-400 bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl">
+                    {{ now()->format('d/m/Y H:i') }}
+                </div>
             </div>
         </header>
 

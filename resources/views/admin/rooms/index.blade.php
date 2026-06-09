@@ -51,6 +51,7 @@
             background: #4f46e5;
         }
     </style>
+    @vite(['resources/css/app.css', 'resources/css/style.css', 'resources/js/app.js'])
 </head>
 <body class="bg-[#080b11] text-slate-100 min-h-screen flex selection:bg-indigo-500 selection:text-white overflow-hidden">
 
@@ -119,6 +120,9 @@
             </div>
             
             <div class="flex items-center gap-6">
+                <button type="button" onclick="toggleThemeMode()" class="theme-toggle-button" aria-label="Chuyển chế độ sáng tối">
+                    <i class="fa-solid fa-moon" data-theme-icon></i>
+                </button>
                 <div class="text-sm font-semibold text-slate-400 bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl flex items-center gap-2">
                     <i class="fa-regular fa-calendar text-indigo-400"></i>
                     <span>{{ date('d/m/Y') }}</span>

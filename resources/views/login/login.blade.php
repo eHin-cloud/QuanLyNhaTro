@@ -24,9 +24,9 @@
         tailwind.config = { theme: { extend: { fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] } } } }
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/css/style.css', 'resources/js/app.js'])
     <style>
         .toast-container{position:fixed;top:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:.75rem;max-width:400px;width:calc(100% - 3rem)}
         .toast-card{background:rgba(15,23,42,.6);backdrop-filter:blur(16px) saturate(180%);-webkit-backdrop-filter:blur(16px) saturate(180%);border:1px solid rgba(255,255,255,.08);border-left-width:4px;padding:1rem 1.25rem;border-radius:1rem;box-shadow:0 10px 30px -5px rgba(0,0,0,.3);display:flex;align-items:flex-start;gap:.75rem;transform:translateX(120%);transition:all .4s cubic-bezier(.16,1,.3,1)}
@@ -49,16 +49,19 @@
                 <span class="login-brand-word login-brand-renty">&amp; Renty</span>
             </span>
         </a>
-        @if($page === 'list')
-            <div class="flex items-center gap-4">
+        <div class="flex items-center gap-4">
+            <button type="button" onclick="toggleThemeMode()" class="theme-toggle-button" aria-label="Chuyển chế độ sáng tối">
+                <i class="fa-solid fa-moon" data-theme-icon></i>
+            </button>
+            @if($page === 'list')
                 <a href="{{ route('smartroom.admin') }}" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-500/25 transition-all">
                     <i class="fa-solid fa-gauge mr-1.5"></i> Dashboard Admin
                 </a>
                 <a href="{{ route('signout') }}" class="px-4 py-2 bg-slate-900 border border-slate-800 hover:border-slate-700 text-rose-400 rounded-xl text-xs font-semibold transition-all">
                     Đăng Xuất
                 </a>
-            </div>
-        @endif
+            @endif
+        </div>
     </header>
 
     @if($page === 'list')

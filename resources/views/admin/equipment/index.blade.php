@@ -14,8 +14,7 @@
         tailwind.config = { theme: { extend: { fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] } } } }
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/css/style.css', 'resources/js/app.js'])
 
     <style>
         .glass-card {
@@ -87,9 +86,14 @@
     <div class="flex-grow flex flex-col h-screen overflow-y-auto relative z-10">
         <header class="h-16 border-b border-slate-900 bg-[#080b11]/80 backdrop-blur-md flex items-center justify-between px-8 sticky top-0 z-20">
             <h2 class="text-lg font-bold text-slate-100">Quản Lý Thông Tin Thiết Bị</h2>
-            <div class="text-sm font-semibold text-slate-400 bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl flex items-center gap-2">
-                <i class="fa-regular fa-calendar text-indigo-400"></i>
-                <span>{{ date('d/m/Y') }}</span>
+            <div class="flex items-center gap-3">
+                <button type="button" onclick="toggleThemeMode()" class="theme-toggle-button" aria-label="Chuyển chế độ sáng tối">
+                    <i class="fa-solid fa-moon" data-theme-icon></i>
+                </button>
+                <div class="text-sm font-semibold text-slate-400 bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl flex items-center gap-2">
+                    <i class="fa-regular fa-calendar text-indigo-400"></i>
+                    <span>{{ date('d/m/Y') }}</span>
+                </div>
             </div>
         </header>
 

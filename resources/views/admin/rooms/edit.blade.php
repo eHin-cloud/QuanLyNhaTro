@@ -36,6 +36,7 @@
             border: 1px border-slate-800/80;
         }
     </style>
+    @vite(['resources/css/app.css', 'resources/css/style.css', 'resources/js/app.js'])
 </head>
 <body class="bg-[#080b11] text-slate-100 min-h-screen flex selection:bg-indigo-500 selection:text-white overflow-hidden">
 
@@ -98,6 +99,9 @@
             <div class="flex items-center gap-2">
                 <h2 class="text-lg font-bold text-slate-100">Chỉnh Sửa Thông Tin Phòng Trọ</h2>
             </div>
+            <button type="button" onclick="toggleThemeMode()" class="theme-toggle-button" aria-label="Chuyển chế độ sáng tối">
+                <i class="fa-solid fa-moon" data-theme-icon></i>
+            </button>
         </header>
 
         <main class="p-8 flex-grow overflow-y-auto">

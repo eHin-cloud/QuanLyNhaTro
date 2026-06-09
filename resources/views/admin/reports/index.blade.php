@@ -14,8 +14,7 @@
         tailwind.config = { theme: { extend: { fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] } } } }
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/css/style.css', 'resources/js/app.js'])
 
     <style>
         .panel {
@@ -90,6 +89,9 @@
                 <p class="text-xs text-slate-500 mt-0.5">Tổng hợp thiết bị, phân bổ và phòng còn nợ tiền điện nước, dịch vụ.</p>
             </div>
             <form method="GET" action="{{ route('admin.reports.index') }}" class="flex items-center gap-2">
+                <button type="button" onclick="toggleThemeMode()" class="theme-toggle-button" aria-label="Chuyển chế độ sáng tối">
+                    <i class="fa-solid fa-moon" data-theme-icon></i>
+                </button>
                 <input type="month" name="billing_month" value="{{ $billingMonth }}" class="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
                 <button type="submit" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-2">
                     <i class="fa-solid fa-filter"></i> Lọc

@@ -33,8 +33,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/css/style.css', 'resources/js/app.js'])
 </head>
 <body class="bg-[#080b11] text-slate-100 min-h-screen flex selection:bg-indigo-500 selection:text-white overflow-hidden">
 
@@ -136,6 +135,9 @@
             </div>
             
             <div class="flex items-center gap-6">
+                <button type="button" onclick="toggleThemeMode()" class="theme-toggle-button" aria-label="Chuyển chế độ sáng tối">
+                    <i class="fa-solid fa-moon" data-theme-icon></i>
+                </button>
                 <!-- Notifications -->
                 <div class="relative">
                     <button class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-all">

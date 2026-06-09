@@ -7,6 +7,7 @@
     <title>SmartRoom - Trang Cu Dan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    @vite(['resources/css/app.css', 'resources/css/style.css', 'resources/js/app.js'])
     <style>
         body { font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
         .panel { background: rgba(15, 23, 42, .72); border: 1px solid rgba(51, 65, 85, .8); }
@@ -23,6 +24,9 @@
                     <span class="font-black tracking-tight">SmartRoom Resident</span>
                 </a>
                 <div class="flex items-center gap-3">
+                    <button type="button" onclick="toggleThemeMode()" class="theme-toggle-button" aria-label="Chuyển chế độ sáng tối">
+                        <i class="fa-solid fa-moon" data-theme-icon></i>
+                    </button>
                     <span class="hidden sm:inline text-xs text-slate-400">{{ Auth::user()->name ?? 'Resident' }}</span>
                     <a href="{{ route('signout') }}" class="px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-bold">
                         <i class="fa-solid fa-arrow-right-from-bracket"></i>

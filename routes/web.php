@@ -112,7 +112,7 @@ Route::get('/smartroom/contract/{id}/sign', [AdminDashboardController::class, 's
 Route::post('/smartroom/contract/{id}/sign', [AdminDashboardController::class, 'signContract'])->name('smartroom.contract.sign');
 Route::post('/renty/contact-request', [AdminDashboardController::class, 'storeContactRequest'])->name('renty.contact_request.store');
 
-$rentyPage = function () {
+$rentyRooms = function () {
     $rooms = \App\Models\Room::with(['building', 'tenant', 'residents', 'reviews'])->get();
     
     $mappedRooms = $rooms->map(function($room) {
@@ -170,12 +170,17 @@ $rentyPage = function () {
             $uploadedImages->prepend($room->image);
         }
 
+        $mediaUrl = fn ($path) => str_starts_with($path, 'http://') || str_starts_with($path, 'https://')
+            ? $path
+            : \Illuminate\Support\Facades\Storage::url($path);
+
         $imageUrls = $uploadedImages
             ->filter()
             ->unique()
             ->values()
-            ->map(fn ($path) => \Illuminate\Support\Facades\Storage::url($path))
+            ->map(fn ($path) => $mediaUrl($path))
             ->all();
+        $hasVerifiedMedia = !empty($imageUrls);
 
         if (empty($imageUrls)) {
             $fallbackSets = [
@@ -198,6 +203,22 @@ $rentyPage = function () {
 
             $imageUrls = $fallbackSets[$num % count($fallbackSets)];
         }
+
+        $imageAngles = collect($imageUrls)->values()->map(function ($url, $index) use ($balcony) {
+            $labels = [
+                'View toàn phòng',
+                'Góc nhà vệ sinh',
+                'Khu bếp / chỗ nấu',
+                $balcony ? 'Ban công / cửa sổ' : 'Cửa sổ / ánh sáng',
+                'Góc để đồ',
+                'Lối vào phòng',
+            ];
+
+            return [
+                'url' => $url,
+                'label' => $labels[$index] ?? 'Ảnh thực tế ' . ($index + 1),
+            ];
+        })->all();
         
         return [
             'id' => $room->id,
@@ -224,6 +245,12 @@ $rentyPage = function () {
             'balcony_txt' => $balcony ? 'Có' : 'Không',
             'cover_image' => $imageUrls[0],
             'image_urls' => $imageUrls,
+            'image_angles' => $imageAngles,
+            'video_url' => $room->video ? $mediaUrl($room->video) : null,
+            'media_source_label' => $hasVerifiedMedia ? 'Ảnh thực tế' : 'Ảnh tham khảo',
+            'media_source_note' => $hasVerifiedMedia
+                ? 'Ảnh do chủ trọ đăng tải, nên đối chiếu khi xem phòng trực tiếp.'
+                : 'Phòng chưa có ảnh thật được tải lên. Nên yêu cầu chủ trọ gửi ảnh/video thực tế trước khi đặt cọc.',
             'reviews' => $reviewsList
         ];
     });
@@ -259,15 +286,28 @@ $rentyPage = function () {
         return $room;
     });
 
-    $recentReviews = \App\Models\Review::with('room')->latest()->take(5)->get();
+    return $mappedRooms;
+};
 
+$rentyPage = function () use ($rentyRooms) {
+    $recentReviews = \App\Models\Review::with('room')->latest()->take(5)->get();
     return view('rentry.rentry', [
-        'rooms' => $mappedRooms,
+        'rooms' => $rentyRooms(),
         'recentReviews' => $recentReviews
     ]);
 };
 
 Route::get('/renty', $rentyPage)->name('renty.user');
+
+Route::get('/renty/room/{id}', function ($id) use ($rentyRooms) {
+    $room = $rentyRooms()->firstWhere('id', (int) $id);
+
+    abort_if(!$room, 404, 'Không tìm thấy phòng trọ.');
+
+    return view('rentry.rooms.show', [
+        'room' => $room,
+    ]);
+})->name('renty.room.show');
 
 Route::post('/renty/room/{id}/review', function (Illuminate\Http\Request $request, $id) {
     $request->validate([
@@ -285,3 +325,23 @@ Route::post('/renty/room/{id}/review', function (Illuminate\Http\Request $reques
 
     return back()->with('success', 'Cảm ơn bạn đã gửi đánh giá thực tế!');
 })->name('renty.room.review.store');
+
+Route::post('/renty/room/{id}/report', function (Illuminate\Http\Request $request, $id) {
+    $request->validate([
+        'reporter_name' => 'nullable|string|max:255',
+        'reporter_phone' => 'nullable|string|max:50',
+        'reason' => 'required|in:scam,fake_images,wrong_price,unsafe,spam,other',
+        'description' => 'required|string|min:10|max:2000',
+    ]);
+
+    \App\Models\RoomReport::create([
+        'room_id' => $id,
+        'reporter_name' => $request->reporter_name,
+        'reporter_phone' => $request->reporter_phone,
+        'reason' => $request->reason,
+        'description' => $request->description,
+        'status' => 'pending',
+    ]);
+
+    return back()->with('success', 'Cảm ơn bạn đã gửi báo cáo. Renty Review sẽ kiểm tra phòng này sớm nhất.');
+})->name('renty.room.report.store');
