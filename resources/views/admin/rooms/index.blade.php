@@ -27,6 +27,7 @@
     
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
     
     <!-- Custom CSS Styles -->
     <style>
@@ -53,23 +54,26 @@
     </style>
     @vite(['resources/css/app.css', 'resources/css/style.css', 'resources/js/app.js'])
 </head>
-<body class="bg-[#080b11] text-slate-100 min-h-screen flex selection:bg-indigo-500 selection:text-white overflow-hidden">
+<body class="bg-[#080b11] text-slate-100 min-h-screen selection:bg-indigo-500 selection:text-white overflow-hidden">
 
     <!-- Decorative glows -->
     <div class="absolute top-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full bg-indigo-600/5 blur-[100px] pointer-events-none"></div>
     <div class="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] rounded-full bg-emerald-600/5 blur-[100px] pointer-events-none"></div>
 
     <!-- SIDEBAR -->
-    <aside class="w-64 bg-[#0d121f] border-r border-slate-900 flex flex-col justify-between h-screen shrink-0 relative z-20">
+    <aside id="admin-sidebar" class="fixed inset-y-0 left-0 w-64 bg-[#0d121f] border-r border-slate-900 flex flex-col justify-between h-screen z-30 transition-[width] duration-200">
         <div>
             <!-- Sidebar Header -->
             <div class="p-6 border-b border-slate-900 flex items-center justify-between">
-                <a href="{{ route('smartroom.admin') }}" class="flex items-center gap-3">
+                <a href="{{ route('smartroom.admin') }}" class="sidebar-brand flex items-center gap-3 min-w-0">
                     <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
                         <i class="fa-solid fa-hotel text-white text-sm"></i>
                     </div>
                     <span class="text-lg font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">SmartRoom</span>
                 </a>
+                <button type="button" id="sidebar-toggle" class="w-8 h-8 rounded-lg border border-slate-800 text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 transition-all" title="Thu gọn/mở rộng sidebar">
+                    <i class="fa-solid fa-angles-left transition-transform"></i>
+                </button>
             </div>
             
             <!-- Navigation Links -->
@@ -94,24 +98,24 @@
         </div>
 
         <!-- Sidebar Footer -->
-        <div class="p-4 border-t border-slate-900">
-            <div class="flex items-center gap-3 p-2 rounded-xl bg-slate-900/50 border border-slate-800/40">
+        <div class="sidebar-footer p-4 border-t border-slate-900">
+            <div class="sidebar-user flex items-center gap-3 p-2 rounded-xl bg-slate-900/50 border border-slate-800/40">
                 <div class="w-9 h-9 rounded-lg bg-indigo-900/50 border border-indigo-500/30 flex items-center justify-center font-bold text-indigo-400 text-sm">
                     {{ substr(Auth::user()->name ?? 'AD', 0, 2) }}
                 </div>
-                <div class="overflow-hidden">
+                <div class="sidebar-profile overflow-hidden">
                     <h4 class="text-xs font-bold text-slate-200 truncate">{{ Auth::user()->name ?? 'Người dùng' }}</h4>
                     <p class="text-[10px] text-slate-500 truncate">{{ Auth::user()->roleName() }}</p>
                 </div>
             </div>
-            <a href="{{ route('signout') }}" class="mt-3 w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-semibold text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 transition-all duration-200">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng Xuất
+            <a href="{{ route('signout') }}" class="sidebar-logout mt-3 w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-semibold text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 transition-all duration-200">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Đăng Xuất</span>
             </a>
         </div>
     </aside>
 
     <!-- MAIN APP WRAPPER -->
-    <div class="flex-grow flex flex-col h-screen overflow-y-auto relative z-10">
+    <div id="admin-shell" class="ml-64 min-w-0 flex flex-col h-screen overflow-y-auto relative z-10 transition-[margin-left] duration-200">
         
         <!-- TOP NAVBAR -->
         <header class="h-16 border-b border-slate-900 bg-[#080b11]/80 backdrop-blur-md flex items-center justify-between px-8 sticky top-0 z-20">
@@ -331,5 +335,6 @@
             observer.observe(form, { attributes: true, childList: true, subtree: true });
         });
     </script>
+    <script src="{{ asset('js/admin-sidebar.js') }}"></script>
 </body>
 </html>

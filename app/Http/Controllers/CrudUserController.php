@@ -46,7 +46,7 @@ class CrudUserController extends Controller
 
         if ($attemptPhone || $attemptUsername) {
             $user = Auth::user();
-            $defaultRoute = $user->role === 'admin' ? route('smartroom.admin') : route('smartroom.resident');
+            $defaultRoute = $user->isLandlord() ? route('smartroom.admin') : route('smartroom.resident');
             return redirect()->intended($defaultRoute)
                 ->with('success', 'Đăng nhập thành công!');
         }

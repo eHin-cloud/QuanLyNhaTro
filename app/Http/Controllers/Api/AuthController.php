@@ -19,7 +19,7 @@ class AuthController extends Controller
             'password' => 'required|string'
         ]);
 
-        $user = User::with(['role', 'tenant'])->where('email', $request->email)->first();
+        $user = User::with(['roleRecord', 'tenant'])->where('email', $request->email)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
@@ -91,7 +91,7 @@ class AuthController extends Controller
     // Lấy thông tin cá nhân (Profile)
     public function profile(Request $request)
     {
-        $user = User::with(['role', 'tenant'])->find(Auth::id());
+        $user = User::with(['roleRecord', 'tenant'])->find(Auth::id());
 
         return response()->json([
             'success' => true,

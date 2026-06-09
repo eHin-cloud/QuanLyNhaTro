@@ -44,9 +44,43 @@ class User extends Authenticatable
         return $this->belongsTo(Tenant::class);
     }
 
-    public function role(): BelongsTo
+    public function roleRecord(): BelongsTo
     {
-        return $this->belongsTo(Role::class);
+        return $this->belongsTo(Role::class, 'role_id');
+    }
+
+    public function roleSlug(): ?string
+    {
+        $roleRecord = $this->relationLoaded('roleRecord')
+            ? $this->getRelation('roleRecord')
+            : ($this->role_id ? $this->roleRecord : null);
+
+        if ($roleRecord) {
+            return $roleRecord->slug;
+        }
+
+        return match ($this->role) {
+            'admin' => 'landlord',
+            'user' => 'resident',
+            default => $this->role,
+        };
+    }
+
+    public function roleName(): string
+    {
+        $roleRecord = $this->relationLoaded('roleRecord')
+            ? $this->getRelation('roleRecord')
+            : ($this->role_id ? $this->roleRecord : null);
+
+        if ($roleRecord) {
+            return $roleRecord->name;
+        }
+
+        return match ($this->role) {
+            'admin' => 'Quản trị viên',
+            'user' => 'Người thuê',
+            default => 'Quản trị viên',
+        };
     }
 
     public function resident(): HasOne
@@ -57,41 +91,6 @@ class User extends Authenticatable
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
-    }
-
-    // Role Helper Methods
-    public function roleSlug(): ?string
-    {
-        if ($this->role_id) {
-            $role = $this->relationLoaded('role') ? $this->getRelation('role') : $this->role()->first();
-
-            if ($role) {
-                return $role->slug;
-            }
-        }
-
-        return match ($this->getAttribute('role')) {
-            'admin' => 'landlord',
-            'user' => 'resident',
-            default => $this->getAttribute('role'),
-        };
-    }
-
-    public function roleName(): string
-    {
-        if ($this->role_id) {
-            $role = $this->relationLoaded('role') ? $this->getRelation('role') : $this->role()->first();
-
-            if ($role) {
-                return $role->name;
-            }
-        }
-
-        return match ($this->getAttribute('role')) {
-            'admin' => 'Quản trị viên',
-            'user' => 'Người thuê',
-            default => 'Quản trị viên',
-        };
     }
 
     public function isLandlord(): bool
