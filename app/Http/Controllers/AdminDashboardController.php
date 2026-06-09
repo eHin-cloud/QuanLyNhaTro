@@ -307,7 +307,8 @@ class AdminDashboardController extends Controller
             return (int) $tenantId;
         }
 
-        $fallbackTenantId = Tenant::query()->value('id');
+        $fallbackTenantId = Tenant::where('email', 'contact@smartroom-caugiay.vn')->value('id')
+            ?? Tenant::query()->orderBy('id')->value('id');
         if (!$fallbackTenantId) {
             abort(404, 'Khong tim thay tenant.');
         }

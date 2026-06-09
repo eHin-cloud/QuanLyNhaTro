@@ -38,6 +38,14 @@ class DatabaseSeeder extends Seeder
         ]);
         $this->call(SmartRoomSeeder::class);
         $this->call(RoomSeeder::class);
+
+        $defaultTenantId = \App\Models\Tenant::where('email', 'contact@smartroom-caugiay.vn')->value('id')
+            ?? \App\Models\Tenant::query()->orderBy('id')->value('id');
+
+        if ($defaultTenantId) {
+            User::where('username', 'admin')->update(['tenant_id' => $defaultTenantId]);
+        }
+
         $this->call(ContractSeeder::class);
         $this->call(EquipmentSeeder::class);
         $this->call(SmartAlertSeeder::class);
