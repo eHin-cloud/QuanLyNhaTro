@@ -9,7 +9,6 @@ use App\Models\User;
 use App\Models\Building;
 use App\Models\Room;
 use App\Models\Resident;
-use App\Models\Contract;
 use App\Models\ElectricWaterLog;
 use App\Models\Bill;
 use App\Models\Ticket;
@@ -429,56 +428,7 @@ class SmartRoomSeeder extends Seeder
             }
         }
 
-        // 8. Tạo Hợp đồng (Contracts)
-        // Tenant 1 Contracts
-        foreach ($resDataT1 as $roomNum => $res) {
-            $room = $roomsT1[$roomNum];
-            $resident = Resident::where('room_id', $room->id)->first();
-            $contractCode = 'HĐ-' . $room->room_number . '-' . date('Ymd', strtotime($resident->start_date));
-            Contract::updateOrCreate([
-                'contract_code' => $contractCode,
-            ], [
-                'tenant_id' => $tenant1->id,
-                'room_id' => $room->id,
-                'resident_id' => $resident->id,
-                'start_date' => $resident->start_date,
-                'end_date' => Carbon::parse($resident->start_date)->addYear()->toDateString(),
-                'deposit' => $room->price,
-                'status' => 'active',
-                'terms' => "ĐIỀU KHOẢN HỢP ĐỒNG THUÊ PHÒNG\n\n"
-                         . "Điều 1: Bên A (Bên cho thuê) đồng ý cho Bên B (Bên thuê) thuê phòng số " . $room->room_number . " tại địa chỉ " . $building1->address . ".\n"
-                         . "Điều 2: Giá thuê là " . number_format($room->price) . " VNĐ/tháng (Thanh toán định kỳ trước ngày 10 hàng tháng).\n"
-                         . "Điều 3: Tiền đặt cọc bảo đảm là " . number_format($room->price) . " VNĐ. Tiền cọc sẽ được hoàn trả đầy đủ sau khi thanh lý hợp đồng.\n"
-                         . "Điều 4: Bên thuê cam kết chấp hành nghiêm chỉnh nội quy phòng trọ, phòng chống cháy nổ và khai báo tạm trú đầy đủ.",
-                'signature' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
-            ]);
-        }
-
-        // Tenant 2 Contracts
-        foreach ($resDataT2 as $roomNum => $res) {
-            $room = $roomsT2[$roomNum];
-            $resident = Resident::where('room_id', $room->id)->first();
-            $contractCode = 'HĐ-' . $room->room_number . '-' . date('Ymd', strtotime($resident->start_date));
-            Contract::updateOrCreate([
-                'contract_code' => $contractCode,
-            ], [
-                'tenant_id' => $tenant2->id,
-                'room_id' => $room->id,
-                'resident_id' => $resident->id,
-                'start_date' => $resident->start_date,
-                'end_date' => Carbon::parse($resident->start_date)->addYear()->toDateString(),
-                'deposit' => $room->price,
-                'status' => 'active',
-                'terms' => "ĐIỀU KHOẢN HỢP ĐỒNG THUÊ PHÒNG\n\n"
-                         . "Điều 1: Bên A (Bên cho thuê) đồng ý cho Bên B (Bên thuê) thuê phòng số " . $room->room_number . " tại địa chỉ " . $building2->address . ".\n"
-                         . "Điều 2: Giá thuê là " . number_format($room->price) . " VNĐ/tháng (Thanh toán định kỳ trước ngày 10 hàng tháng).\n"
-                         . "Điều 3: Tiền đặt cọc bảo đảm là " . number_format($room->price) . " VNĐ. Tiền cọc sẽ được hoàn trả đầy đủ sau khi thanh lý hợp đồng.\n"
-                         . "Điều 4: Bên thuê cam kết chấp hành nghiêm chỉnh nội quy phòng trọ, phòng chống cháy nổ và khai báo tạm trú đầy đủ.",
-                'signature' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
-            ]);
-        }
-
-        // 9. Tạo sự cố báo hỏng (Tickets)
+        // 8. Tạo sự cố báo hỏng (Tickets)
         // Tenant 1 Tickets
         $res103 = Resident::where('room_id', $roomsT1['103']->id)->first();
         Ticket::updateOrCreate([

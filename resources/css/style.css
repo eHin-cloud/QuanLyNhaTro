@@ -30,6 +30,92 @@
     50% { box-shadow: 0 0 32px rgba(99, 102, 241, 0.22); }
 }
 
+@keyframes rentySearchPulse {
+    0% {
+        opacity: 0;
+        transform: scaleX(0.18) scaleY(0.82);
+        box-shadow: 0 0 0 rgba(20, 184, 166, 0);
+    }
+    55% {
+        opacity: 1;
+        transform: scaleX(1.01) scaleY(1);
+        box-shadow:
+            0 0 0 1px rgba(45, 212, 191, 0.65),
+            0 0 28px rgba(20, 184, 166, 0.38),
+            0 0 72px rgba(16, 185, 129, 0.18);
+    }
+    100% {
+        opacity: 1;
+        transform: scaleX(1) scaleY(1);
+        box-shadow:
+            0 0 0 1px rgba(45, 212, 191, 0.55),
+            0 0 22px rgba(20, 184, 166, 0.28),
+            0 0 54px rgba(16, 185, 129, 0.14);
+    }
+}
+
+@keyframes rentySuggestionSlide {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes rentyCardCrossfade {
+    0%, 24%, 100% { opacity: 1; transform: scale(1.07); }
+    34%, 92% { opacity: 0; transform: scale(1.08); }
+}
+
+@keyframes rentySkeletonShimmer {
+    from { background-position: -180% 0; }
+    to { background-position: 180% 0; }
+}
+
+@keyframes themeFlipWash {
+    0% {
+        opacity: 0;
+        transform: translateX(-115%) skewX(-14deg);
+    }
+    18% {
+        opacity: 0.86;
+    }
+    72% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(115%) skewX(-14deg);
+    }
+}
+
+@keyframes themeIconPlay {
+    0% { transform: rotate(-110deg) scale(0.72); }
+    58% { transform: rotate(16deg) scale(1.12); }
+    100% { transform: rotate(0) scale(1); }
+}
+
+@keyframes rentedBadgeBorderVibe {
+    0%, 100% {
+        border-color: rgba(244, 63, 94, 0.32);
+        box-shadow: 0 0 0 rgba(244, 63, 94, 0), 0 10px 22px rgba(2, 6, 23, 0.24);
+        transform: translate3d(0, 0, 0);
+    }
+    35% {
+        border-color: rgba(251, 113, 133, 0.82);
+        box-shadow: 0 0 0 1px rgba(251, 113, 133, 0.28), 0 0 18px rgba(244, 63, 94, 0.32);
+        transform: translate3d(0.5px, -0.5px, 0);
+    }
+    68% {
+        border-color: rgba(225, 29, 72, 0.62);
+        box-shadow: 0 0 0 1px rgba(244, 63, 94, 0.16), 0 0 12px rgba(244, 63, 94, 0.2);
+        transform: translate3d(-0.5px, 0.5px, 0);
+    }
+}
+
 @keyframes softSheen {
     0% { transform: translateX(-130%) skewX(-18deg); opacity: 0; }
     18% { opacity: 0.6; }
@@ -259,6 +345,171 @@ summary:active {
     transform: translateY(1px) scale(0.985);
 }
 
+.renty-search-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    pointer-events: none;
+    opacity: 0;
+    background: rgba(2, 6, 23, 0.12);
+    backdrop-filter: blur(0);
+    -webkit-backdrop-filter: blur(0);
+    transition:
+        opacity var(--transition-normal),
+        backdrop-filter var(--transition-normal),
+        -webkit-backdrop-filter var(--transition-normal);
+}
+
+.renty-search-backdrop.is-active {
+    opacity: 1;
+    pointer-events: auto;
+    backdrop-filter: blur(5px) saturate(118%);
+    -webkit-backdrop-filter: blur(5px) saturate(118%);
+}
+
+.renty-search-panel {
+    position: relative;
+    z-index: 36;
+    transition:
+        transform var(--transition-normal),
+        border-color var(--transition-normal),
+        box-shadow var(--transition-normal),
+        background var(--transition-normal);
+}
+
+.renty-search-panel.is-search-active {
+    transform: translateY(-2px);
+    border-color: rgba(45, 212, 191, 0.28);
+    background: rgba(15, 23, 42, 0.78);
+    box-shadow:
+        0 26px 85px rgba(2, 6, 23, 0.42),
+        0 0 0 1px rgba(20, 184, 166, 0.12);
+}
+
+.renty-search-shell {
+    z-index: 2;
+}
+
+.renty-search-focus-ring {
+    position: absolute;
+    inset: -2px;
+    z-index: 0;
+    border-radius: 18px;
+    pointer-events: none;
+    opacity: 0;
+    transform-origin: center;
+    background:
+        linear-gradient(90deg, rgba(16, 185, 129, 0), rgba(45, 212, 191, 0.92), rgba(34, 211, 238, 0.9), rgba(16, 185, 129, 0));
+    padding: 1px;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    -webkit-mask-composite: xor;
+}
+
+.renty-search-panel.is-search-active .renty-search-focus-ring {
+    animation: rentySearchPulse 0.72s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.renty-search-input {
+    position: relative;
+    z-index: 1;
+    transition:
+        background var(--transition-normal),
+        border-color var(--transition-normal),
+        color var(--transition-normal),
+        box-shadow var(--transition-normal);
+}
+
+.renty-search-panel.is-search-active .renty-search-input {
+    background:
+        linear-gradient(180deg, rgba(8, 13, 23, 0.98), rgba(3, 7, 14, 0.96));
+    border-color: rgba(45, 212, 191, 0.52);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 0 34px rgba(20, 184, 166, 0.12);
+}
+
+.renty-search-icon {
+    z-index: 2;
+    transition: color var(--transition-normal), text-shadow var(--transition-normal);
+}
+
+.renty-search-panel.is-search-active .renty-search-icon {
+    color: #2dd4bf;
+    text-shadow: 0 0 18px rgba(45, 212, 191, 0.7);
+}
+
+.renty-search-suggestions {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 10px);
+    z-index: 40;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-8px) scale(0.98);
+    border: 1px solid rgba(45, 212, 191, 0.18);
+    border-radius: 18px;
+    background:
+        linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.92));
+    box-shadow:
+        0 22px 62px rgba(2, 6, 23, 0.46),
+        0 0 0 1px rgba(15, 23, 42, 0.72);
+    padding: 14px;
+    backdrop-filter: blur(18px) saturate(145%);
+    -webkit-backdrop-filter: blur(18px) saturate(145%);
+}
+
+.renty-search-panel.is-search-active .renty-search-suggestions {
+    pointer-events: auto;
+    animation: rentySuggestionSlide 0.34s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.renty-suggestion-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 34px;
+    padding: 8px 11px;
+    border-radius: 999px;
+    border: 1px solid rgba(45, 212, 191, 0.18);
+    background: rgba(15, 23, 42, 0.84);
+    color: #cbd5e1;
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.renty-suggestion-chip:hover {
+    color: #ecfeff;
+    border-color: rgba(45, 212, 191, 0.46);
+    background: rgba(20, 184, 166, 0.14);
+    box-shadow: 0 0 24px rgba(20, 184, 166, 0.16);
+}
+
+.theme-light .renty-search-backdrop.is-active {
+    background: rgba(248, 250, 252, 0.3);
+}
+
+.theme-light .renty-search-panel.is-search-active {
+    background: rgba(255, 255, 255, 0.88);
+}
+
+.theme-light .renty-search-panel.is-search-active .renty-search-input {
+    background: rgba(255, 255, 255, 0.96);
+    color: #0f172a;
+}
+
+.theme-light .renty-search-suggestions {
+    background: rgba(255, 255, 255, 0.96);
+}
+
+.theme-light .renty-suggestion-chip {
+    background: rgba(240, 253, 250, 0.92);
+    color: #0f172a;
+}
+
 input,
 select,
 textarea {
@@ -295,6 +546,136 @@ table tbody tr {
 .theme-toggle-button:hover {
     border-color: rgba(16, 185, 129, 0.45);
     color: #6ee7b7;
+}
+
+.theme-flip-wash {
+    position: fixed;
+    inset: -18% -28%;
+    z-index: 80;
+    pointer-events: none;
+    opacity: 0;
+    mix-blend-mode: screen;
+    background:
+        linear-gradient(100deg, transparent 12%, rgba(251, 191, 36, 0.12) 26%, rgba(253, 224, 71, 0.34) 42%, rgba(255, 255, 255, 0.62) 50%, rgba(45, 212, 191, 0.22) 63%, transparent 82%);
+}
+
+body.theme-flipping .theme-flip-wash {
+    animation: themeFlipWash 0.72s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+header::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.16), rgba(255, 255, 255, 0.24), transparent);
+    transform: translateX(-100%);
+}
+
+body.theme-flipping header::after {
+    animation: themeFlipWash 0.68s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.renty-theme-switch.theme-toggle-button {
+    width: 54px;
+    height: 30px;
+    padding: 0;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.78);
+    border-color: rgba(148, 163, 184, 0.22);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 14px 34px rgba(2, 6, 23, 0.24);
+}
+
+.theme-switch-track {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.88));
+    transition: background 0.42s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.42s ease;
+}
+
+.theme-switch-track::before {
+    content: "";
+    position: absolute;
+    inset: 4px 8px auto auto;
+    width: 3px;
+    height: 3px;
+    border-radius: 999px;
+    background: rgba(226, 232, 240, 0.72);
+    box-shadow: -11px 7px 0 rgba(226, 232, 240, 0.38), -3px 14px 0 rgba(226, 232, 240, 0.32);
+    opacity: 1;
+    transition: opacity 0.28s ease;
+}
+
+.theme-switch-knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    background: radial-gradient(circle at 35% 28%, #f8fafc, #cbd5e1 70%);
+    color: #0f172a;
+    box-shadow: 0 8px 20px rgba(2, 6, 23, 0.34);
+    transition:
+        transform 0.46s cubic-bezier(0.16, 1, 0.3, 1),
+        background 0.42s ease,
+        color 0.42s ease,
+        box-shadow 0.42s ease;
+}
+
+.theme-switch-icon {
+    grid-area: 1 / 1;
+    font-size: 12px;
+    transition:
+        opacity 0.24s ease,
+        transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.theme-switch-sun {
+    color: #f59e0b;
+    opacity: 0;
+    transform: rotate(110deg) scale(0.45);
+}
+
+.theme-switch-moon {
+    color: #334155;
+    opacity: 1;
+    transform: rotate(0) scale(1);
+}
+
+.renty-theme-switch.is-light .theme-switch-track {
+    background: linear-gradient(135deg, #bae6fd, #fef3c7 58%, #ffffff);
+    box-shadow: inset 0 0 0 1px rgba(251, 191, 36, 0.28), 0 0 24px rgba(251, 191, 36, 0.18);
+}
+
+.renty-theme-switch.is-light .theme-switch-track::before {
+    opacity: 0;
+}
+
+.renty-theme-switch.is-light .theme-switch-knob {
+    transform: translateX(24px);
+    background: radial-gradient(circle at 35% 32%, #fff7ed, #fbbf24 72%);
+    color: #92400e;
+    box-shadow: 0 8px 22px rgba(245, 158, 11, 0.28);
+}
+
+.renty-theme-switch.is-light .theme-switch-sun {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+}
+
+.renty-theme-switch.is-light .theme-switch-moon {
+    opacity: 0;
+    transform: rotate(-110deg) scale(0.45);
+}
+
+.renty-theme-switch.is-animating .theme-switch-knob {
+    animation: themeIconPlay 0.52s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html.theme-light body,
@@ -335,6 +716,13 @@ body.theme-light .theme-toggle-button {
     border-color: rgba(148, 163, 184, 0.34);
     color: #0f172a;
     box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+}
+
+html.theme-light .renty-theme-switch.theme-toggle-button,
+body.theme-light .renty-theme-switch.theme-toggle-button {
+    background: rgba(255, 255, 255, 0.86);
+    border-color: rgba(251, 191, 36, 0.35);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78), 0 14px 34px rgba(245, 158, 11, 0.12);
 }
 
 html.theme-light .renty-brand-text,
@@ -489,10 +877,318 @@ body.theme-light textarea::placeholder {
 
 .quick-eye-button {
     box-shadow: 0 14px 34px rgba(2, 6, 23, 0.36);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-8px) scale(0.96);
+    transition:
+        opacity 0.26s ease,
+        transform 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+        border-color 0.26s ease,
+        color 0.26s ease,
+        box-shadow 0.26s ease;
+}
+
+.room-item-card:hover .quick-eye-button,
+.room-item-card:focus-within .quick-eye-button {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+    box-shadow: 0 18px 44px rgba(2, 6, 23, 0.5), 0 0 0 1px rgba(45, 212, 191, 0.2);
 }
 
 .quick-eye-button:hover i {
     color: #6ee7b7;
+}
+
+.renty-card-carousel {
+    isolation: isolate;
+}
+
+.renty-card-carousel-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transform: scale(1.02);
+    transition: transform 0.6s ease;
+}
+
+.renty-card-carousel-image:first-child {
+    opacity: 1;
+}
+
+.room-item-card:hover .renty-card-carousel-image,
+.room-item-card:focus-within .renty-card-carousel-image {
+    animation: rentyCardCrossfade 8s ease-in-out infinite;
+    animation-delay: var(--carousel-delay, 0s);
+}
+
+.room-report-button {
+    transition:
+        color 0.24s ease,
+        transform 0.24s ease,
+        text-shadow 0.24s ease;
+}
+
+.room-report-button i {
+    transition:
+        color 0.24s ease,
+        transform 0.24s ease,
+        filter 0.24s ease;
+}
+
+.room-item-card:hover .room-report-button,
+.room-item-card:focus-within .room-report-button {
+    color: #fb7185;
+    text-shadow: 0 0 18px rgba(251, 113, 133, 0.22);
+}
+
+.room-item-card:hover .room-report-button i,
+.room-item-card:focus-within .room-report-button i {
+    color: #f43f5e;
+    transform: translateY(-1px) scale(1.18);
+    filter: drop-shadow(0 0 8px rgba(244, 63, 94, 0.42));
+}
+
+.room-card-media::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0;
+    background:
+        linear-gradient(180deg, rgba(148, 163, 184, 0.14), rgba(15, 23, 42, 0.52)),
+        rgba(100, 116, 139, 0.28);
+    backdrop-filter: saturate(58%) contrast(0.82);
+    -webkit-backdrop-filter: saturate(58%) contrast(0.82);
+    transition: opacity 0.34s ease;
+}
+
+.room-card-viewed {
+    opacity: 0.92;
+}
+
+.room-card-viewed .room-card-media::after {
+    opacity: 1;
+}
+
+.room-card-viewed .renty-card-carousel-image {
+    filter: grayscale(0.42) saturate(0.5) brightness(0.78);
+}
+
+.room-status-badge {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.room-status-rented {
+    animation: rentedBadgeBorderVibe 1.7s ease-in-out infinite;
+}
+
+.viewed-room-strip {
+    display: none;
+    align-items: center;
+    gap: 0.55rem;
+    width: fit-content;
+    max-width: 100%;
+    margin: -0.15rem 0 0.85rem;
+    padding: 0.42rem 0.7rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(20, 184, 166, 0.16), rgba(15, 23, 42, 0.62));
+    border: 1px solid rgba(45, 212, 191, 0.34);
+    color: #99f6e4;
+    font-size: 0.66rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    text-shadow: 0 0 14px rgba(45, 212, 191, 0.46);
+    box-shadow: 0 10px 28px rgba(20, 184, 166, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.room-card-viewed .viewed-room-strip {
+    display: inline-flex;
+}
+
+.viewed-room-strip-icon {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 1.45rem;
+    height: 1.45rem;
+    border-radius: 999px;
+    color: #2dd4bf;
+    background: rgba(15, 23, 42, 0.72);
+    box-shadow: 0 0 18px rgba(45, 212, 191, 0.42);
+}
+
+.viewed-room-strip-icon .fa-eye {
+    font-size: 0.78rem;
+}
+
+.viewed-room-strip-icon .fa-check {
+    position: absolute;
+    right: -0.18rem;
+    bottom: -0.1rem;
+    width: 0.74rem;
+    height: 0.74rem;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: #14b8a6;
+    color: #022c22;
+    font-size: 0.48rem;
+    box-shadow: 0 0 12px rgba(20, 184, 166, 0.55);
+}
+
+html.theme-light .viewed-room-strip,
+body.theme-light .viewed-room-strip {
+    background: linear-gradient(135deg, rgba(20, 184, 166, 0.14), rgba(255, 255, 255, 0.9));
+    border-color: rgba(13, 148, 136, 0.32);
+    color: #0f766e;
+    text-shadow: 0 0 12px rgba(20, 184, 166, 0.24);
+}
+
+.room-card-skeleton {
+    position: absolute;
+    inset: 0;
+    z-index: 40;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(8, 13, 24, 0.98));
+}
+
+.room-item-card.is-search-loading {
+    pointer-events: none;
+}
+
+.room-item-card.is-search-loading > :not(.room-card-skeleton) {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.room-item-card.is-search-loading .room-card-skeleton {
+    display: flex;
+}
+
+.skeleton-media,
+.skeleton-row,
+.skeleton-tags span,
+.skeleton-check,
+.skeleton-action {
+    position: relative;
+    overflow: hidden;
+    background:
+        linear-gradient(105deg, transparent 0%, rgba(255, 255, 255, 0.12) 42%, rgba(255, 255, 255, 0.26) 50%, rgba(255, 255, 255, 0.1) 58%, transparent 100%),
+        linear-gradient(180deg, rgba(71, 85, 105, 0.62), rgba(30, 41, 59, 0.9));
+    background-size: 220% 100%, 100% 100%;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 28px rgba(2, 6, 23, 0.22);
+    animation: rentySkeletonShimmer 1.35s ease-in-out infinite;
+}
+
+.skeleton-media {
+    height: 12rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.skeleton-body {
+    padding: 1.25rem;
+    display: grid;
+    gap: 0.85rem;
+}
+
+.skeleton-row {
+    height: 0.85rem;
+    border-radius: 999px;
+}
+
+.skeleton-row-title {
+    width: 72%;
+    height: 1rem;
+}
+
+.skeleton-row-rating {
+    position: absolute;
+    top: 13rem;
+    right: 1.25rem;
+    width: 3rem;
+    height: 1rem;
+}
+
+.skeleton-row-address {
+    width: 92%;
+}
+
+.skeleton-row-price {
+    width: 52%;
+    height: 1.45rem;
+    margin-top: 0.25rem;
+}
+
+.skeleton-tags {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.15rem;
+}
+
+.skeleton-tags span {
+    width: 4.9rem;
+    height: 1.25rem;
+    border-radius: 0.45rem;
+}
+
+.skeleton-tags span:nth-child(2) {
+    width: 4rem;
+}
+
+.skeleton-tags span:nth-child(3) {
+    width: 5.6rem;
+}
+
+.skeleton-footer {
+    margin-top: auto;
+    padding: 1rem 1.25rem 1.25rem;
+    border-top: 1px solid rgba(148, 163, 184, 0.12);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.skeleton-check {
+    width: 6.25rem;
+    height: 1.25rem;
+    border-radius: 999px;
+}
+
+.skeleton-action {
+    width: 7.5rem;
+    height: 1.25rem;
+    border-radius: 999px;
+}
+
+html.theme-light .room-card-skeleton,
+body.theme-light .room-card-skeleton {
+    background: linear-gradient(180deg, rgba(226, 232, 240, 0.96), rgba(203, 213, 225, 0.98));
+}
+
+html.theme-light .skeleton-media,
+html.theme-light .skeleton-row,
+html.theme-light .skeleton-tags span,
+html.theme-light .skeleton-check,
+html.theme-light .skeleton-action,
+body.theme-light .skeleton-media,
+body.theme-light .skeleton-row,
+body.theme-light .skeleton-tags span,
+body.theme-light .skeleton-check,
+body.theme-light .skeleton-action {
+    background:
+        linear-gradient(105deg, transparent 0%, rgba(255, 255, 255, 0.32) 42%, rgba(255, 255, 255, 0.64) 50%, rgba(255, 255, 255, 0.28) 58%, transparent 100%),
+        linear-gradient(180deg, rgba(148, 163, 184, 0.55), rgba(100, 116, 139, 0.38));
+    background-size: 220% 100%, 100% 100%;
 }
 
 .viewed-room-badge {
@@ -934,8 +1630,8 @@ table tbody tr:nth-child(4n) { animation-delay: 0.075s; }
 
 .room-card:hover,
 .room-item-card:hover {
-    transform: translateY(-5px) scale(1.01);
-    box-shadow: 0 28px 90px rgba(2, 6, 23, 0.38);
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 34px 110px rgba(2, 6, 23, 0.48), 0 16px 42px rgba(15, 23, 42, 0.28);
 }
 
 #portal-admin,

@@ -40,6 +40,7 @@
     @vite(['resources/css/app.css', 'resources/css/style.css', 'resources/js/app.js'])
 </head>
 <body class="bg-[#080b11] text-slate-100 min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-emerald-500 selection:text-white">
+    <div id="theme-flip-wash" class="theme-flip-wash" aria-hidden="true"></div>
 
     <!-- Decorative glows -->
     <div class="absolute top-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full bg-emerald-600/5 blur-[120px] pointer-events-none"></div>
@@ -61,14 +62,19 @@
                 <a href="#" class="text-emerald-400 hover:text-emerald-300">Khám Phá Phòng</a>
                 <a href="javascript:void(0)" onclick="openHotAreasModal()" class="hover:text-slate-205 transition-colors">Khu Vực Hot</a>
                 <a href="javascript:void(0)" onclick="openNewReviewsModal()" class="hover:text-slate-205 transition-colors">Đánh Giá Mới</a>
-                <button type="button" onclick="toggleThemeMode()" class="theme-toggle-button" aria-label="Chuyển chế độ sáng tối">
-                    <i class="fa-solid fa-moon" id="theme-toggle-icon"></i>
-                </button>
                 @auth
                     <div class="flex items-center gap-3 bg-slate-900/60 border border-slate-800/80 px-3.5 py-1.5 rounded-xl">
                         <span class="text-xs font-bold text-emerald-400">
                             <i class="fa-solid fa-user-circle mr-1"></i> {{ Auth::user()->name }}
                         </span>
+                        <button type="button" onclick="toggleThemeMode()" class="theme-toggle-button renty-theme-switch" aria-label="Chuyển chế độ sáng tối" data-theme-switch>
+                            <span class="theme-switch-track">
+                                <span class="theme-switch-knob">
+                                    <i class="fa-solid fa-moon theme-switch-icon theme-switch-moon" data-theme-icon></i>
+                                    <i class="fa-solid fa-sun theme-switch-icon theme-switch-sun" data-theme-icon></i>
+                                </span>
+                            </span>
+                        </button>
                         <a href="{{ route('signout') }}" class="text-xs font-semibold text-rose-400 hover:text-rose-300 transition-colors">
                             Đăng xuất
                         </a>
@@ -79,6 +85,14 @@
                         </a>
                     @endif
                 @else
+                    <button type="button" onclick="toggleThemeMode()" class="theme-toggle-button renty-theme-switch" aria-label="Chuyển chế độ sáng tối" data-theme-switch>
+                        <span class="theme-switch-track">
+                            <span class="theme-switch-knob">
+                                <i class="fa-solid fa-moon theme-switch-icon theme-switch-moon" data-theme-icon></i>
+                                <i class="fa-solid fa-sun theme-switch-icon theme-switch-sun" data-theme-icon></i>
+                            </span>
+                        </span>
+                    </button>
                     <a href="{{ route('login') }}" class="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-slate-100 transition-all flex items-center gap-2">
                         <i class="fa-solid fa-right-to-bracket text-emerald-400"></i> Đăng Nhập
                     </a>
@@ -99,17 +113,39 @@
         </div>
 
         <!-- Search Bar -->
-        <div class="max-w-4xl mx-auto bg-slate-900/60 backdrop-blur-xl border border-slate-800 p-4 rounded-3xl shadow-xl shadow-slate-950/20 mb-8">
+        <div id="renty-search-backdrop" class="renty-search-backdrop" onclick="blurRentySearch()"></div>
+        <div id="renty-search-panel" class="renty-search-panel max-w-4xl mx-auto bg-slate-900/60 backdrop-blur-xl border border-slate-800 p-4 rounded-3xl shadow-xl shadow-slate-950/20 mb-8">
             <div class="flex flex-col md:flex-row gap-3">
-                <div class="flex-grow relative">
-                    <i class="fa-solid fa-location-dot absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
-                    <input type="text" id="search-input" onkeyup="filterItems()" class="w-full pl-12 pr-4 py-3 bg-[#0a0e17] border border-slate-800 rounded-2xl text-slate-200 placeholder-slate-500 focus:border-emerald-500 focus:outline-none text-sm font-semibold" placeholder="VD: Tìm phòng dưới 3 triệu ở Cầu Giấy, gần đại học Bách Khoa...">
+                <div class="flex-grow relative renty-search-shell">
+                    <div class="renty-search-focus-ring"></div>
+                    <i class="fa-solid fa-location-dot absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 renty-search-icon"></i>
+                    <input type="text" id="search-input" onkeyup="filterItems()" onfocus="openRentySearchSuggestions()" class="renty-search-input w-full pl-12 pr-4 py-3 bg-[#0a0e17] border border-slate-800 rounded-2xl text-slate-200 placeholder-slate-500 focus:outline-none text-sm font-semibold" placeholder="Tìm phòng dưới 3 triệu ở Cầu Giấy, gần đại học Bách Khoa...">
+                    <div id="renty-search-suggestions" class="renty-search-suggestions">
+                        <div class="flex items-center justify-between gap-3 mb-3">
+                            <span class="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Gợi ý nhanh</span>
+                            <span class="text-[10px] font-bold text-emerald-400">Nhấn để tìm ngay</span>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button type="button" onclick="applySearchSuggestion('Cầu Giấy')" class="renty-suggestion-chip">
+                                <i class="fa-solid fa-location-dot"></i> Cầu Giấy
+                            </button>
+                            <button type="button" onclick="applySearchSuggestion('Bách Khoa')" class="renty-suggestion-chip">
+                                <i class="fa-solid fa-graduation-cap"></i> Bách Khoa
+                            </button>
+                            <button type="button" onclick="applySearchSuggestion('phòng dưới 3 triệu')" class="renty-suggestion-chip">
+                                <i class="fa-solid fa-tags"></i> Dưới 3 triệu
+                            </button>
+                            <button type="button" onclick="applySearchSuggestion('gần đại học')" class="renty-suggestion-chip">
+                                <i class="fa-solid fa-clock-rotate-left"></i> Gần đại học
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div class="flex gap-2">
                     <button onclick="toggleFilterDrawer()" class="px-4 py-3 bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-slate-100 rounded-2xl text-sm font-bold flex items-center gap-2 transition-all">
                         <i class="fa-solid fa-sliders text-emerald-400"></i> Bộ Lọc
                     </button>
-                    <button onclick="filterItems()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-sm font-bold shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-2 shrink-0">
+                    <button onclick="runSearchWithSkeleton()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-sm font-bold shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-2 shrink-0">
                         <i class="fa-solid fa-magnifying-glass"></i> Tìm Kiếm
                     </button>
                 </div>
@@ -167,7 +203,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16" id="rooms-grid">
             @foreach($rooms as $room)
-            <div class="room-item-card glass-card rounded-2xl overflow-hidden group flex flex-col justify-between" 
+            <div class="room-item-card glass-card rounded-2xl overflow-hidden group flex flex-col justify-between relative" 
                  data-room-id="{{ $room['id'] }}"
                  data-price="{{ $room['price'] }}" 
                  data-rating="{{ $room['rating'] }}" 
@@ -178,21 +214,49 @@
                  data-area-name="{{ $room['area_name'] }}"
                  data-viewed="false"
                  data-title="{{ $room['title'] }}">
+                <div class="room-card-skeleton" aria-hidden="true">
+                    <div class="skeleton-media"></div>
+                    <div class="skeleton-body">
+                        <div class="skeleton-row skeleton-row-title"></div>
+                        <div class="skeleton-row skeleton-row-rating"></div>
+                        <div class="skeleton-row skeleton-row-address"></div>
+                        <div class="skeleton-row skeleton-row-price"></div>
+                        <div class="skeleton-tags">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                    <div class="skeleton-footer">
+                        <div class="skeleton-check"></div>
+                        <div class="skeleton-action"></div>
+                    </div>
+                </div>
                 <div>
+                    @php
+                        $cardImages = collect($room['image_urls'] ?? [])
+                            ->filter()
+                            ->prepend($room['cover_image'])
+                            ->unique()
+                            ->take(4)
+                            ->values();
+                    @endphp
                     <!-- Room photo -->
-                    <div class="h-48 bg-slate-950 relative overflow-hidden border-b border-slate-900 group">
-                        <a href="{{ route('renty.room.show', $room['id']) }}" class="absolute inset-0 z-0">
-                            <img src="{{ $room['cover_image'] }}" alt="Ảnh phòng {{ $room['room_number'] }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
+                    <div class="room-card-media h-48 bg-slate-950 relative overflow-hidden border-b border-slate-900 group">
+                        <a href="{{ route('renty.room.show', $room['id']) }}" class="absolute inset-0 z-0 renty-card-carousel" aria-label="Xem chi tiết phòng {{ $room['room_number'] }}">
+                            @foreach($cardImages as $imageIndex => $imageUrl)
+                                <img src="{{ $imageUrl }}" alt="Ảnh {{ $imageIndex + 1 }} phòng {{ $room['room_number'] }}" class="renty-card-carousel-image" style="--carousel-delay: {{ $imageIndex * 2 }}s;" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
+                            @endforeach
                             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/10 to-transparent"></div>
                         </a>
 
                         @if($room['status'] === 'empty')
-                            <span class="absolute top-4 left-4 px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[9px] font-extrabold uppercase tracking-wider shadow-sm z-10 flex items-center gap-1.5">
+                            <span class="room-status-badge room-status-empty absolute top-4 left-4 px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[9px] font-extrabold uppercase tracking-wider shadow-sm z-10 flex items-center gap-1.5">
                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                                 Sẵn sàng
                             </span>
                         @else
-                            <span class="absolute top-4 left-4 px-2.5 py-1 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-lg text-[9px] font-extrabold uppercase tracking-wider shadow-sm z-10 flex items-center gap-1.5">
+                            <span class="room-status-badge room-status-rented absolute top-4 left-4 px-2.5 py-1 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-lg text-[9px] font-extrabold uppercase tracking-wider shadow-sm z-10 flex items-center gap-1.5">
                                 <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
                                 Đã thuê
                             </span>
@@ -228,6 +292,13 @@
                     <!-- Details -->
                     <div class="p-5 flex-grow flex flex-col justify-between">
                         <div>
+                            <div class="viewed-room-strip" aria-hidden="true">
+                                <span class="viewed-room-strip-icon">
+                                    <i class="fa-solid fa-eye"></i>
+                                    <i class="fa-solid fa-check"></i>
+                                </span>
+                                <span>ĐÃ XEM</span>
+                            </div>
                             <div class="flex justify-between items-start mb-2 gap-2">
                                 <h3 class="font-bold text-slate-200 text-sm group-hover:text-emerald-400 transition-all line-clamp-1">
                                     <a href="{{ route('renty.room.show', $room['id']) }}">{{ $room['title'] }}</a>
@@ -270,7 +341,7 @@
                         <span>So sánh</span>
                     </label>
                     <div class="flex items-center gap-3">
-                        <button type="button" onclick="openReportModal('{{ $room['id'] }}', '{{ e($room['title']) }}')" class="text-xs text-rose-400 hover:text-rose-300 font-bold flex items-center gap-1">
+                        <button type="button" onclick="openReportModal('{{ $room['id'] }}', '{{ e($room['title']) }}')" class="room-report-button text-xs text-rose-400 hover:text-rose-300 font-bold flex items-center gap-1">
                             <i class="fa-solid fa-flag"></i> Báo cáo
                         </button>
                         <a href="{{ route('renty.room.show', $room['id']) }}" class="text-xs text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
@@ -983,15 +1054,35 @@
                 icon.classList.toggle('fa-sun', isLight);
                 icon.classList.toggle('fa-moon', !isLight);
             });
+            document.querySelectorAll('[data-theme-switch]').forEach(button => {
+                button.classList.toggle('is-light', isLight);
+                button.setAttribute('aria-pressed', isLight ? 'true' : 'false');
+            });
         }
 
         function toggleThemeMode() {
             const nextMode = document.body.classList.contains('theme-light') ? 'dark' : 'light';
             localStorage.setItem('renty_theme_mode', nextMode);
+            document.body.classList.remove('theme-flipping');
+            void document.body.offsetWidth;
+            document.body.classList.add('theme-flipping');
+            document.querySelectorAll('[data-theme-switch]').forEach(button => {
+                button.classList.remove('is-animating');
+                void button.offsetWidth;
+                button.classList.add('is-animating');
+            });
             applyThemeMode(nextMode);
         }
 
         applyThemeMode(localStorage.getItem('renty_theme_mode') || 'dark');
+
+        document.getElementById('theme-flip-wash')?.addEventListener('animationend', () => {
+            document.body.classList.remove('theme-flipping');
+        });
+
+        document.querySelectorAll('[data-theme-switch]').forEach(button => {
+            button.addEventListener('animationend', () => button.classList.remove('is-animating'));
+        });
 
         let currentDetailRoomId = null;
         let activeRoomReviews = [];
@@ -1261,7 +1352,6 @@
             document.querySelectorAll('.room-item-card').forEach(card => {
                 card.dataset.viewed = 'false';
                 card.classList.remove('room-card-viewed');
-                card.querySelector('.viewed-room-badge')?.remove();
             });
             renderViewedRooms();
         }
@@ -1275,17 +1365,6 @@
                 const isViewed = viewedIds.includes(String(card.dataset.roomId));
                 card.dataset.viewed = isViewed ? 'true' : 'false';
                 card.classList.toggle('room-card-viewed', isViewed);
-
-                if (isViewed && !card.querySelector('.viewed-room-badge')) {
-                    const badge = document.createElement('span');
-                    badge.className = 'viewed-room-badge absolute left-4 top-14 z-10';
-                    badge.innerHTML = '<i class="fa-solid fa-eye mr-1"></i> Đã xem';
-                    card.querySelector('.h-48')?.appendChild(badge);
-                }
-
-                if (!isViewed) {
-                    card.querySelector('.viewed-room-badge')?.remove();
-                }
             });
 
             if (!section || !list) return;
@@ -1560,8 +1639,39 @@
             }
         });
 
+        let rentySearchSkeletonTimer = null;
+
+        function setSearchSkeletonLoading(isLoading) {
+            const resultsCount = document.getElementById('results-count');
+
+            document.querySelectorAll('.room-item-card').forEach(card => {
+                if (isLoading) {
+                    card.classList.remove('hidden');
+                }
+                card.classList.toggle('is-search-loading', isLoading);
+            });
+
+            if (isLoading && resultsCount) {
+                resultsCount.textContent = 'Đang tìm phòng phù hợp...';
+            }
+        }
+
+        function runSearchWithSkeleton() {
+            clearTimeout(rentySearchSkeletonTimer);
+            setSearchSkeletonLoading(true);
+
+            rentySearchSkeletonTimer = setTimeout(() => {
+                filterItems({ keepSkeleton: true });
+                setSearchSkeletonLoading(false);
+            }, 680);
+        }
+
         // Search and filter function
-        function filterItems() {
+        function filterItems(options = {}) {
+            clearTimeout(rentySearchSkeletonTimer);
+            if (!options.keepSkeleton) {
+                setSearchSkeletonLoading(false);
+            }
             const query = document.getElementById('search-input').value;
             const parsedSearch = parseNaturalSearch(query);
             const normalizedQuery = normalizeText(query);
@@ -1625,6 +1735,32 @@
 
             document.getElementById('results-count').textContent = `Danh sách phòng trọ (${matchesCount} kết quả)`;
         }
+
+        function openRentySearchSuggestions() {
+            document.getElementById('renty-search-panel')?.classList.add('is-search-active');
+            document.getElementById('renty-search-backdrop')?.classList.add('is-active');
+        }
+
+        function blurRentySearch() {
+            document.getElementById('renty-search-panel')?.classList.remove('is-search-active');
+            document.getElementById('renty-search-backdrop')?.classList.remove('is-active');
+            document.getElementById('search-input')?.blur();
+        }
+
+        function applySearchSuggestion(query) {
+            const input = document.getElementById('search-input');
+            input.value = query;
+            input.focus();
+            openRentySearchSuggestions();
+            filterItems();
+        }
+
+        document.addEventListener('click', (event) => {
+            const panel = document.getElementById('renty-search-panel');
+            if (panel && panel.classList.contains('is-search-active') && !panel.contains(event.target)) {
+                blurRentySearch();
+            }
+        });
 
         window.addEventListener('DOMContentLoaded', renderViewedRooms);
 
