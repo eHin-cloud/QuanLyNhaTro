@@ -99,11 +99,33 @@
         </div>
 
         <!-- Search Bar -->
-        <div class="max-w-4xl mx-auto bg-slate-900/60 backdrop-blur-xl border border-slate-800 p-4 rounded-3xl shadow-xl shadow-slate-950/20 mb-8">
+        <div id="renty-search-backdrop" class="renty-search-backdrop" onclick="blurRentySearch()"></div>
+        <div id="renty-search-panel" class="renty-search-panel max-w-4xl mx-auto bg-slate-900/60 backdrop-blur-xl border border-slate-800 p-4 rounded-3xl shadow-xl shadow-slate-950/20 mb-8">
             <div class="flex flex-col md:flex-row gap-3">
-                <div class="flex-grow relative">
-                    <i class="fa-solid fa-location-dot absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
-                    <input type="text" id="search-input" onkeyup="filterItems()" class="w-full pl-12 pr-4 py-3 bg-[#0a0e17] border border-slate-800 rounded-2xl text-slate-200 placeholder-slate-500 focus:border-emerald-500 focus:outline-none text-sm font-semibold" placeholder="VD: Tìm phòng dưới 3 triệu ở Cầu Giấy, gần đại học Bách Khoa...">
+                <div class="flex-grow relative renty-search-shell">
+                    <div class="renty-search-focus-ring"></div>
+                    <i class="fa-solid fa-location-dot absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 renty-search-icon"></i>
+                    <input type="text" id="search-input" onkeyup="filterItems()" onfocus="openRentySearchSuggestions()" class="renty-search-input w-full pl-12 pr-4 py-3 bg-[#0a0e17] border border-slate-800 rounded-2xl text-slate-200 placeholder-slate-500 focus:outline-none text-sm font-semibold" placeholder="Tìm phòng dưới 3 triệu ở Cầu Giấy, gần đại học Bách Khoa...">
+                    <div id="renty-search-suggestions" class="renty-search-suggestions">
+                        <div class="flex items-center justify-between gap-3 mb-3">
+                            <span class="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Gợi ý nhanh</span>
+                            <span class="text-[10px] font-bold text-emerald-400">Nhấn để tìm ngay</span>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button type="button" onclick="applySearchSuggestion('Cầu Giấy')" class="renty-suggestion-chip">
+                                <i class="fa-solid fa-location-dot"></i> Cầu Giấy
+                            </button>
+                            <button type="button" onclick="applySearchSuggestion('Bách Khoa')" class="renty-suggestion-chip">
+                                <i class="fa-solid fa-graduation-cap"></i> Bách Khoa
+                            </button>
+                            <button type="button" onclick="applySearchSuggestion('phòng dưới 3 triệu')" class="renty-suggestion-chip">
+                                <i class="fa-solid fa-tags"></i> Dưới 3 triệu
+                            </button>
+                            <button type="button" onclick="applySearchSuggestion('gần đại học')" class="renty-suggestion-chip">
+                                <i class="fa-solid fa-clock-rotate-left"></i> Gần đại học
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div class="flex gap-2">
                     <button onclick="toggleFilterDrawer()" class="px-4 py-3 bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-slate-100 rounded-2xl text-sm font-bold flex items-center gap-2 transition-all">
@@ -1620,6 +1642,32 @@
 
             document.getElementById('results-count').textContent = `Danh sách phòng trọ (${matchesCount} kết quả)`;
         }
+
+        function openRentySearchSuggestions() {
+            document.getElementById('renty-search-panel')?.classList.add('is-search-active');
+            document.getElementById('renty-search-backdrop')?.classList.add('is-active');
+        }
+
+        function blurRentySearch() {
+            document.getElementById('renty-search-panel')?.classList.remove('is-search-active');
+            document.getElementById('renty-search-backdrop')?.classList.remove('is-active');
+            document.getElementById('search-input')?.blur();
+        }
+
+        function applySearchSuggestion(query) {
+            const input = document.getElementById('search-input');
+            input.value = query;
+            input.focus();
+            openRentySearchSuggestions();
+            filterItems();
+        }
+
+        document.addEventListener('click', (event) => {
+            const panel = document.getElementById('renty-search-panel');
+            if (panel && panel.classList.contains('is-search-active') && !panel.contains(event.target)) {
+                blurRentySearch();
+            }
+        });
 
         window.addEventListener('DOMContentLoaded', renderViewedRooms);
 
