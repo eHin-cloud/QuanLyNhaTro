@@ -19,6 +19,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class AdminDashboardController extends Controller
 {
@@ -65,7 +66,7 @@ class AdminDashboardController extends Controller
         }
 
         // 3. Room Map (with active residents and latest billing information)
-        $rooms = Room::with(['residents' => function($q) {
+        $rooms = Room::where('tenant_id', $tenantId)->with(['residents' => function($q) {
             $q->where('status', 'active');
         }, 'utilityRecords' => function($q) {
             $q->orderBy('billing_month', 'desc');
@@ -75,7 +76,7 @@ class AdminDashboardController extends Controller
 
         // 4. Utility Readings Tab
         // Rooms that are rented (occupied/overdue) need meter readings
-        $utilityRooms = Room::where('status', '!=', 'empty')
+        $utilityRooms = Room::where('tenant_id', $tenantId)->where('status', '!=', 'empty')
             ->with(['residents' => function($q) {
                 $q->where('status', 'active');
             }, 'utilityRecords' => function($q) {
@@ -88,8 +89,9 @@ class AdminDashboardController extends Controller
         $residentFilters = [
             'q' => trim((string) $request->query('resident_q', '')),
         ];
-        $residentStats = Resident::query()->get();
+        $residentStats = Resident::where('tenant_id', $tenantId)->get();
         $residents = Resident::with('room')
+            ->where('tenant_id', $tenantId)
             ->when($residentFilters['q'] !== '', function ($query) use ($residentFilters) {
                 $identityKeyword = $this->prefixLike($residentFilters['q']);
                 $nameKeyword = $this->containsLike($residentFilters['q']);
@@ -102,10 +104,10 @@ class AdminDashboardController extends Controller
             })
             ->orderBy('id', 'desc')
             ->get();
-        $emptyRoomsList = Room::where('status', 'empty')->orderBy('room_number')->get();
+        $emptyRoomsList = Room::where('tenant_id', $tenantId)->where('status', 'empty')->orderBy('room_number')->get();
 
         // 6. Contracts Tab
-        $contracts = Contract::with(['room', 'resident'])->orderBy('id', 'desc')->get();
+        $contracts = Contract::with(['room', 'resident'])->where('tenant_id', $tenantId)->orderBy('id', 'desc')->get();
 
         // 8. Contact Requests Tab
         $contactRequests = \App\Models\ContactRequest::with('room')->orderBy('id', 'desc')->get();
@@ -305,7 +307,8 @@ class AdminDashboardController extends Controller
             return (int) $tenantId;
         }
 
-        $fallbackTenantId = Tenant::query()->value('id');
+        $fallbackTenantId = Tenant::where('email', 'contact@smartroom-caugiay.vn')->value('id')
+            ?? Tenant::query()->orderBy('id')->value('id');
         if (!$fallbackTenantId) {
             abort(404, 'Khong tim thay tenant.');
         }
@@ -1075,20 +1078,58 @@ class AdminDashboardController extends Controller
     {
         $request->validate([
             'room_id' => 'required|exists:rooms,id',
-            'resident_id' => 'required|exists:residents,id',
+            'resident_id' => 'nullable|exists:residents,id',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'deposit' => 'required|integer|min:0',
-            'terms' => 'required|string',
+            'contract_place' => 'nullable|string|max:255',
+            'sign_day' => 'nullable|integer|min:1|max:31',
+            'sign_month' => 'nullable|integer|min:1|max:12',
+            'sign_year' => 'nullable|integer|min:1900|max:2100',
+            'lessor_name' => 'required|string|max:255',
+            'lessor_id_number' => 'nullable|string|max:50',
+            'lessor_address' => 'nullable|string|max:500',
+            'lessor_phone' => 'nullable|string|max:50',
+            'lessee_name' => 'required|string|max:255',
+            'lessee_id_number' => 'nullable|string|max:50',
+            'lessee_permanent_address' => 'nullable|string|max:500',
+            'lessee_current_address' => 'nullable|string|max:500',
+            'lessee_phone' => 'nullable|string|max:50',
+            'rental_address' => 'required|string|max:500',
+            'rental_area_description' => 'nullable|string|max:1000',
+            'equipment_list' => 'nullable|string|max:4000',
+            'rental_purpose' => 'nullable|string|max:255',
+            'occupant_count' => 'nullable|integer|min:1|max:20',
+            'rent_price' => 'required|integer|min:0',
+            'payment_cycle_months' => 'required|integer|min:1|max:12',
+            'first_payment_date' => 'nullable|string|max:255',
+            'payment_method' => 'nullable|string|max:255',
         ]);
 
-        $room = Room::findOrFail($request->room_id);
-        $resident = Resident::findOrFail($request->resident_id);
+        $tenantId = $this->currentTenantId();
+        $room = Room::where('tenant_id', $tenantId)->findOrFail($request->room_id);
+        $resident = $request->filled('resident_id')
+            ? Resident::where('tenant_id', $tenantId)->findOrFail($request->resident_id)
+            : Resident::firstOrNew([
+                'tenant_id' => $tenantId,
+                'room_id' => $room->id,
+                'name' => $request->lessee_name,
+            ]);
+        $resident->fill([
+            'phone' => $request->lessee_phone,
+            'cccd' => $request->lessee_id_number,
+            'hometown' => $request->lessee_permanent_address,
+            'start_date' => $request->start_date,
+            'status' => 'active',
+        ]);
+        $resident->save();
+        $tenant = Tenant::find($tenantId);
 
-        $code = 'HĐ-' . $room->room_number . '-' . date('Ymd', strtotime($request->start_date));
+        $code = 'HĐ-' . $room->room_number . '-' . date('Ymd', strtotime($request->start_date)) . '-' . $resident->id . '-' . now()->format('His');
+        $terms = $this->buildRentalContractTerms($request, $room, $resident, $tenant);
 
         $contract = \App\Models\Contract::create([
-            'tenant_id' => $this->currentTenantId(),
+            'tenant_id' => $tenantId,
             'room_id' => $room->id,
             'resident_id' => $resident->id,
             'contract_code' => $code,
@@ -1096,7 +1137,7 @@ class AdminDashboardController extends Controller
             'end_date' => $request->end_date,
             'deposit' => $request->deposit,
             'status' => 'pending',
-            'terms' => $request->terms,
+            'terms' => $terms,
         ]);
 
         AdminActivityLogger::log(
@@ -1110,6 +1151,103 @@ class AdminDashboardController extends Controller
         );
 
         return redirect()->route('smartroom.admin', ['tab' => 'contract-section'])->with('success', 'Tạo hợp đồng online thành công! Cư dân có thể ký qua liên kết.');
+    }
+
+    private function buildRentalContractTerms(Request $request, Room $room, Resident $resident, ?Tenant $tenant): string
+    {
+        $startDate = Carbon::parse($request->start_date)->format('d/m/Y');
+        $endDate = Carbon::parse($request->end_date)->format('d/m/Y');
+        $rentPrice = (int) $request->rent_price;
+        $cycle = (int) $request->payment_cycle_months;
+        $cycleAmount = $rentPrice * $cycle;
+        $signDay = $request->sign_day ?: '.......';
+        $signMonth = $request->sign_month ?: '.......';
+        $signYear = $request->sign_year ?: now()->year;
+        $place = $request->contract_place ?: 'Hà Nội';
+        $equipment = trim((string) $request->equipment_list) ?: '..........................................................................................................................';
+
+        return implode("\n", [
+            'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM',
+            'Độc lập – Tự do – Hạnh phúc',
+            $place . ', ngày ' . $signDay . ' tháng ' . $signMonth . ' năm ' . $signYear,
+            '',
+            'HỢP ĐỒNG THUÊ NHÀ TRỌ',
+            '_______',
+            '- Căn cứ vào các quy định pháp luật có liên quan,',
+            'Tại ' . ($request->rental_address ?: ($room->building->address ?? '..........................................................')) . '. Chúng tôi gồm:',
+            '',
+            'I. BÊN CHO THUÊ NHÀ (Sau đây gọi tắt là bên A):',
+            'Ông/Bà: ' . $request->lessor_name . '     CMTND/CCCD số: ' . ($request->lessor_id_number ?: '........................'),
+            'HKTT/Chỗ ở hiện tại: ' . ($request->lessor_address ?: ($tenant?->name ?? '..........................................................')),
+            'Điện thoại liên hệ: ' . ($request->lessor_phone ?: ($tenant?->phone ?? '........................')),
+            '',
+            'II. BÊN THUÊ NHÀ Ở (Sau đây gọi tắt là bên B):',
+            'Ông/Bà: ' . $request->lessee_name . '     Số CMND/CCCD số: ' . ($request->lessee_id_number ?: ($resident->cccd ?: '........................')),
+            'HKTT: ' . ($request->lessee_permanent_address ?: ($resident->hometown ?: '..........................................................')),
+            'Chỗ ở hiện tại: ' . ($request->lessee_current_address ?: '..........................................................'),
+            'Điện thoại liên hệ: ' . ($request->lessee_phone ?: ($resident->phone ?: '........................')),
+            '',
+            'Hai bên thống nhất ký kết Hợp đồng cho thuê nhà để ở với các nội dung sau:',
+            '',
+            'ĐIỀU 1: NỘI DUNG HỢP ĐỒNG',
+            '1.1 Nhà cho thuê',
+            '- Địa chỉ: ' . $request->rental_address . '.',
+            '- Diện tích cho thuê: ' . ($request->rental_area_description ?: ('Phòng ' . $room->room_number . ', diện tích ' . ($room->area ?: '........') . ' m².')),
+            '- Trang thiết bị kèm theo:',
+            $equipment,
+            '',
+            '1.2 Mục đích thuê nhà:',
+            '- Bên thuê nhà thuê nhà để ' . ($request->rental_purpose ?: 'ở') . '.',
+            '- Số lượng người ở: ' . ($request->occupant_count ?: '.......'),
+            '',
+            '1.3 Giá cho thuê: ' . number_format($rentPrice, 0, ',', '.') . ' VND/01 tháng.',
+            'Các khoản phí như điện, nước, phí vệ sinh bên A sẽ phải tự thanh toán theo hóa đơn của đơn vị cung cấp, trừ khi hai bên có thỏa thuận khác bằng văn bản.',
+            '',
+            '1.4 Thời hạn cho thuê: bắt đầu từ ngày ' . $startDate . ' đến ' . $endDate . '.',
+            'Trong trường hợp gia hạn Hợp đồng thuê, hai bên sẽ cùng nhau thoả thuận về việc gia hạn. Trong bất cứ trường hợp nào, đề xuất về việc gia hạn sẽ được đưa ra trước 30 (ba mươi) ngày trước khi hết hạn.',
+            '',
+            '1.5 Hình thức thanh toán',
+            '- Số tiền thanh toán: Bên B thanh toán cho bên A số tiền ' . $cycle . ' tháng/01 lần tương đương ' . number_format($cycleAmount, 0, ',', '.') . ' VND (' . $this->numberToVietnameseText($cycleAmount) . ') trong khoảng từ mồng 10 đến ngày 15 tháng đầu tiên của kỳ thanh toán tiền nhà.',
+            '- Thời điểm thanh toán lần đầu: ' . ($request->first_payment_date ?: '..........................................................'),
+            '- Hình thức thanh toán: ' . ($request->payment_method ?: 'Chuyển khoản hoặc tiền mặt theo thỏa thuận của hai bên.'),
+            '- Tiền đặt cọc: ' . number_format((int) $request->deposit, 0, ',', '.') . ' VND.',
+            '',
+            'ĐIỀU 2: QUYỀN VÀ NGHĨA VỤ CÁC BÊN',
+            '1. Quyền và nghĩa vụ của Bên cho thuê:',
+            '- Yêu cầu Bên thuê trả đủ tiền thuê nhà đúng thời hạn ghi trong Hợp đồng;',
+            '- Yêu cầu Bên thuê có trách nhiệm trong việc sửa chữa phần hư hỏng, bồi thường thiệt hại do lỗi của Bên thuê gây ra ngay tại thời điểm phát hiện;',
+            '- Đơn phương chấm dứt thực hiện Hợp đồng thuê nhà khi Bên thuê nhà vi phạm nghiêm trọng nghĩa vụ trong Hợp đồng hoặc vi phạm quy định về an ninh trật tự;',
+            '- Bảo trì nhà ở; cải tạo nhà ở khi được Bên thuê đồng ý;',
+            '- Nhận lại nhà trong các trường hợp chấm dứt Hợp đồng thuê nhà ở quy định tại Hợp đồng này;',
+            '- Kiểm tra tình trạng nhà, trang thiết bị nhà sau khi đã thông báo với Bên thuê nhà.',
+            '',
+            '2. Quyền và nghĩa vụ của Bên thuê:',
+            '- Nhận nhà ở và trang thiết bị (nếu có) theo đúng ngày quy định tại Điều 1 Hợp đồng này;',
+            '- Bảo quản nhà và các trang thiết bị sử dụng;',
+            '- Thanh toán tiền nhà đúng thời hạn;',
+            '- Không được cho bên thứ ba thuê lại nhà;',
+            '- Chịu trách nhiệm đền bù những hư hỏng, mất mát các đồ đạc, trang thiết bị nội thất tại địa điểm thuê không phải do hao mòn tự nhiên trong quá trình sử dụng gây ra;',
+            '- Đảm bảo vệ sinh, an ninh trật tự trong suốt quá trình thuê nhà.',
+            '',
+            'ĐIỀU 3: CHẤM DỨT HỢP ĐỒNG',
+            '1. Hợp đồng này chấm dứt khi hết thời hạn tại Điều 1 hoặc hai bên thỏa thuận chấm dứt Hợp đồng;',
+            '2. Các bên khi đơn phương chấm dứt Hợp đồng phải thông báo trước 02 tháng và thực hiện đầy đủ các nghĩa vụ ghi nhận tại Hợp đồng;',
+            '3. Hợp đồng chấm dứt khi nhà ở cho thuê phải sửa chữa do bị hư hỏng nặng hoặc do thực hiện quy hoạch xây dựng của Nhà nước.',
+            '',
+            'ĐIỀU 4: CAM KẾT CỦA CÁC BÊN',
+            '1. Hai bên cùng cam kết thực hiện đúng các nội dung đã ký. Trong quá trình thực hiện nếu phát hiện thấy những vấn đề cần thoả thuận thì hai bên có thể lập thêm phụ lục hợp đồng. Nội dung Hợp đồng phụ có giá trị pháp lý như hợp đồng chính.',
+            '2. Hợp đồng được lập thành 03 trang, 02 bản và có giá trị như nhau. Mỗi bên giữ 01 bản, 01 bản./.',
+        ]);
+    }
+
+    private function numberToVietnameseText(int $number): string
+    {
+        if (!class_exists(\NumberFormatter::class)) {
+            return number_format($number, 0, ',', '.') . ' đồng';
+        }
+
+        $formatter = new \NumberFormatter('vi_VN', \NumberFormatter::SPELLOUT);
+        return ucfirst($formatter->format($number)) . ' đồng';
     }
 
     public function deleteContract($id)
@@ -1133,8 +1271,16 @@ class AdminDashboardController extends Controller
 
     public function signContractView($id)
     {
-        $contract = \App\Models\Contract::with(['room', 'resident'])->findOrFail($id);
+        $contract = \App\Models\Contract::with(['tenant', 'room.building', 'resident'])->findOrFail($id);
         return view('admin.sign_contract', compact('contract'));
+    }
+
+    public function printContractPdf($id)
+    {
+        $contract = \App\Models\Contract::with(['tenant', 'room.building', 'resident'])->findOrFail($id);
+        $pdf = Pdf::loadView('admin.pdf_contract', compact('contract'))->setPaper('a4');
+
+        return $pdf->stream('hop_dong_' . $contract->contract_code . '.pdf');
     }
 
     public function signContract(Request $request, $id)
@@ -1161,6 +1307,31 @@ class AdminDashboardController extends Controller
         );
 
         return redirect()->route('smartroom.contract.sign_view', $id)->with('success', 'Ký hợp đồng online thành công!');
+    }
+
+    public function signLessorContract(Request $request, $id)
+    {
+        $request->validate([
+            'lessor_signature' => 'required|string',
+        ]);
+
+        $contract = \App\Models\Contract::where('tenant_id', $this->currentTenantId())->findOrFail($id);
+        $before = $contract->only(['lessor_signature']);
+        $contract->update([
+            'lessor_signature' => $request->lessor_signature,
+        ]);
+
+        AdminActivityLogger::log(
+            'update',
+            'contracts',
+            'Bên cho thuê đã ký hợp đồng ' . $contract->contract_code,
+            $contract,
+            ['contract_code' => $contract->contract_code],
+            $before,
+            $contract->fresh()->only(['lessor_signature'])
+        );
+
+        return redirect()->route('smartroom.contract.sign_view', $id)->with('success', 'Bên cho thuê đã ký hợp đồng online thành công!');
     }
 
     public function storeContactRequest(Request $request)
