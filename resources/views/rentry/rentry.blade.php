@@ -242,7 +242,7 @@
                             ->values();
                     @endphp
                     <!-- Room photo -->
-                    <div class="h-48 bg-slate-950 relative overflow-hidden border-b border-slate-900 group">
+                    <div class="room-card-media h-48 bg-slate-950 relative overflow-hidden border-b border-slate-900 group">
                         <a href="{{ route('renty.room.show', $room['id']) }}" class="absolute inset-0 z-0 renty-card-carousel" aria-label="Xem chi tiết phòng {{ $room['room_number'] }}">
                             @foreach($cardImages as $imageIndex => $imageUrl)
                                 <img src="{{ $imageUrl }}" alt="Ảnh {{ $imageIndex + 1 }} phòng {{ $room['room_number'] }}" class="renty-card-carousel-image" style="--carousel-delay: {{ $imageIndex * 2 }}s;" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
@@ -251,12 +251,12 @@
                         </a>
 
                         @if($room['status'] === 'empty')
-                            <span class="absolute top-4 left-4 px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[9px] font-extrabold uppercase tracking-wider shadow-sm z-10 flex items-center gap-1.5">
+                            <span class="room-status-badge room-status-empty absolute top-4 left-4 px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[9px] font-extrabold uppercase tracking-wider shadow-sm z-10 flex items-center gap-1.5">
                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                                 Sẵn sàng
                             </span>
                         @else
-                            <span class="absolute top-4 left-4 px-2.5 py-1 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-lg text-[9px] font-extrabold uppercase tracking-wider shadow-sm z-10 flex items-center gap-1.5">
+                            <span class="room-status-badge room-status-rented absolute top-4 left-4 px-2.5 py-1 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-lg text-[9px] font-extrabold uppercase tracking-wider shadow-sm z-10 flex items-center gap-1.5">
                                 <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
                                 Đã thuê
                             </span>
@@ -287,6 +287,13 @@
                     <!-- Details -->
                     <div class="p-5 flex-grow flex flex-col justify-between">
                         <div>
+                            <div class="viewed-room-strip" aria-hidden="true">
+                                <span class="viewed-room-strip-icon">
+                                    <i class="fa-solid fa-eye"></i>
+                                    <i class="fa-solid fa-check"></i>
+                                </span>
+                                <span>ĐÃ XEM</span>
+                            </div>
                             <div class="flex justify-between items-start mb-2 gap-2">
                                 <h3 class="font-bold text-slate-200 text-sm group-hover:text-emerald-400 transition-all line-clamp-1">
                                     <a href="{{ route('renty.room.show', $room['id']) }}">{{ $room['title'] }}</a>
@@ -1340,7 +1347,6 @@
             document.querySelectorAll('.room-item-card').forEach(card => {
                 card.dataset.viewed = 'false';
                 card.classList.remove('room-card-viewed');
-                card.querySelector('.viewed-room-badge')?.remove();
             });
             renderViewedRooms();
         }
@@ -1354,17 +1360,6 @@
                 const isViewed = viewedIds.includes(String(card.dataset.roomId));
                 card.dataset.viewed = isViewed ? 'true' : 'false';
                 card.classList.toggle('room-card-viewed', isViewed);
-
-                if (isViewed && !card.querySelector('.viewed-room-badge')) {
-                    const badge = document.createElement('span');
-                    badge.className = 'viewed-room-badge absolute left-4 top-14 z-10';
-                    badge.innerHTML = '<i class="fa-solid fa-eye mr-1"></i> Đã xem';
-                    card.querySelector('.h-48')?.appendChild(badge);
-                }
-
-                if (!isViewed) {
-                    card.querySelector('.viewed-room-badge')?.remove();
-                }
             });
 
             if (!section || !list) return;
