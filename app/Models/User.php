@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
@@ -44,9 +44,48 @@ class User extends Authenticatable
         return $this->belongsTo(Tenant::class);
     }
 
-    public function role(): BelongsTo
+    public function roleRecord(): BelongsTo
     {
-        return $this->belongsTo(Role::class);
+        return $this->belongsTo(Role::class, 'role_id');
+    }
+
+    public function roleSlug(): ?string
+    {
+        $roleRecord = $this->relationLoaded('roleRecord')
+            ? $this->getRelation('roleRecord')
+            : ($this->role_id ? $this->roleRecord : null);
+
+        if ($roleRecord) {
+            return $roleRecord->slug;
+        }
+
+        return match ($this->role) {
+            'admin' => 'admin',
+            'manager', 'staff' => 'manager',
+            'user' => 'resident',
+            'guest' => 'guest',
+            default => $this->role,
+        };
+    }
+
+    public function roleName(): string
+    {
+        $roleRecord = $this->relationLoaded('roleRecord')
+            ? $this->getRelation('roleRecord')
+            : ($this->role_id ? $this->roleRecord : null);
+
+        if ($roleRecord) {
+            return $roleRecord->name;
+        }
+
+        return match ($this->roleSlug()) {
+            'admin' => 'Admin he thong',
+            'landlord' => 'Chu tro',
+            'manager' => 'Nhan vien quan ly',
+            'resident' => 'Cu dan',
+            'guest' => 'Khach xem phong',
+            default => 'Nguoi dung',
+        };
     }
 
     public function resident(): HasOne
@@ -59,44 +98,19 @@ class User extends Authenticatable
         return $this->hasMany(Review::class);
     }
 
-    // Role Helper Methods
-    public function roleSlug(): ?string
-    {
-        if ($this->role_id) {
-            $role = $this->relationLoaded('role') ? $this->getRelation('role') : $this->role()->first();
-
-            if ($role) {
-                return $role->slug;
-            }
-        }
-
-        return match ($this->getAttribute('role')) {
-            'admin' => 'landlord',
-            'user' => 'resident',
-            default => $this->getAttribute('role'),
-        };
-    }
-
-    public function roleName(): string
-    {
-        if ($this->role_id) {
-            $role = $this->relationLoaded('role') ? $this->getRelation('role') : $this->role()->first();
-
-            if ($role) {
-                return $role->name;
-            }
-        }
-
-        return match ($this->getAttribute('role')) {
-            'admin' => 'Quản trị viên',
-            'user' => 'Người thuê',
-            default => 'Quản trị viên',
-        };
-    }
-
     public function isLandlord(): bool
     {
         return $this->roleSlug() === 'landlord';
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->roleSlug() === 'admin';
+    }
+
+    public function isManager(): bool
+    {
+        return $this->roleSlug() === 'manager';
     }
 
     public function isResident(): bool

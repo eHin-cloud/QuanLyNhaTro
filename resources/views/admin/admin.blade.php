@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="Hệ thống quản lý SmartRoom - Trang quản trị nhà trọ.">
     <title>SmartRoom - Quản Trị Nhà Trọ Cao Cấp</title>
     
@@ -27,31 +28,37 @@
     
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
     
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/css/style.css', 'resources/js/app.js'])
 </head>
-<body class="bg-[#080b11] text-slate-100 min-h-screen flex selection:bg-indigo-500 selection:text-white overflow-hidden">
+<body class="bg-[#080b11] text-slate-100 min-h-screen selection:bg-indigo-500 selection:text-white overflow-hidden">
+    @php
+        $isLandlord = Auth::user()?->isLandlord();
+    @endphp
 
     <!-- Decorative glows -->
     <div class="absolute top-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full bg-indigo-600/5 blur-[100px] pointer-events-none"></div>
     <div class="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] rounded-full bg-emerald-600/5 blur-[100px] pointer-events-none"></div>
 
     <!-- SIDEBAR -->
-    <aside class="w-64 bg-[#0d121f] border-r border-slate-900 flex flex-col justify-between h-screen shrink-0 relative z-20">
+    <aside id="admin-sidebar" class="fixed inset-y-0 left-0 w-64 bg-[#0d121f] border-r border-slate-900 flex flex-col justify-between h-screen z-30 transition-[width] duration-200">
         <div>
             <!-- Sidebar Header -->
             <div class="p-6 border-b border-slate-900 flex items-center justify-between">
-                <a href="{{ route('smartroom.portal') }}" class="flex items-center gap-3">
+                <a href="{{ route('smartroom.portal') }}" class="sidebar-brand flex items-center gap-3 min-w-0">
                     <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
                         <i class="fa-solid fa-hotel text-white text-sm"></i>
                     </div>
                     <span class="text-lg font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">SmartRoom</span>
                 </a>
+                <button type="button" id="sidebar-toggle" class="w-8 h-8 rounded-lg border border-slate-800 text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 transition-all" title="Thu gọn/mở rộng sidebar">
+                    <i class="fa-solid fa-angles-left transition-transform"></i>
+                </button>
             </div>
             
             <!-- Navigation Links -->
@@ -72,18 +79,22 @@
                     <i class="fa-solid fa-screwdriver-wrench text-lg"></i>
                     <span>Thiết Bị</span>
                 </a>
-                <a href="{{ route('admin.reports.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                    <i class="fa-solid fa-chart-column text-lg"></i>
-                    <span>Báo Cáo</span>
-                </a>
+                @if($isLandlord)
+                    <a href="{{ route('admin.reports.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
+                        <i class="fa-solid fa-chart-column text-lg"></i>
+                        <span>Báo Cáo</span>
+                    </a>
+                @endif
                 <a href="{{ route('admin.payments.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
                     <i class="fa-solid fa-money-check-dollar text-lg"></i>
                     <span>Thanh Toán</span>
                 </a>
-                <a href="{{ route('admin.activity_logs.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                    <i class="fa-solid fa-clock-rotate-left text-lg"></i>
-                    <span>Lịch Sử Vận Hành</span>
-                </a>
+                @if($isLandlord)
+                    <a href="{{ route('admin.activity_logs.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
+                        <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+                        <span>Lịch Sử Vận Hành</span>
+                    </a>
+                @endif
                 <button onclick="switchTab('utility-section', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
                     <i class="fa-solid fa-bolt text-lg"></i>
                     <span>Chốt Điện Nước</span>
@@ -100,7 +111,7 @@
                     <i class="fa-solid fa-phone-volume text-lg"></i>
                     <span>Yêu Cầu Tư Vấn</span>
                     @if($contactRequests->where('status', 'pending')->count() > 0)
-                        <span class="ml-auto bg-rose-500 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full animate-pulse">
+                        <span class="sidebar-badge ml-auto bg-rose-500 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full animate-pulse">
                             {{ $contactRequests->where('status', 'pending')->count() }}
                         </span>
                     @endif
@@ -109,24 +120,24 @@
         </div>
 
         <!-- Sidebar Footer -->
-        <div class="p-4 border-t border-slate-900">
-            <div class="flex items-center gap-3 p-2 rounded-xl bg-slate-900/50 border border-slate-800/40">
+        <div class="sidebar-footer p-4 border-t border-slate-900">
+            <div class="sidebar-user flex items-center gap-3 p-2 rounded-xl bg-slate-900/50 border border-slate-800/40">
                 <div class="w-9 h-9 rounded-lg bg-indigo-900/50 border border-indigo-500/30 flex items-center justify-center font-bold text-indigo-400 text-sm">
                     AD
                 </div>
-                <div class="overflow-hidden">
+                <div class="sidebar-profile overflow-hidden">
                     <h4 class="text-xs font-bold text-slate-200 truncate">Nguyễn Thành Hiền</h4>
                     <p class="text-[10px] text-slate-500 truncate">Chủ chung cư mini</p>
                 </div>
             </div>
-            <a href="{{ route('signout') }}" class="mt-3 w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-semibold text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 transition-all duration-200">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng Xuất (Thoát Admin)
+            <a href="{{ route('signout') }}" class="sidebar-logout mt-3 w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-semibold text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 transition-all duration-200">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Đăng Xuất (Thoát Admin)</span>
             </a>
         </div>
     </aside>
 
     <!-- MAIN APP WRAPPER -->
-    <div class="flex-grow flex flex-col h-screen overflow-y-auto relative z-10">
+    <div id="admin-shell" class="ml-64 min-w-0 flex flex-col h-screen overflow-y-auto relative z-10 transition-[margin-left] duration-200">
         
         <!-- TOP NAVBAR -->
         <header class="h-16 border-b border-slate-900 bg-[#080b11]/80 backdrop-blur-md flex items-center justify-between px-8 sticky top-0 z-20">
@@ -135,6 +146,9 @@
             </div>
             
             <div class="flex items-center gap-6">
+                <button type="button" onclick="toggleThemeMode()" class="theme-toggle-button" aria-label="Chuyển chế độ sáng tối">
+                    <i class="fa-solid fa-moon" data-theme-icon></i>
+                </button>
                 <!-- Notifications -->
                 <div class="relative">
                     <button class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-all">
@@ -228,6 +242,46 @@
                         </div>
                     </div>
                 </div>
+
+                @if($isLandlord)
+                <!-- AI insights and assistant -->
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    <div class="glass-card rounded-2xl p-6">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <h3 class="text-base font-bold text-slate-200 flex items-center gap-2">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-indigo-400"></i> Nhận xét AI
+                                </h3>
+                                <p class="text-xs text-slate-500 mt-1">Phân tích nhanh doanh thu, công nợ, phòng trống và rủi ro vận hành.</p>
+                            </div>
+                            <button type="button" onclick="loadAiDashboardInsight(this)" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-2">
+                                <i class="fa-solid fa-rotate"></i> Tạo nhận xét
+                            </button>
+                        </div>
+                        <div id="ai-dashboard-insight" class="mt-5 rounded-xl bg-slate-950/40 border border-slate-800 p-4 text-sm text-slate-300 leading-relaxed">
+                            Bấm "Tạo nhận xét" để AI phân tích dữ liệu dashboard hiện tại.
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-2xl p-6">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-200 flex items-center gap-2">
+                                <i class="fa-solid fa-comments text-emerald-400"></i> Trợ lý AI nhà trọ
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-1">Hỏi bằng tiếng Việt, ví dụ: "Phòng nào chưa đóng tiền tháng này?" hoặc "Ai sắp hết hợp đồng?".</p>
+                        </div>
+                        <div class="mt-5 flex gap-2">
+                            <input id="ai-assistant-question" type="text" class="min-w-0 flex-1 px-4 py-3 rounded-xl bg-slate-950/60 border border-slate-800 text-sm text-slate-200 focus:outline-none focus:border-emerald-500" placeholder="Nhập câu hỏi quản lý nhà trọ...">
+                            <button type="button" onclick="askAiAssistant(this)" class="px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-2">
+                                <i class="fa-solid fa-paper-plane"></i> Hỏi
+                            </button>
+                        </div>
+                        <div id="ai-assistant-answer" class="mt-4 rounded-xl bg-slate-950/40 border border-slate-800 p-4 text-sm text-slate-300 leading-relaxed min-h-20">
+                            Trợ lý chỉ đọc dữ liệu thuộc tài khoản chủ trọ đang đăng nhập.
+                        </div>
+                    </div>
+                </div>
+                @endif
 
                 <!-- Charts Section -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -393,6 +447,7 @@
                     </div>
                 </div>
 
+                @if($isLandlord)
                 <!-- Notification Center -->
                 <div class="glass-card rounded-2xl p-6">
                     <div class="flex flex-col xl:flex-row xl:items-start justify-between gap-6 mb-6">
@@ -483,6 +538,7 @@
                         </table>
                     </div>
                 </div>
+                @endif
 
                 <!-- Recent Events Table -->
                 <div class="glass-card rounded-2xl p-6">
@@ -920,14 +976,16 @@
                                             <button onclick="openRelativesModal({{ $resident->id }}, '{{ addslashes($resident->name) }}')" class="px-2 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-lg text-[10px] font-bold text-cyan-400 transition-all" title="Quản lý người thân tạm trú">
                                                 <i class="fa-solid fa-people-roof"></i>
                                             </button>
-                                            {{-- Nút Xóa cư dân - có chống spam click (disabled sau click) --}}
-                                            <form action="{{ route('smartroom.admin.resident.delete', $resident->id) }}" method="POST" onsubmit="return confirmAndDisable(this, 'Bạn có chắc chắn muốn xóa cư dân này ra khỏi phòng trọ?')" class="inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="anti-spam-btn px-2 py-1.5 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 rounded-lg text-[10px] font-bold text-rose-400 transition-all" title="Xóa cư dân">
-                                                    <i class="fa-regular fa-trash-can"></i>
-                                                </button>
-                                            </form>
+                                            @if($isLandlord)
+                                                {{-- Nút Xóa cư dân - có chống spam click (disabled sau click) --}}
+                                                <form action="{{ route('smartroom.admin.resident.delete', $resident->id) }}" method="POST" onsubmit="return confirmAndDisable(this, 'Bạn có chắc chắn muốn xóa cư dân này ra khỏi phòng trọ?')" class="inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="anti-spam-btn px-2 py-1.5 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 rounded-lg text-[10px] font-bold text-rose-400 transition-all" title="Xóa cư dân">
+                                                        <i class="fa-regular fa-trash-can"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -1060,13 +1118,18 @@
                                             <a href="{{ route('smartroom.contract.sign_view', $c->id) }}" target="_blank" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold border border-slate-750 transition-all flex items-center gap-1.5">
                                                 <i class="fa-solid fa-arrow-up-right-from-square"></i> Xem HĐ
                                             </a>
-                                            <form action="{{ route('smartroom.admin.contract.delete', $c->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa hợp đồng này không?')" class="inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="px-3 py-2 bg-rose-600/10 hover:bg-rose-600 text-rose-400 hover:text-white rounded-xl text-xs font-bold border border-rose-500/25 transition-all">
-                                                    <i class="fa-solid fa-trash-can"></i> Xóa
-                                                </button>
-                                            </form>
+                                            <a href="{{ route('smartroom.contract.pdf', $c->id) }}" target="_blank" class="px-3 py-2 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded-xl text-xs font-bold border border-cyan-500/25 transition-all flex items-center gap-1.5">
+                                                <i class="fa-solid fa-file-pdf"></i> In/PDF
+                                            </a>
+                                            @if($isLandlord)
+                                                <form action="{{ route('smartroom.admin.contract.delete', $c->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa hợp đồng này không?')" class="inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="px-3 py-2 bg-rose-600/10 hover:bg-rose-600 text-rose-400 hover:text-white rounded-xl text-xs font-bold border border-rose-500/25 transition-all">
+                                                        <i class="fa-solid fa-trash-can"></i> Xóa
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -1194,13 +1257,15 @@
                                                     <i class="fa-solid {{ $req->status === 'pending' ? 'fa-check' : 'fa-rotate-left' }}"></i>
                                                 </button>
                                             </form>
-                                            <form action="{{ route('smartroom.admin.contact_request.delete', $req->id) }}" method="POST" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa yêu cầu tư vấn này?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all text-xs" title="Xóa">
-                                                    <i class="fa-solid fa-trash-can"></i>
-                                                </button>
-                                            </form>
+                                            @if($isLandlord)
+                                                <form action="{{ route('smartroom.admin.contact_request.delete', $req->id) }}" method="POST" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa yêu cầu tư vấn này?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all text-xs" title="Xóa">
+                                                        <i class="fa-solid fa-trash-can"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -1547,56 +1612,120 @@
 
     <!-- ADD CONTRACT MODAL (POPUP) -->
     <div id="add-contract-modal" class="fixed inset-0 z-50 bg-[#04060b]/80 backdrop-blur-sm hidden flex items-center justify-center transition-opacity duration-300">
-        <div class="w-full max-w-xl bg-[#0a0f1d] border border-slate-800 p-8 rounded-3xl shadow-2xl relative animate-fade-in mx-4">
+        <div class="w-full max-w-5xl bg-[#0a0f1d] border border-slate-800 p-8 rounded-3xl shadow-2xl relative animate-fade-in mx-4 max-h-[92vh] overflow-y-auto">
             <button onclick="toggleAddContractModal(false)" class="absolute top-6 right-6 w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-all">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             <h2 class="text-xl font-bold mb-4 text-slate-100 flex items-center gap-2">
                 <i class="fa-solid fa-file-signature text-indigo-400"></i> Tạo Hợp Đồng Thuê Nhà Mới
             </h2>
-            <form action="{{ route('smartroom.admin.contract.store') }}" method="POST" class="space-y-4">
+            <form action="{{ route('smartroom.admin.contract.store') }}" method="POST" class="space-y-6">
                 @csrf
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Chọn Cư Dân Đại Diện</label>
-                        <select name="resident_id" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
-                            @foreach($residents as $res)
-                                <option value="{{ $res->id }}">{{ $res->name }} (P. {{ $res->room ? $res->room->room_number : 'N/A' }})</option>
-                            @endforeach
-                        </select>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Nơi ký</label>
+                        <input type="text" name="contract_place" value="Hà Nội" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Chọn Phòng Trọ</label>
-                        <select name="room_id" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
-                            @foreach($rooms as $r)
-                                @if($r->status !== 'empty')
-                                    <option value="{{ $r->id }}">Phòng {{ $r->room_number }}</option>
-                                @endif
-                            @endforeach
-                        </select>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Ngày</label>
+                        <input type="number" name="sign_day" min="1" max="31" value="{{ date('d') }}" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tháng</label>
+                        <input type="number" name="sign_month" min="1" max="12" value="{{ date('m') }}" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Năm</label>
+                        <input type="number" name="sign_year" min="1900" max="2100" value="{{ date('Y') }}" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
                     </div>
                 </div>
-                <div class="grid grid-cols-3 gap-4">
+
+                <div class="grid grid-cols-1 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Chọn Phòng Trọ</label>
+                        <div class="relative">
+                            <div class="flex items-center gap-2 rounded-xl bg-slate-900 border border-slate-800 focus-within:border-indigo-500 px-4">
+                                <i class="fa-solid fa-magnifying-glass text-slate-500 text-xs"></i>
+                                <input type="text" id="contract-room-search" oninput="filterContractRooms(this.value)" onfocus="filterContractRooms(this.value)" placeholder="Tìm số phòng, tên tòa, địa chỉ..." autocomplete="off" class="w-full py-2.5 bg-transparent text-slate-200 text-sm focus:outline-none">
+                            </div>
+                            <input type="hidden" name="room_id" id="contract-room-id" required>
+                            <div id="contract-room-results" class="hidden absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-72 overflow-y-auto rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl shadow-black/40 p-1">
+                                @foreach($rooms as $r)
+                                    @if($r->status !== 'empty')
+                                        @php
+                                            $buildingName = $r->building?->name ?? 'Chưa rõ tòa';
+                                            $buildingAddress = $r->building?->address ?? '';
+                                            $roomLabel = 'Phòng ' . $r->room_number . ' - ' . $buildingName;
+                                            $roomSearchText = $roomLabel . ' Phòng' . $r->room_number . ' ' . $buildingAddress;
+                                        @endphp
+                                        <button type="button" onclick="selectContractRoom(this)" data-id="{{ $r->id }}" data-price="{{ $r->price }}" data-area="{{ $r->area }}" data-room="{{ $r->room_number }}" data-address="{{ $buildingAddress }}" data-label="{{ $roomLabel }}" data-search="{{ mb_strtolower($roomSearchText) }}" class="contract-room-option w-full text-left px-3 py-2.5 rounded-xl hover:bg-indigo-600/20 transition-all">
+                                            <span class="block text-sm font-bold text-slate-100">Phòng {{ $r->room_number }}</span>
+                                            <span class="block text-[11px] text-slate-500">{{ $buildingName }}</span>
+                                        </button>
+                                    @endif
+                                @endforeach
+                                <div id="contract-room-empty" class="hidden px-3 py-4 text-center text-xs font-semibold text-slate-500">
+                                    Không tìm thấy phòng phù hợp
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-2xl border border-slate-800 bg-slate-950/30 p-4">
+                    <h3 class="text-sm font-extrabold text-slate-200 mb-3">I. Bên cho thuê nhà (Bên A)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="text" name="lessor_name" required value="{{ Auth::user()->name ?? 'Chủ trọ SmartRoom' }}" placeholder="Ông/Bà bên A" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="text" name="lessor_id_number" placeholder="CMTND/CCCD bên A" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="text" name="lessor_phone" value="{{ Auth::user()->phone ?? '' }}" placeholder="Điện thoại bên A" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="text" name="lessor_address" placeholder="HKTT/Chỗ ở hiện tại bên A" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="rounded-2xl border border-slate-800 bg-slate-950/30 p-4">
+                    <h3 class="text-sm font-extrabold text-slate-200 mb-3">II. Bên thuê nhà ở (Bên B)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tên bên thuê</label>
+                            <input type="text" name="lessee_name" id="lessee-name" required placeholder="Nhập họ tên bên thuê" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                            <input type="hidden" name="resident_id" id="contract-resident-id">
+                        </div>
+                        <input type="text" name="lessee_id_number" id="lessee-id-number" placeholder="CMND/CCCD bên B" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="text" name="lessee_phone" id="lessee-phone" placeholder="Điện thoại bên B" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="text" name="lessee_permanent_address" id="lessee-permanent-address" placeholder="HKTT bên B" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="text" name="lessee_current_address" placeholder="Chỗ ở hiện tại bên B" class="md:col-span-2 w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Ngày Bắt Đầu</label>
-                        <input type="date" name="start_date" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="date" name="start_date" id="contract-start-date" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Ngày Kết Thúc</label>
-                        <input type="date" name="end_date" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="date" name="end_date" id="contract-end-date" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tiền Đặt Cọc (VNĐ)</label>
-                        <input type="number" name="deposit" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none" placeholder="3000000">
+                        <input type="number" name="deposit" id="contract-deposit" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none" placeholder="3000000">
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Điều Khoản Hợp Đồng</label>
-                    <textarea name="terms" rows="6" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none resize-none">ĐIỀU KHOẢN HỢP ĐỒNG THUÊ PHÒNG
-
-Điều 1: Bên A (Bên cho thuê) đồng ý cho Bên B (Bên thuê) thuê phòng trọ.
-Điều 2: Tiền thuê phòng đóng định kỳ trước ngày 10 hàng tháng. Tiền đặt cọc bảo đảm nghĩa vụ thực hiện hợp đồng.
-Điều 3: Bên thuê cam kết bảo quản tài sản phòng trọ, tuân thủ các quy định phòng chống cháy nổ và khai báo tạm trú theo quy định của pháp luật.</textarea>
+                <div class="rounded-2xl border border-slate-800 bg-slate-950/30 p-4 space-y-4">
+                    <h3 class="text-sm font-extrabold text-slate-200">Nội dung thuê và thanh toán</h3>
+                    <input type="text" name="rental_address" id="rental-address" required placeholder="Địa chỉ nhà/phòng cho thuê" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                    <textarea name="rental_area_description" id="rental-area-description" rows="2" placeholder="Diện tích cho thuê" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none resize-none"></textarea>
+                    <textarea name="equipment_list" rows="4" placeholder="Trang thiết bị kèm theo..." class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none resize-none"></textarea>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <input type="text" name="rental_purpose" value="ở" placeholder="Mục đích thuê" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="number" name="occupant_count" min="1" max="20" value="1" placeholder="Số người ở" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="number" name="rent_price" id="contract-rent-price" required placeholder="Giá thuê/tháng" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="number" name="payment_cycle_months" min="1" max="12" value="3" placeholder="Chu kỳ thanh toán tháng" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="text" name="first_payment_date" placeholder="Thời điểm thanh toán lần đầu" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                        <input type="text" name="payment_method" placeholder="Hình thức thanh toán" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                    </div>
                 </div>
                 <div class="pt-4 flex justify-end gap-3">
                     <button type="button" onclick="toggleAddContractModal(false)" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 bg-transparent hover:bg-slate-900 border border-transparent hover:border-slate-800 transition-all">
@@ -1612,6 +1741,8 @@
 
     <!-- JS Logic -->
     <script>
+        const currentUserIsLandlord = @json($isLandlord);
+
         // Setup custom toast notification override for alert()
         (function() {
             const toastStyle = document.createElement('style');
@@ -1832,11 +1963,144 @@
         function toggleAddContractModal(show) {
             const modal = document.getElementById('add-contract-modal');
             if (show) {
+                resetContractDraftFields();
                 modal.classList.remove('hidden');
             } else {
                 modal.classList.add('hidden');
+                closeContractRoomResults();
             }
         }
+
+        function resetContractDraftFields() {
+            const valuesToClear = [
+                'contract-room-search',
+                'contract-room-id',
+                'lessee-name',
+                'lessee-id-number',
+                'lessee-phone',
+                'lessee-permanent-address',
+                'rental-address',
+                'rental-area-description',
+                'contract-rent-price',
+                'contract-deposit',
+            ];
+
+            valuesToClear.forEach(id => {
+                const input = document.getElementById(id);
+                if (input) input.value = '';
+            });
+
+            const currentAddress = document.querySelector('[name="lessee_current_address"]');
+            if (currentAddress) currentAddress.value = '';
+
+            const equipmentList = document.querySelector('[name="equipment_list"]');
+            if (equipmentList) equipmentList.value = '';
+
+            const residentSelect = document.getElementById('contract-resident-id');
+            if (residentSelect) residentSelect.value = '';
+
+            closeContractRoomResults();
+        }
+
+        function fillContractResident(select) {
+            const option = select?.selectedOptions?.[0];
+            if (!option) return;
+
+            const fields = {
+                'lessee-name': option.dataset.name || '',
+                'lessee-id-number': option.dataset.cccd || '',
+                'lessee-phone': option.dataset.phone || '',
+                'lessee-permanent-address': option.dataset.hometown || '',
+            };
+
+            Object.entries(fields).forEach(([id, value]) => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.value = value;
+                }
+            });
+        }
+
+        function filterContractRooms(keyword = '') {
+            const results = document.getElementById('contract-room-results');
+            const empty = document.getElementById('contract-room-empty');
+            if (!results) return;
+
+            const normalize = (value) => (value || '')
+                .toString()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^\w\s]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .toLowerCase();
+            const normalizedKeyword = normalize(keyword);
+            let visibleCount = 0;
+
+            document.querySelectorAll('.contract-room-option').forEach(option => {
+                const haystack = normalize(`${option.dataset.search || ''} ${option.dataset.label || ''}`);
+                const isVisible = !normalizedKeyword || haystack.includes(normalizedKeyword);
+                option.classList.toggle('hidden', !isVisible);
+                if (isVisible) visibleCount++;
+            });
+
+            empty?.classList.toggle('hidden', visibleCount > 0);
+            results.classList.remove('hidden');
+        }
+
+        function closeContractRoomResults() {
+            document.getElementById('contract-room-results')?.classList.add('hidden');
+        }
+
+        function selectContractRoom(option) {
+            if (!option) return;
+
+            const hiddenInput = document.getElementById('contract-room-id');
+            const searchInput = document.getElementById('contract-room-search');
+
+            if (hiddenInput) hiddenInput.value = option.dataset.id || '';
+            if (searchInput) searchInput.value = option.dataset.label || '';
+            fillContractRoom(option);
+            closeContractRoomResults();
+        }
+
+        function fillContractRoom(option) {
+            if (!option) return;
+
+            const roomNumber = option.dataset.room || '';
+            const area = option.dataset.area || '';
+            const address = option.dataset.address || '';
+            const price = option.dataset.price || '';
+
+            const rentalAddress = document.getElementById('rental-address');
+            const areaDescription = document.getElementById('rental-area-description');
+            const rentPrice = document.getElementById('contract-rent-price');
+            const deposit = document.getElementById('contract-deposit');
+
+            if (rentalAddress) {
+                rentalAddress.value = [address, roomNumber ? `Phòng ${roomNumber}` : ''].filter(Boolean).join(' - ');
+            }
+            if (areaDescription) {
+                areaDescription.value = roomNumber
+                    ? `Phòng ${roomNumber}${area ? `, diện tích ${area} m²` : ''}.`
+                    : '';
+            }
+            if (rentPrice) {
+                rentPrice.value = price;
+            }
+            if (deposit && price) {
+                deposit.value = price;
+            }
+        }
+
+        document.addEventListener('click', (event) => {
+            const picker = document.getElementById('contract-room-results');
+            const search = document.getElementById('contract-room-search');
+
+            if (picker && search && !picker.contains(event.target) && event.target !== search) {
+                closeContractRoomResults();
+            }
+        });
 
         function copySignLink(url, btn) {
             const fullUrl = url.startsWith('http') ? url : (window.location.origin + url);
@@ -2361,6 +2625,12 @@
                             // Tránh lỗi ký tự đặc biệt khi parse JSON trong inline onclick
                             const relEscaped = JSON.stringify(rel).replace(/'/g, "\\'").replace(/"/g, "&quot;");
                             
+                            const deleteButton = currentUserIsLandlord ? `
+                                    <button onclick="deleteRelative(${rel.id})" class="w-7 h-7 rounded-lg bg-slate-900 hover:bg-rose-950/20 border border-slate-800 hover:border-rose-900/50 flex items-center justify-center text-rose-400 transition-all" title="Xoa">
+                                        <i class="fa-solid fa-trash-can text-[10px]"></i>
+                                    </button>
+                            ` : '';
+
                             card.innerHTML = `
                                 <div>
                                     <div class="flex items-center gap-2">
@@ -2378,9 +2648,7 @@
                                     <button onclick="editRelative(JSON.parse('${JSON.stringify(rel).replace(/'/g, "\\'")}'))" class="w-7 h-7 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 flex items-center justify-center text-cyan-400 transition-all" title="Sửa">
                                         <i class="fa-solid fa-pencil text-[10px]"></i>
                                     </button>
-                                    <button onclick="deleteRelative(${rel.id})" class="w-7 h-7 rounded-lg bg-slate-900 hover:bg-rose-950/20 border border-slate-800 hover:border-rose-900/50 flex items-center justify-center text-rose-400 transition-all" title="Xóa">
-                                        <i class="fa-solid fa-trash-can text-[10px]"></i>
-                                    </button>
+                                    ${deleteButton}
                                 </div>
                             `;
                             container.appendChild(card);
@@ -3042,6 +3310,202 @@
                 console.error(err);
             });
         }
+
+        function csrfToken() {
+            return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function renderAiList(title, items, iconClass) {
+            if (!items || items.length === 0) {
+                return '';
+            }
+
+            return `
+                <div class="mt-3">
+                    <div class="text-[11px] uppercase tracking-wider font-bold text-slate-500 flex items-center gap-2">
+                        <i class="${iconClass}"></i> ${escapeHtml(title)}
+                    </div>
+                    <ul class="mt-2 space-y-1.5 text-xs text-slate-300">
+                        ${items.map(item => `<li class="flex gap-2"><span class="text-indigo-400">•</span><span>${escapeHtml(item)}</span></li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+
+        function loadAiDashboardInsight(btn) {
+            const target = document.getElementById('ai-dashboard-insight');
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang phân tích...';
+            target.innerHTML = '<span class="text-slate-500">AI đang đọc dữ liệu dashboard...</span>';
+
+            fetch("{{ route('smartroom.admin.ai.dashboard_insight') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken()
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+
+                if (!data.success) {
+                    target.innerHTML = '<span class="text-rose-400">Không thể tạo nhận xét AI.</span>';
+                    return;
+                }
+
+                const insight = data.insight;
+                const badge = insight.used_ai
+                    ? '<span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">AI</span>'
+                    : '<span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Fallback</span>';
+
+                target.innerHTML = `
+                    <div class="flex items-start justify-between gap-3">
+                        <p class="text-sm text-slate-200 font-semibold">${escapeHtml(insight.summary || '')}</p>
+                        ${badge}
+                    </div>
+                    ${renderAiList('Điểm đáng chú ý', insight.highlights, 'fa-solid fa-chart-line text-emerald-400')}
+                    ${renderAiList('Rủi ro', insight.risks, 'fa-solid fa-triangle-exclamation text-amber-400')}
+                    ${renderAiList('Gợi ý', insight.suggestions, 'fa-solid fa-lightbulb text-indigo-400')}
+                `;
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+                target.innerHTML = '<span class="text-rose-400">Không thể kết nối để tạo nhận xét AI.</span>';
+                console.error(err);
+            });
+        }
+
+        function askAiAssistant(btn) {
+            const input = document.getElementById('ai-assistant-question');
+            const target = document.getElementById('ai-assistant-answer');
+            const question = input.value.trim();
+
+            if (question.length < 3) {
+                target.innerHTML = '<span class="text-amber-400">Vui lòng nhập câu hỏi rõ hơn.</span>';
+                return;
+            }
+
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang hỏi...';
+            target.innerHTML = '<span class="text-slate-500">Trợ lý đang đọc dữ liệu nhà trọ...</span>';
+
+            fetch("{{ route('smartroom.admin.ai.assistant') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken()
+                },
+                body: JSON.stringify({ question })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+
+                if (!data.success) {
+                    target.innerHTML = '<span class="text-rose-400">Không thể hỏi trợ lý AI.</span>';
+                    return;
+                }
+
+                const answer = data.answer;
+                const badge = answer.used_ai
+                    ? '<span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">AI</span>'
+                    : '<span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Fallback</span>';
+
+                target.innerHTML = `
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="whitespace-pre-line">${escapeHtml(answer.answer || '')}</div>
+                        ${badge}
+                    </div>
+                `;
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+                target.innerHTML = '<span class="text-rose-400">Không thể kết nối trợ lý AI.</span>';
+                console.error(err);
+            });
+        }
+
+        function generateContractTermsWithAi(btn) {
+            const roomId = document.getElementById('contract-room-id')?.value;
+            const residentId = document.getElementById('contract-resident-id')?.value;
+            const startDate = document.getElementById('contract-start-date')?.value;
+            const endDate = document.getElementById('contract-end-date')?.value;
+            const deposit = document.getElementById('contract-deposit')?.value;
+            const terms = document.getElementById('contract-terms');
+
+            if (!roomId || !residentId || !startDate || !endDate || !deposit) {
+                alert('Vui lòng nhập đủ phòng, cư dân, thời hạn và tiền cọc trước khi dùng AI.');
+                return;
+            }
+
+            const original = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang soạn...';
+
+            fetch("{{ route('smartroom.admin.ai.contract_terms') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken()
+                },
+                body: JSON.stringify({
+                    room_id: roomId,
+                    resident_id: residentId,
+                    start_date: startDate,
+                    end_date: endDate,
+                    deposit: Number(deposit)
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = original;
+
+                if (!data.success) {
+                    alert('Không thể tạo điều khoản bằng AI.');
+                    return;
+                }
+
+                terms.value = data.terms.terms || terms.value;
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = original;
+                alert('Không thể kết nối AI để tạo điều khoản.');
+                console.error(err);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const aiQuestionInput = document.getElementById('ai-assistant-question');
+            if (aiQuestionInput) {
+                aiQuestionInput.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        const button = aiQuestionInput.parentElement.querySelector('button');
+                        if (button) {
+                            askAiAssistant(button);
+                        }
+                    }
+                });
+            }
+        });
     </script>
 
     <!-- VIETQR POPUP MODAL -->
@@ -3224,5 +3688,6 @@
             </div>
         </div>
     </div>
+    <script src="{{ asset('js/admin-sidebar.js') }}"></script>
 </body>
 </html>

@@ -9,7 +9,6 @@ use App\Models\User;
 use App\Models\Building;
 use App\Models\Room;
 use App\Models\Resident;
-use App\Models\Contract;
 use App\Models\ElectricWaterLog;
 use App\Models\Bill;
 use App\Models\Ticket;
@@ -146,6 +145,7 @@ class SmartRoomSeeder extends Seeder
         foreach ($roomDataT1 as $data) {
             $data['building_id'] = $building1->id;
             $data['tenant_id'] = $tenant1->id;
+            $data = array_merge($data, $this->mediaForRoom($building1->name, $data['room_number']));
             $roomsT1[$data['room_number']] = Room::updateOrCreate(
                 [
                     'building_id' => $building1->id,
@@ -167,6 +167,7 @@ class SmartRoomSeeder extends Seeder
         foreach ($roomDataT2 as $data) {
             $data['building_id'] = $building2->id;
             $data['tenant_id'] = $tenant2->id;
+            $data = array_merge($data, $this->mediaForRoom($building2->name, $data['room_number']));
             $roomsT2[$data['room_number']] = Room::updateOrCreate(
                 [
                     'building_id' => $building2->id,
@@ -427,56 +428,7 @@ class SmartRoomSeeder extends Seeder
             }
         }
 
-        // 8. Tạo Hợp đồng (Contracts)
-        // Tenant 1 Contracts
-        foreach ($resDataT1 as $roomNum => $res) {
-            $room = $roomsT1[$roomNum];
-            $resident = Resident::where('room_id', $room->id)->first();
-            $contractCode = 'HĐ-' . $room->room_number . '-' . date('Ymd', strtotime($resident->start_date));
-            Contract::updateOrCreate([
-                'contract_code' => $contractCode,
-            ], [
-                'tenant_id' => $tenant1->id,
-                'room_id' => $room->id,
-                'resident_id' => $resident->id,
-                'start_date' => $resident->start_date,
-                'end_date' => Carbon::parse($resident->start_date)->addYear()->toDateString(),
-                'deposit' => $room->price,
-                'status' => 'active',
-                'terms' => "ĐIỀU KHOẢN HỢP ĐỒNG THUÊ PHÒNG\n\n"
-                         . "Điều 1: Bên A (Bên cho thuê) đồng ý cho Bên B (Bên thuê) thuê phòng số " . $room->room_number . " tại địa chỉ " . $building1->address . ".\n"
-                         . "Điều 2: Giá thuê là " . number_format($room->price) . " VNĐ/tháng (Thanh toán định kỳ trước ngày 10 hàng tháng).\n"
-                         . "Điều 3: Tiền đặt cọc bảo đảm là " . number_format($room->price) . " VNĐ. Tiền cọc sẽ được hoàn trả đầy đủ sau khi thanh lý hợp đồng.\n"
-                         . "Điều 4: Bên thuê cam kết chấp hành nghiêm chỉnh nội quy phòng trọ, phòng chống cháy nổ và khai báo tạm trú đầy đủ.",
-                'signature' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
-            ]);
-        }
-
-        // Tenant 2 Contracts
-        foreach ($resDataT2 as $roomNum => $res) {
-            $room = $roomsT2[$roomNum];
-            $resident = Resident::where('room_id', $room->id)->first();
-            $contractCode = 'HĐ-' . $room->room_number . '-' . date('Ymd', strtotime($resident->start_date));
-            Contract::updateOrCreate([
-                'contract_code' => $contractCode,
-            ], [
-                'tenant_id' => $tenant2->id,
-                'room_id' => $room->id,
-                'resident_id' => $resident->id,
-                'start_date' => $resident->start_date,
-                'end_date' => Carbon::parse($resident->start_date)->addYear()->toDateString(),
-                'deposit' => $room->price,
-                'status' => 'active',
-                'terms' => "ĐIỀU KHOẢN HỢP ĐỒNG THUÊ PHÒNG\n\n"
-                         . "Điều 1: Bên A (Bên cho thuê) đồng ý cho Bên B (Bên thuê) thuê phòng số " . $room->room_number . " tại địa chỉ " . $building2->address . ".\n"
-                         . "Điều 2: Giá thuê là " . number_format($room->price) . " VNĐ/tháng (Thanh toán định kỳ trước ngày 10 hàng tháng).\n"
-                         . "Điều 3: Tiền đặt cọc bảo đảm là " . number_format($room->price) . " VNĐ. Tiền cọc sẽ được hoàn trả đầy đủ sau khi thanh lý hợp đồng.\n"
-                         . "Điều 4: Bên thuê cam kết chấp hành nghiêm chỉnh nội quy phòng trọ, phòng chống cháy nổ và khai báo tạm trú đầy đủ.",
-                'signature' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
-            ]);
-        }
-
-        // 9. Tạo sự cố báo hỏng (Tickets)
+        // 8. Tạo sự cố báo hỏng (Tickets)
         // Tenant 1 Tickets
         $res103 = Resident::where('room_id', $roomsT1['103']->id)->first();
         Ticket::updateOrCreate([
@@ -550,5 +502,43 @@ class SmartRoomSeeder extends Seeder
                 }
             }
         }
+    }
+
+    private function mediaForRoom(string $buildingName, string $roomNumber): array
+    {
+        $sets = [
+            [
+                'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1400&q=85',
+                'https://images.unsplash.com/photo-1588153203274-4a392d28ed9f?auto=format&fit=crop&w=1400&q=85',
+                'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1400&q=85',
+                'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1400&q=85',
+            ],
+            [
+                'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1400&q=85',
+                'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?auto=format&fit=crop&w=1400&q=85',
+                'https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=1400&q=85',
+                'https://images.unsplash.com/photo-1560448075-bb485b067938?auto=format&fit=crop&w=1400&q=85',
+            ],
+            [
+                'https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=1400&q=85',
+                'https://images.unsplash.com/photo-1620626011761-996317b8d101?auto=format&fit=crop&w=1400&q=85',
+                'https://images.unsplash.com/photo-1560185127-6ed189bf02f4?auto=format&fit=crop&w=1400&q=85',
+                'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1400&q=85',
+            ],
+        ];
+        $videos = [
+            'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
+            'https://www.w3schools.com/html/mov_bbb.mp4',
+            'https://media.w3.org/2010/05/sintel/trailer.mp4',
+        ];
+
+        $index = abs(crc32($buildingName . $roomNumber)) % count($sets);
+        $images = $sets[$index];
+
+        return [
+            'image' => $images[0],
+            'images' => $images,
+            'video' => $videos[$index % count($videos)],
+        ];
     }
 }

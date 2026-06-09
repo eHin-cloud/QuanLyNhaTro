@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Renty Review - Nền tảng tìm kiếm và đánh giá phòng trọ chân thực.">
     <title>Renty Review - Tìm Phòng Trọ & Đánh Giá Không Gian Sống</title>
+    <script>
+        if (localStorage.getItem('renty_theme_mode') === 'light') {
+            document.documentElement.classList.add('theme-light');
+        }
+    </script>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -32,8 +37,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/css/style.css', 'resources/js/app.js'])
 </head>
 <body class="bg-[#080b11] text-slate-100 min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-emerald-500 selection:text-white">
 
@@ -49,7 +53,7 @@
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
                         <i class="fa-solid fa-magnifying-glass-location text-white text-lg"></i>
                     </div>
-                    <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Renty Review</span>
+                    <span class="renty-brand-text text-xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Renty Review</span>
                 </a>
             </div>
             
@@ -57,6 +61,9 @@
                 <a href="#" class="text-emerald-400 hover:text-emerald-300">Khám Phá Phòng</a>
                 <a href="javascript:void(0)" onclick="openHotAreasModal()" class="hover:text-slate-205 transition-colors">Khu Vực Hot</a>
                 <a href="javascript:void(0)" onclick="openNewReviewsModal()" class="hover:text-slate-205 transition-colors">Đánh Giá Mới</a>
+                <button type="button" onclick="toggleThemeMode()" class="theme-toggle-button" aria-label="Chuyển chế độ sáng tối">
+                    <i class="fa-solid fa-moon" id="theme-toggle-icon"></i>
+                </button>
                 @auth
                     <div class="flex items-center gap-3 bg-slate-900/60 border border-slate-800/80 px-3.5 py-1.5 rounded-xl">
                         <span class="text-xs font-bold text-emerald-400">
@@ -174,8 +181,10 @@
                 <div>
                     <!-- Room photo -->
                     <div class="h-48 bg-slate-950 relative overflow-hidden border-b border-slate-900 group">
-                        <img src="{{ $room['cover_image'] }}" alt="Ảnh phòng {{ $room['room_number'] }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
-                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/10 to-transparent"></div>
+                        <a href="{{ route('renty.room.show', $room['id']) }}" class="absolute inset-0 z-0">
+                            <img src="{{ $room['cover_image'] }}" alt="Ảnh phòng {{ $room['room_number'] }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/10 to-transparent"></div>
+                        </a>
 
                         @if($room['status'] === 'empty')
                             <span class="absolute top-4 left-4 px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[9px] font-extrabold uppercase tracking-wider shadow-sm z-10 flex items-center gap-1.5">
@@ -190,15 +199,20 @@
                         @endif
 
                         @if($room['price_warning'])
-                            <span class="absolute top-4 right-4 px-2.5 py-1 bg-amber-500/10 text-amber-300 border border-amber-500/25 rounded-lg text-[9px] font-extrabold uppercase tracking-wider shadow-sm z-10 flex items-center gap-1.5" title="{{ $room['price_warning']['message'] }}">
+                            <span class="absolute top-14 right-4 px-2.5 py-1 bg-amber-500/10 text-amber-300 border border-amber-500/25 rounded-lg text-[9px] font-extrabold uppercase tracking-wider shadow-sm z-10 flex items-center gap-1.5" title="{{ $room['price_warning']['message'] }}">
                                 <i class="fa-solid fa-triangle-exclamation"></i>
                                 {{ $room['price_warning']['type'] === 'low' ? 'Giá quá rẻ' : 'Giá cao' }}
                             </span>
                         @endif
 
+                        <button type="button" onclick="openQuickRoomPreview(event, '{{ $room['id'] }}')" class="absolute top-4 right-4 px-3 py-1.5 rounded-xl bg-slate-950/82 border border-white/10 text-[10px] font-extrabold text-slate-100 backdrop-blur z-20 flex items-center gap-1.5 hover:border-emerald-400/60 hover:text-emerald-200 quick-eye-button" title="Xem nhanh thông tin phòng">
+                            <i class="fa-solid fa-eye text-slate-300"></i>
+                            Xem nhanh
+                        </button>
+
                         <div class="absolute left-4 right-4 bottom-4 z-10 flex items-end justify-between gap-3">
                             <div>
-                                <span class="block text-[10px] font-extrabold text-white uppercase tracking-widest drop-shadow">Ảnh thực tế phòng</span>
+                                <span class="block text-[10px] font-extrabold text-white uppercase tracking-widest drop-shadow">{{ $room['media_source_label'] }} phòng</span>
                                 <span class="block text-[10px] font-semibold text-slate-300 mt-0.5">Phòng {{ $room['room_number'] }} · {{ count($room['image_urls']) }} ảnh</span>
                             </div>
                             <span class="w-9 h-9 rounded-xl bg-slate-950/70 border border-white/10 backdrop-blur flex items-center justify-center text-emerald-300">
@@ -210,7 +224,9 @@
                     <div class="p-5 flex-grow flex flex-col justify-between">
                         <div>
                             <div class="flex justify-between items-start mb-2 gap-2">
-                                <h3 class="font-bold text-slate-200 text-sm group-hover:text-emerald-400 transition-all line-clamp-1">{{ $room['title'] }}</h3>
+                                <h3 class="font-bold text-slate-200 text-sm group-hover:text-emerald-400 transition-all line-clamp-1">
+                                    <a href="{{ route('renty.room.show', $room['id']) }}">{{ $room['title'] }}</a>
+                                </h3>
                                 <div class="flex items-center gap-1 text-xs text-amber-400 font-bold shrink-0">
                                     <i class="fa-solid fa-star text-[10px]"></i> <span>{{ $room['rating'] }}</span>
                                 </div>
@@ -243,14 +259,19 @@
                     </div>
                 </div>
                 <!-- Card footer action -->
-                <div class="px-5 pb-5 pt-3 border-t border-slate-900/50 flex justify-between items-center bg-slate-950/20">
+                <div class="px-5 pb-5 pt-3 border-t border-slate-900/50 flex justify-between items-center bg-slate-950/20 gap-3">
                     <label class="flex items-center gap-2 text-xs font-bold text-slate-400 cursor-pointer hover:text-slate-355 transition-colors">
                         <input type="checkbox" onchange="toggleCompare('{{ $room['id'] }}', this)" class="compare-checkbox w-4 h-4 rounded border-slate-800 bg-slate-900 text-emerald-600 focus:ring-0 focus:ring-offset-0">
                         <span>So sánh</span>
                     </label>
-                    <button onclick="openRoomDetailModal('{{ $room['id'] }}')" class="text-xs text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-                        <span>Chi tiết review</span> <i class="fa-solid fa-angle-right"></i>
-                    </button>
+                    <div class="flex items-center gap-3">
+                        <button type="button" onclick="openReportModal('{{ $room['id'] }}', '{{ e($room['title']) }}')" class="text-xs text-rose-400 hover:text-rose-300 font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-flag"></i> Báo cáo
+                        </button>
+                        <a href="{{ route('renty.room.show', $room['id']) }}" class="text-xs text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                            <span>Chi tiết review</span> <i class="fa-solid fa-angle-right"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
             @endforeach
@@ -316,6 +337,111 @@
         </div>
     </div>
 
+    <!-- QUICK ROOM PREVIEW -->
+    <div id="quick-room-preview" class="quick-preview-overlay hidden" aria-hidden="true">
+        <div class="quick-preview-panel" role="dialog" aria-modal="true" aria-labelledby="quick-preview-title">
+            <button type="button" onclick="closeQuickRoomPreview()" class="quick-preview-close" aria-label="Đóng xem nhanh">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="quick-preview-media">
+                <img id="quick-preview-image" src="" alt="Ảnh phòng xem nhanh" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
+                <span id="quick-preview-media-label">Ảnh thực tế</span>
+            </div>
+
+            <div class="quick-preview-content">
+                <span class="quick-preview-brand">Renty Review</span>
+                <h2 id="quick-preview-title">Phòng trọ</h2>
+                <div class="quick-preview-price-row">
+                    <strong id="quick-preview-price">0đ</strong>
+                    <span id="quick-preview-rating">4.0 ⭐</span>
+                </div>
+
+                <div class="quick-preview-facts">
+                    <div>
+                        <i class="fa-solid fa-ruler-combined"></i>
+                        <span id="quick-preview-area">25 m²</span>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span id="quick-preview-location">Cầu Giấy</span>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-video"></i>
+                        <span id="quick-preview-video">Có video tour</span>
+                    </div>
+                </div>
+
+                <div class="quick-preview-tags" id="quick-preview-tags"></div>
+
+                <div class="quick-preview-actions">
+                    <a href="tel:0987654321" class="quick-preview-call">
+                        <i class="fa-solid fa-phone"></i> Gọi ngay
+                    </a>
+                    <a href="#" id="quick-preview-detail" class="quick-preview-detail">
+                        Xem chi tiết
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROOM REPORT MODAL -->
+    <div id="room-report-modal" class="fixed inset-0 z-[75] bg-[#02040a]/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-lg rounded-3xl bg-[#0a0f1d] border border-slate-800 p-5 md:p-6 shadow-2xl animate-fade-in">
+            <div class="flex items-start justify-between gap-4 mb-5">
+                <div>
+                    <span class="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 text-[10px] font-extrabold uppercase tracking-wider">
+                        <i class="fa-solid fa-shield-halved"></i> Báo cáo phòng
+                    </span>
+                    <h2 class="mt-3 text-xl font-extrabold text-slate-100">Nghi ngờ thông tin không an toàn?</h2>
+                    <p class="mt-1 text-xs text-slate-500" id="report-room-title">Renty Review sẽ kiểm tra báo cáo này.</p>
+                </div>
+                <button type="button" onclick="closeReportModal()" class="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="room-report-form" method="POST" action="" class="space-y-4">
+                @csrf
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Tên của bạn</label>
+                        <input type="text" name="reporter_name" value="{{ Auth::user()->name ?? '' }}" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 text-xs focus:border-rose-500 focus:outline-none" placeholder="Có thể bỏ trống">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Số điện thoại</label>
+                        <input type="tel" name="reporter_phone" value="{{ Auth::user()->phone ?? '' }}" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 text-xs focus:border-rose-500 focus:outline-none" placeholder="Để liên hệ xác minh">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Lý do báo cáo</label>
+                    <select name="reason" required class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 text-xs focus:border-rose-500 focus:outline-none">
+                        <option value="scam">Nghi lừa đảo / yêu cầu cọc bất thường</option>
+                        <option value="fake_images">Ảnh không đúng thực tế</option>
+                        <option value="wrong_price">Giá hoặc phí phát sinh sai</option>
+                        <option value="unsafe">Vấn đề an toàn / an ninh</option>
+                        <option value="spam">Tin đăng spam / trùng lặp</option>
+                        <option value="other">Khác</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Mô tả chi tiết</label>
+                    <textarea name="description" required minlength="10" rows="4" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 text-xs focus:border-rose-500 focus:outline-none" placeholder="Ví dụ: chủ trọ yêu cầu chuyển cọc trước khi xem phòng, ảnh không giống lúc đến xem..."></textarea>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeReportModal()" class="px-4 py-2 rounded-xl border border-slate-800 bg-slate-900 text-slate-300 text-xs font-bold">Hủy</button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-extrabold shadow-lg shadow-rose-600/20">
+                        <i class="fa-solid fa-flag mr-1.5"></i> Gửi báo cáo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- ROOM DETAIL & REVIEWS MODAL -->
     <div id="room-detail-modal" class="fixed inset-0 z-50 bg-[#04060b]/90 backdrop-blur-md hidden flex items-center justify-center p-4">
         <div class="room-detail-panel w-full max-w-3xl bg-[#0a0f1d] border border-slate-800 rounded-3xl p-5 md:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto animate-fade-in">
@@ -329,17 +455,58 @@
             </p>
 
             <div class="mb-6">
-                <div class="relative h-72 rounded-2xl overflow-hidden bg-slate-950 border border-slate-800">
-                    <img id="detail-main-image" src="" alt="Ảnh phòng trọ" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
+                <div class="flex items-start justify-between gap-3 mb-3">
+                    <div>
+                        <h3 class="text-sm font-extrabold text-slate-100 flex items-center gap-2">
+                            <i class="fa-solid fa-images text-emerald-400"></i>
+                            Nội dung hình ảnh
+                        </h3>
+                        <p class="text-[11px] text-slate-500 mt-1" id="detail-media-note">Ưu tiên ảnh thật theo từng góc, xem rõ trước khi liên hệ đặt lịch.</p>
+                    </div>
+                    <button type="button" onclick="openImageZoom()" class="shrink-0 px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-emerald-500/70 text-[11px] font-extrabold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-expand"></i> Zoom
+                    </button>
+                </div>
+                <div class="relative h-72 rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 group">
+                    <button type="button" onclick="openImageZoom()" class="absolute inset-0 z-10" aria-label="Phóng to ảnh phòng"></button>
+                    <img id="detail-main-image" src="" alt="Ảnh phòng trọ" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
                     <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none"></div>
                     <div class="absolute left-4 bottom-4">
                         <span class="px-3 py-1.5 rounded-lg bg-slate-950/70 border border-white/10 backdrop-blur text-xs font-bold text-slate-100">
                             <i class="fa-solid fa-camera text-emerald-300 mr-1.5"></i><span id="detail-image-count">Ảnh phòng</span>
                         </span>
                     </div>
+                    <div class="absolute right-4 bottom-4 z-20">
+                        <span id="detail-image-angle" class="px-3 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-400/20 backdrop-blur text-xs font-extrabold text-emerald-100">View toàn phòng</span>
+                    </div>
                 </div>
                 <div id="detail-image-thumbs" class="mt-3 grid grid-cols-3 gap-3">
                 </div>
+                <div class="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 text-[10px] font-bold text-slate-400">
+                    <span class="rounded-xl border border-slate-800 bg-slate-900/50 px-3 py-2"><i class="fa-solid fa-border-all text-emerald-400 mr-1.5"></i> Toàn phòng</span>
+                    <span class="rounded-xl border border-slate-800 bg-slate-900/50 px-3 py-2"><i class="fa-solid fa-shower text-cyan-300 mr-1.5"></i> Nhà vệ sinh</span>
+                    <span class="rounded-xl border border-slate-800 bg-slate-900/50 px-3 py-2"><i class="fa-solid fa-kitchen-set text-amber-300 mr-1.5"></i> Bếp</span>
+                    <span class="rounded-xl border border-slate-800 bg-slate-900/50 px-3 py-2"><i class="fa-solid fa-sun text-sky-300 mr-1.5"></i> Ban công/cửa sổ</span>
+                </div>
+            </div>
+
+            <div id="detail-video-section" class="hidden mb-6 p-4 rounded-2xl bg-[#070b13] border border-slate-800/70">
+                <div class="flex items-start justify-between gap-3 mb-3">
+                    <div>
+                        <h3 class="text-sm font-extrabold text-slate-100 flex items-center gap-2">
+                            <i class="fa-solid fa-video text-rose-300"></i>
+                            Video / Virtual Tour
+                        </h3>
+                        <p class="text-[11px] text-slate-500 mt-1">Video quay nhanh từ cửa vào phòng giúp cảm nhận diện tích và luồng di chuyển thực tế.</p>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-lg bg-rose-500/10 border border-rose-500/20 text-[9px] font-extrabold text-rose-200 uppercase tracking-wider">Điểm cộng</span>
+                </div>
+                <video id="detail-room-video" class="w-full max-h-80 rounded-xl border border-slate-800 bg-black" controls preload="metadata"></video>
+            </div>
+
+            <div id="detail-video-empty" class="mb-6 p-4 rounded-2xl bg-slate-900/35 border border-dashed border-slate-800 text-xs text-slate-400 flex items-start gap-3">
+                <i class="fa-solid fa-mobile-screen-button text-slate-500 mt-0.5"></i>
+                <span>Chưa có video tour cho phòng này. Khi chủ trọ thêm video quay từ cửa vào phòng, mục này sẽ hiển thị ngay tại đây.</span>
             </div>
 
             <div class="mb-6">
@@ -511,7 +678,13 @@
 
             <!-- Reviews: summary, list, and write form in one place -->
             <div class="reviews-end-section border-t border-slate-800/60 pt-6">
-                <h3 class="text-sm font-bold text-slate-300 mb-3"><i class="fa-solid fa-comments text-amber-400 mr-1.5"></i>Đánh giá thực tế</h3>
+                <div class="flex items-center justify-between gap-3 mb-3">
+                    <h3 class="text-sm font-bold text-slate-300"><i class="fa-solid fa-comments text-amber-400 mr-1.5"></i>Đánh giá thực tế</h3>
+                    <button type="button" id="review-summary-btn" onclick="loadReviewSummary(this)" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> AI tóm tắt
+                    </button>
+                </div>
+                <div id="review-summary-box" class="hidden mb-3 rounded-xl bg-slate-900/70 border border-slate-800 p-3 text-xs text-slate-300"></div>
                 <div class="p-4 rounded-xl bg-[#070b13] border border-slate-800/60 mb-4">
                     <div class="flex flex-col md:flex-row md:items-start gap-4 mb-4">
                         <div class="min-w-20">
@@ -582,6 +755,25 @@
                     <a href="https://zalo.me/0987654321" target="_blank" class="sticky-zalo-button"><i class="fa-solid fa-comments"></i> Chat Zalo</a>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- IMAGE ZOOM MODAL -->
+    <div id="image-zoom-modal" class="fixed inset-0 z-[60] bg-[#02040a]/95 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <button type="button" onclick="closeImageZoom()" class="absolute top-5 right-5 w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-300 hover:text-white">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <button type="button" onclick="changeZoomImage(-1)" class="absolute left-4 md:left-8 w-11 h-11 rounded-full bg-slate-900/80 border border-slate-800 hover:border-emerald-500/70 text-slate-200 flex items-center justify-center">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <img id="zoom-main-image" src="" alt="Ảnh phòng phóng to" class="max-w-full max-h-[84vh] rounded-2xl object-contain border border-slate-800 shadow-2xl">
+        <button type="button" onclick="changeZoomImage(1)" class="absolute right-4 md:right-8 w-11 h-11 rounded-full bg-slate-900/80 border border-slate-800 hover:border-emerald-500/70 text-slate-200 flex items-center justify-center">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <div class="absolute left-1/2 -translate-x-1/2 bottom-5 px-4 py-2 rounded-xl bg-slate-950/80 border border-white/10 text-xs font-bold text-slate-200">
+            <span id="zoom-image-label">View toàn phòng</span>
+            <span class="text-slate-500 mx-2">·</span>
+            <span id="zoom-image-count">1/1</span>
         </div>
     </div>
 
@@ -778,7 +970,28 @@
             drawer.classList.toggle('hidden');
         }
 
+        function applyThemeMode(mode) {
+            const isLight = mode === 'light';
+            document.documentElement.classList.toggle('theme-light', isLight);
+            document.body.classList.toggle('theme-light', isLight);
+            document.querySelectorAll('#theme-toggle-icon').forEach(icon => {
+                icon.classList.toggle('fa-sun', isLight);
+                icon.classList.toggle('fa-moon', !isLight);
+            });
+        }
+
+        function toggleThemeMode() {
+            const nextMode = document.body.classList.contains('theme-light') ? 'dark' : 'light';
+            localStorage.setItem('renty_theme_mode', nextMode);
+            applyThemeMode(nextMode);
+        }
+
+        applyThemeMode(localStorage.getItem('renty_theme_mode') || 'dark');
+
+        let currentDetailRoomId = null;
         let activeRoomReviews = [];
+        let activeRoomImages = [];
+        let activeRoomImageIndex = 0;
         const MOVE_IN_MAX_PEOPLE = 5;
         let activeRoomCost = {
             room: 0,
@@ -802,6 +1015,59 @@
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;');
+        }
+
+        function openQuickRoomPreview(event, roomId) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            const data = mockRooms[roomId];
+            if (!data) return;
+
+            const modal = document.getElementById('quick-room-preview');
+            document.getElementById('quick-preview-image').src = data.cover_image;
+            document.getElementById('quick-preview-media-label').textContent = `${data.media_source_label || 'Ảnh phòng'} · ${Array.isArray(data.image_urls) ? data.image_urls.length : 1} ảnh`;
+            document.getElementById('quick-preview-title').textContent = data.title;
+            document.getElementById('quick-preview-price').textContent = formatCurrency(data.price);
+            document.getElementById('quick-preview-rating').textContent = `${data.rating} ⭐`;
+            document.getElementById('quick-preview-area').textContent = data.area_text || `${data.area || 0} m²`;
+            document.getElementById('quick-preview-location').textContent = data.area_name || 'Khu vực trung tâm';
+            document.getElementById('quick-preview-video').textContent = data.video_url ? 'Có video tour' : 'Chưa có video tour';
+            document.getElementById('quick-preview-detail').href = `/renty/room/${data.id}`;
+
+            const tags = [
+                data.loft_txt === 'Có' ? 'Có gác lửng' : 'Không gác lửng',
+                data.balcony_txt === 'Có' ? 'Ban công/cửa sổ' : 'Không ban công',
+                data.pets_txt === 'Có' ? 'Cho nuôi thú cưng' : 'Không thú cưng',
+            ];
+            document.getElementById('quick-preview-tags').innerHTML = tags
+                .map(tag => `<span>${escapeHtml(tag)}</span>`)
+                .join('');
+
+            modal.classList.remove('hidden');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closeQuickRoomPreview() {
+            const modal = document.getElementById('quick-room-preview');
+            modal.classList.add('hidden');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        function openReportModal(roomId, title) {
+            const modal = document.getElementById('room-report-modal');
+            const form = document.getElementById('room-report-form');
+            form.action = `/renty/room/${roomId}/report`;
+            document.getElementById('report-room-title').textContent = title || 'Renty Review sẽ kiểm tra báo cáo này.';
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closeReportModal() {
+            document.getElementById('room-report-modal').classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
         }
 
         function updateMoveInCost(type, delta) {
@@ -912,6 +1178,63 @@
             renderReviews(button.dataset.expanded !== 'true');
         }
 
+        function normalizeRoomImages(data) {
+            const rawAngles = Array.isArray(data.image_angles) ? data.image_angles : [];
+            const rawUrls = Array.isArray(data.image_urls) && data.image_urls.length > 0 ? data.image_urls : [data.cover_image];
+
+            return rawUrls.filter(Boolean).map((url, index) => {
+                const angle = rawAngles[index] || {};
+                return {
+                    url,
+                    label: angle.label || `Ảnh thực tế ${index + 1}`
+                };
+            });
+        }
+
+        function setActiveRoomImage(index) {
+            if (!activeRoomImages.length) return;
+
+            activeRoomImageIndex = Math.max(0, Math.min(activeRoomImages.length - 1, index));
+            const image = activeRoomImages[activeRoomImageIndex];
+            const mainImage = document.getElementById('detail-main-image');
+            const angle = document.getElementById('detail-image-angle');
+
+            mainImage.src = image.url;
+            angle.textContent = image.label;
+            document.querySelectorAll('#detail-image-thumbs button').forEach((btn, btnIndex) => {
+                btn.classList.toggle('border-emerald-400', btnIndex === activeRoomImageIndex);
+            });
+        }
+
+        function openImageZoom() {
+            if (!activeRoomImages.length) return;
+
+            const modal = document.getElementById('image-zoom-modal');
+            modal.classList.remove('hidden');
+            renderZoomImage();
+        }
+
+        function renderZoomImage() {
+            const image = activeRoomImages[activeRoomImageIndex];
+            if (!image) return;
+
+            document.getElementById('zoom-main-image').src = image.url;
+            document.getElementById('zoom-image-label').textContent = image.label;
+            document.getElementById('zoom-image-count').textContent = `${activeRoomImageIndex + 1}/${activeRoomImages.length}`;
+        }
+
+        function changeZoomImage(delta) {
+            if (!activeRoomImages.length) return;
+
+            activeRoomImageIndex = (activeRoomImageIndex + delta + activeRoomImages.length) % activeRoomImages.length;
+            setActiveRoomImage(activeRoomImageIndex);
+            renderZoomImage();
+        }
+
+        function closeImageZoom() {
+            document.getElementById('image-zoom-modal').classList.add('hidden');
+        }
+
         function getViewedRoomIds() {
             try {
                 return JSON.parse(localStorage.getItem('renty_viewed_rooms') || '[]');
@@ -950,7 +1273,7 @@
 
                 if (isViewed && !card.querySelector('.viewed-room-badge')) {
                     const badge = document.createElement('span');
-                    badge.className = 'viewed-room-badge absolute left-4 top-14 px-2.5 py-1 rounded-lg bg-slate-950/75 border border-white/10 text-[9px] text-slate-200 font-extrabold z-10 backdrop-blur';
+                    badge.className = 'viewed-room-badge absolute left-4 top-14 z-10';
                     badge.innerHTML = '<i class="fa-solid fa-eye mr-1"></i> Đã xem';
                     card.querySelector('.h-48')?.appendChild(badge);
                 }
@@ -971,13 +1294,13 @@
 
             section.classList.remove('hidden');
             list.innerHTML = viewedRooms.map(room => `
-                <button type="button" onclick="openRoomDetailModal('${room.id}')" class="viewed-room-chip">
+                <a href="/renty/room/${room.id}" class="viewed-room-chip">
                     <img src="${room.cover_image}" alt="Phòng ${room.room_number}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
                     <span>
                         <strong>${escapeHtml(room.title)}</strong>
                         <small>${Number(room.price || 0).toLocaleString('vi-VN')}đ/tháng · ${escapeHtml(room.area_text || '')}</small>
                     </span>
-                </button>
+                </a>
             `).join('');
         }
 
@@ -1040,8 +1363,14 @@
             const data = mockRooms[roomId];
             if (!data) return;
 
+            currentDetailRoomId = roomId;
+            const summaryBox = document.getElementById('review-summary-box');
+            summaryBox.classList.add('hidden');
+            summaryBox.innerHTML = '';
+
             document.getElementById('detail-room-title').textContent = data.title;
             document.getElementById('detail-room-address').textContent = data.address;
+            document.getElementById('detail-media-note').textContent = data.media_source_note || 'Ưu tiên ảnh thật theo từng góc, xem rõ trước khi liên hệ đặt lịch.';
             document.getElementById('detail-room-price').textContent = data.price.toLocaleString('vi-VN') + "đ/tháng";
             document.getElementById('sticky-room-price').textContent = formatShortPrice(data.price);
             document.getElementById('detail-room-rating').textContent = data.rating + " ⭐";
@@ -1076,27 +1405,44 @@
             const mainImage = document.getElementById('detail-main-image');
             const imageCount = document.getElementById('detail-image-count');
             const thumbs = document.getElementById('detail-image-thumbs');
+            const videoSection = document.getElementById('detail-video-section');
+            const videoEmpty = document.getElementById('detail-video-empty');
+            const roomVideo = document.getElementById('detail-room-video');
 
-            mainImage.src = images[0];
+            activeRoomImages = normalizeRoomImages(data);
+            activeRoomImageIndex = 0;
             mainImage.alt = `Ảnh phòng ${data.room_number}`;
             imageCount.textContent = `${images.length} ảnh phòng ${data.room_number}`;
             thumbs.innerHTML = '';
+            setActiveRoomImage(0);
 
-            images.slice(0, 6).forEach((src, index) => {
+            activeRoomImages.slice(0, 6).forEach((image, index) => {
                 const button = document.createElement('button');
                 button.type = 'button';
-                button.className = 'h-20 rounded-xl overflow-hidden border border-slate-800 hover:border-emerald-500/70 transition-all focus:outline-none focus:border-emerald-400';
-                button.innerHTML = `<img src="${src}" alt="Ảnh phòng ${data.room_number} ${index + 1}" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">`;
+                button.className = 'relative h-20 rounded-xl overflow-hidden border border-slate-800 hover:border-emerald-500/70 transition-all focus:outline-none focus:border-emerald-400';
+                button.innerHTML = `
+                    <img src="${image.url}" alt="${escapeHtml(image.label)} phòng ${data.room_number}" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
+                    <span class="absolute left-1.5 right-1.5 bottom-1.5 rounded-md bg-slate-950/75 px-1.5 py-0.5 text-[8px] font-extrabold text-slate-100 truncate">${escapeHtml(image.label)}</span>
+                `;
                 button.addEventListener('click', () => {
-                    mainImage.src = src;
-                    document.querySelectorAll('#detail-image-thumbs button').forEach(btn => btn.classList.remove('border-emerald-400'));
-                    button.classList.add('border-emerald-400');
+                    setActiveRoomImage(index);
                 });
                 if (index === 0) {
                     button.classList.add('border-emerald-400');
                 }
                 thumbs.appendChild(button);
             });
+
+            if (data.video_url) {
+                roomVideo.src = data.video_url;
+                videoSection.classList.remove('hidden');
+                videoEmpty.classList.add('hidden');
+            } else {
+                roomVideo.removeAttribute('src');
+                roomVideo.load();
+                videoSection.classList.add('hidden');
+                videoEmpty.classList.remove('hidden');
+            }
 
             // Set form action route
             const form = document.getElementById('write-review-form');
@@ -1123,13 +1469,91 @@
             document.getElementById('room-detail-modal').classList.remove('hidden');
         }
 
+        function loadReviewSummary(btn) {
+            if (!currentDetailRoomId) return;
+
+            const box = document.getElementById('review-summary-box');
+            const original = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang tóm tắt...';
+            box.classList.remove('hidden');
+            box.textContent = 'AI đang đọc các review...';
+
+            fetch(`/api/renty/rooms/${currentDetailRoomId}/reviews/summary`)
+                .then(res => res.json())
+                .then(data => {
+                    btn.disabled = false;
+                    btn.innerHTML = original;
+
+                    if (!data.success) {
+                        box.textContent = 'Không thể tóm tắt review.';
+                        return;
+                    }
+
+                    const summary = data.summary;
+                    const pros = (summary.pros || []).map(item => `<li>${escapeHtml(item)}</li>`).join('');
+                    const cons = (summary.cons || []).map(item => `<li>${escapeHtml(item)}</li>`).join('');
+                    box.innerHTML = `
+                        <div class="font-bold text-slate-200">${escapeHtml(summary.summary || '')}</div>
+                        ${pros ? `<div class="mt-2 text-emerald-300 font-bold">Ưu điểm</div><ul class="list-disc pl-5">${pros}</ul>` : ''}
+                        ${cons ? `<div class="mt-2 text-amber-300 font-bold">Cần lưu ý</div><ul class="list-disc pl-5">${cons}</ul>` : ''}
+                    `;
+                })
+                .catch(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = original;
+                    box.textContent = 'Không thể kết nối AI để tóm tắt review.';
+                });
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         function closeRoomDetailModal() {
             document.getElementById('room-detail-modal').classList.add('hidden');
+            closeImageZoom();
         }
 
         // Room lists mock database object for detail and comparison.
         const mockRooms = {!! json_encode($rooms->keyBy('id')) !!};
         window.rentyRooms = mockRooms;
+
+        document.getElementById('image-zoom-modal')?.addEventListener('click', (event) => {
+            if (event.target.id === 'image-zoom-modal') {
+                closeImageZoom();
+            }
+        });
+
+        document.getElementById('quick-room-preview')?.addEventListener('click', (event) => {
+            if (event.target.id === 'quick-room-preview') {
+                closeQuickRoomPreview();
+            }
+        });
+
+        document.getElementById('room-report-modal')?.addEventListener('click', (event) => {
+            if (event.target.id === 'room-report-modal') {
+                closeReportModal();
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                closeImageZoom();
+                closeQuickRoomPreview();
+                closeReportModal();
+            }
+
+            if (!document.getElementById('image-zoom-modal')?.classList.contains('hidden')) {
+                if (event.key === 'ArrowLeft') changeZoomImage(-1);
+                if (event.key === 'ArrowRight') changeZoomImage(1);
+            }
+        });
 
         // Search and filter function
         function filterItems() {

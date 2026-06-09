@@ -17,7 +17,8 @@ class Contract extends Model
         'deposit',
         'status',
         'terms',
-        'signature'
+        'signature',
+        'lessor_signature'
     ];
 
     public function tenant(): BelongsTo

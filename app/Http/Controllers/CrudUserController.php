@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Hash;
 use Session;
+use App\Models\Role;
+use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -46,7 +48,12 @@ class CrudUserController extends Controller
 
         if ($attemptPhone || $attemptUsername) {
             $user = Auth::user();
-            $defaultRoute = $user->role === 'admin' ? route('smartroom.admin') : route('renty.user');
+            $defaultRoute = match (true) {
+                $user->isAdmin() => route('user.list'),
+                $user->isLandlord(), $user->isManager() => route('smartroom.admin'),
+                $user->isResident() => route('smartroom.resident'),
+                default => route('renty.user'),
+            };
             return redirect()->intended($defaultRoute)
                 ->with('success', 'Đăng nhập thành công!');
         }
@@ -157,11 +164,52 @@ class CrudUserController extends Controller
     public function listUser()
     {
         if (Auth::check()) {
-            $users = User::all();
-            return view('login.login', ['page' => 'list', 'users' => $users]);
+            $users = User::with(['roleRecord', 'tenant'])->orderByDesc('id')->get();
+            $roles = Role::whereIn('slug', ['admin', 'landlord', 'manager', 'resident', 'guest'])
+                ->orderByRaw("field(slug, 'admin', 'landlord', 'manager', 'resident', 'guest')")
+                ->get();
+            $tenants = Tenant::orderBy('name')->get();
+
+            return view('login.login', [
+                'page' => 'list',
+                'users' => $users,
+                'roles' => $roles,
+                'tenants' => $tenants,
+            ]);
         }
 
         return redirect("login")->withSuccess('You are not allowed to access');
+    }
+
+    public function updateRole(Request $request)
+    {
+        $validated = $request->validate([
+            'user_id' => 'required|integer|exists:users,id',
+            'role_slug' => 'required|in:admin,landlord,manager,resident,guest',
+            'tenant_id' => 'nullable|integer|exists:tenants,id',
+        ]);
+
+        if (in_array($validated['role_slug'], ['landlord', 'manager'], true) && empty($validated['tenant_id'])) {
+            return back()->with('error', 'Chu tro hoac nhan vien quan ly phai duoc gan nha tro/tenant.');
+        }
+
+        $role = Role::where('slug', $validated['role_slug'])->firstOrFail();
+        $user = User::findOrFail($validated['user_id']);
+
+        $user->role_id = $role->id;
+        $user->tenant_id = in_array($validated['role_slug'], ['admin', 'guest'], true)
+            ? null
+            : ($validated['tenant_id'] ?? $user->tenant_id);
+        $user->role = match ($validated['role_slug']) {
+            'admin' => 'admin',
+            'landlord' => 'admin',
+            'manager' => 'manager',
+            'resident' => 'user',
+            'guest' => 'guest',
+        };
+        $user->save();
+
+        return back()->with('success', 'Da cap nhat vai tro tai khoan.');
     }
 
     /**

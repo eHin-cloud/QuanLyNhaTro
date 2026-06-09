@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="SmartRoom & Renty Review - Hệ thống số hóa quản lý phòng trọ và tìm kiếm đánh giá nhà trọ hàng đầu.">
     <title>SmartRoom & Renty Review - Hệ Thống Quản Lý & Tìm Kiếm Phòng Trọ</title>
+    <script>
+        if (localStorage.getItem('renty_theme_mode') === 'light') {
+            document.documentElement.classList.add('theme-light');
+        }
+    </script>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,8 +34,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/css/style.css', 'resources/js/app.js'])
 </head>
 <body class="bg-[#0b0f19] text-slate-100 min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-indigo-500 selection:text-white">
     
@@ -44,9 +48,12 @@
             <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
                 <i class="fa-solid fa-hotel text-white text-lg"></i>
             </div>
-            <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">SmartRoom <span class="text-indigo-400">&</span> Renty</span>
+            <span class="app-brand-text text-xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">SmartRoom <span class="text-indigo-400">&</span> Renty</span>
         </div>
         <div class="flex items-center gap-4">
+            <button type="button" onclick="toggleThemeMode()" class="theme-toggle-button" aria-label="Chuyển chế độ sáng tối">
+                <i class="fa-solid fa-moon" data-theme-icon></i>
+            </button>
             @auth
                 <div class="flex items-center gap-3 bg-slate-900/40 backdrop-blur-xl border border-slate-800/80 px-3.5 py-1.5 rounded-full text-xs">
                     <span class="font-bold text-indigo-400">
