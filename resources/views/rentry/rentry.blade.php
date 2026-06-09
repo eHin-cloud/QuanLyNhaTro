@@ -428,9 +428,9 @@
                     <div class="cost-stepper">
                         <span>Số người ở</span>
                         <div>
-                            <button type="button" onclick="updateMoveInCost('people', -1)">-</button>
+                            <button type="button" id="cost-people-minus" onclick="updateMoveInCost('people', -1)">-</button>
                             <strong id="cost-people">2</strong>
-                            <button type="button" onclick="updateMoveInCost('people', 1)">+</button>
+                            <button type="button" id="cost-people-plus" onclick="updateMoveInCost('people', 1)">+</button>
                         </div>
                     </div>
                     <div class="cost-stepper">
@@ -786,6 +786,7 @@
 
         let currentDetailRoomId = null;
         let activeRoomReviews = [];
+        const MOVE_IN_MAX_PEOPLE = 5;
         let activeRoomCost = {
             room: 0,
             people: 2,
@@ -812,7 +813,7 @@
 
         function updateMoveInCost(type, delta) {
             if (type === 'people') {
-                activeRoomCost.people = Math.max(1, activeRoomCost.people + delta);
+                activeRoomCost.people = Math.min(MOVE_IN_MAX_PEOPLE, Math.max(1, activeRoomCost.people + delta));
             }
 
             if (type === 'vehicles') {
@@ -834,6 +835,15 @@
             document.getElementById('cost-water').textContent = formatCurrency(water);
             document.getElementById('cost-service').textContent = formatCurrency(service);
             document.getElementById('cost-total').textContent = formatCurrency(total);
+
+            const peopleMinus = document.getElementById('cost-people-minus');
+            const peoplePlus = document.getElementById('cost-people-plus');
+            peopleMinus.disabled = activeRoomCost.people <= 1;
+            peoplePlus.disabled = activeRoomCost.people >= MOVE_IN_MAX_PEOPLE;
+            peopleMinus.classList.toggle('opacity-40', peopleMinus.disabled);
+            peoplePlus.classList.toggle('opacity-40', peoplePlus.disabled);
+            peopleMinus.classList.toggle('cursor-not-allowed', peopleMinus.disabled);
+            peoplePlus.classList.toggle('cursor-not-allowed', peoplePlus.disabled);
         }
 
         function toggleDetailDescription(button) {

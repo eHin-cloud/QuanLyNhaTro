@@ -338,6 +338,13 @@ class TenantAdminController extends Controller
             return response()->json(['success' => false, 'message' => 'Phòng này hiện đang có người ở'], 412);
         }
 
+        if (!$room->canAcceptOccupants(1)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Phòng này đã đạt giới hạn tối đa ' . Room::MAX_OCCUPANTS . ' người ở'
+            ], 422);
+        }
+
         DB::beginTransaction();
         try {
             // 1. Tạo tài khoản User cho cư dân để họ có thể đăng nhập dashboard di động

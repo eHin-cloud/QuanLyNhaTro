@@ -550,6 +550,11 @@ class AdminDashboardController extends Controller
 
         $room = Room::findOrFail($request->room_id);
 
+        if (!$room->canAcceptOccupants(1)) {
+            return redirect()->route('smartroom.admin', ['tab' => 'resident-section'])
+                ->with('error', 'Phòng này đã đạt giới hạn tối đa ' . Room::MAX_OCCUPANTS . ' người ở!');
+        }
+
         // Create resident
         $resident = Resident::create([
             'tenant_id' => $room->tenant_id ?? (\App\Models\Tenant::first()->id ?? 1),
@@ -626,6 +631,16 @@ class AdminDashboardController extends Controller
         $newRoomId = $request->room_id;
         $before = $resident->only(['room_id', 'name', 'phone', 'email', 'cccd', 'temporary_residence_status']);
 
+        if ($oldRoomId != $newRoomId) {
+            $newRoom = Room::findOrFail($newRoomId);
+            $movingOccupants = 1 + $resident->relatives()->count();
+
+            if (!$newRoom->canAcceptOccupants($movingOccupants)) {
+                return redirect()->route('smartroom.admin', ['tab' => 'resident-section'])
+                    ->with('error', 'Phòng này đã đạt giới hạn tối đa ' . Room::MAX_OCCUPANTS . ' người ở!');
+            }
+        }
+
         $resident->update([
             'room_id' => $newRoomId,
             'name' => $request->name,
@@ -641,7 +656,7 @@ class AdminDashboardController extends Controller
 
         if ($oldRoomId != $newRoomId) {
             Room::syncOccupancyStatusById($oldRoomId);
-            $newRoom = Room::findOrFail($newRoomId);
+            $newRoom ??= Room::findOrFail($newRoomId);
             $newRoom->syncOccupancyStatus();
         }
 
@@ -747,6 +762,14 @@ class AdminDashboardController extends Controller
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
         ]);
+
+        $room = $resident->room;
+        if ($room && !$room->canAcceptOccupants(1)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Phòng này đã đạt giới hạn tối đa ' . Room::MAX_OCCUPANTS . ' người ở!'
+            ], 422);
+        }
 
         $relative = $resident->relatives()->create([
             'name' => $request->name,
