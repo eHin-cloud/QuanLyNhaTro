@@ -164,8 +164,8 @@ class ResidentController extends Controller
         ]);
 
         // Gửi thông báo tự động cho chủ trọ qua Telegram Bot khi có ticket mới
-        $botToken = env('TELEGRAM_BOT_TOKEN');
-        $chatId = env('TELEGRAM_CHAT_ID');
+        $botToken = config('services.telegram.bot_token');
+        $chatId = config('services.telegram.chat_id');
         if ($botToken && $chatId) {
             $msg = "🚨 [SmartRoom] BÁO HỎNG MỚI từ cư dân!\n"
                  . "Phòng: {$room->room_number} (Tòa: {$room->building->name})\n"

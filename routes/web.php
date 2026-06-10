@@ -28,16 +28,16 @@ use App\Http\Controllers\VerificationDocumentController;
 Route::get('dashboard', [CrudUserController::class, 'dashboard']);
 
 Route::get('login', [CrudUserController::class, 'login'])->name('login');
-Route::post('login', [CrudUserController::class, 'authUser'])->name('user.authUser');
+Route::post('login', [CrudUserController::class, 'authUser'])->middleware('throttle:5,1')->name('user.authUser');
 
 Route::get('create', [CrudUserController::class, 'createUser'])->name('user.createUser');
-Route::post('create', [CrudUserController::class, 'postUser'])->name('user.postUser');
+Route::post('create', [CrudUserController::class, 'postUser'])->middleware('throttle:3,1')->name('user.postUser');
 Route::get('landlord/register', [LandlordOnboardingController::class, 'create'])->name('landlord.register');
-Route::post('landlord/register', [LandlordOnboardingController::class, 'store'])->name('landlord.register.store');
+Route::post('landlord/register', [LandlordOnboardingController::class, 'store'])->middleware('throttle:3,1')->name('landlord.register.store');
 
 Route::middleware('role:admin')->group(function () {
     Route::get('read', [CrudUserController::class, 'readUser'])->name('user.readUser');
-    Route::get('delete', [CrudUserController::class, 'deleteUser'])->name('user.deleteUser');
+    Route::delete('delete/{id}', [CrudUserController::class, 'deleteUser'])->name('user.deleteUser');
     Route::get('update', [CrudUserController::class, 'updateUser'])->name('user.updateUser');
     Route::post('update', [CrudUserController::class, 'postUpdateUser'])->name('user.postUpdateUser');
     Route::post('users/role', [CrudUserController::class, 'updateRole'])->name('user.updateRole');
@@ -434,7 +434,7 @@ Route::post('/renty/room/{id}/review', function (Illuminate\Http\Request $reques
     ]);
 
     return back()->with('success', 'Cảm ơn bạn đã gửi đánh giá thực tế!');
-})->name('renty.room.review.store');
+})->middleware('throttle:10,1')->name('renty.room.review.store');
 
 Route::post('/renty/room/{id}/report', function (Illuminate\Http\Request $request, $id) {
     $request->validate([
@@ -454,4 +454,4 @@ Route::post('/renty/room/{id}/report', function (Illuminate\Http\Request $reques
     ]);
 
     return back()->with('success', 'Cảm ơn bạn đã gửi báo cáo. Renty Review sẽ kiểm tra phòng này sớm nhất.');
-})->name('renty.room.report.store');
+})->middleware('throttle:5,1')->name('renty.room.report.store');

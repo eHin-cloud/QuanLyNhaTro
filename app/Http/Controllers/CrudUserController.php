@@ -124,12 +124,21 @@ class CrudUserController extends Controller
     /**
      * Delete user by id
      */
-    public function deleteUser(Request $request)
+    public function deleteUser($id)
     {
-        $user_id = $request->get('id');
-        $user = User::destroy($user_id);
+        // Ngăn admin tự xóa chính mình
+        if (Auth::id() == $id) {
+            return redirect("list")->with('error', 'Không thể xóa chính tài khoản đang đăng nhập!');
+        }
 
-        return redirect("list")->withSuccess('You have signed-in');
+        $user = User::find($id);
+        if (!$user) {
+            return redirect("list")->with('error', 'Người dùng không tồn tại hoặc đã bị xóa trước đó!');
+        }
+
+        $user->delete();
+
+        return redirect("list")->with('success', 'Xóa tài khoản người dùng thành công!');
     }
 
     /**
@@ -156,7 +165,7 @@ class CrudUserController extends Controller
             'phone' => 'required|numeric|unique:users,phone,' . $input['id'],
             'email' => 'nullable|email|unique:users,email,' . $input['id'],
             'like' => 'required|max:255',
-            'password' => 'required|min:6',
+            'password' => 'nullable|min:6',
         ]);
 
         $user = User::find($input['id']);
@@ -165,7 +174,9 @@ class CrudUserController extends Controller
         $user->phone = $input['phone'];
         $user->email = $input['email'] ?? null;
         $user->like = $input['like'];
-        $user->password = Hash::make($input['password']);
+        if (!empty($input['password'])) {
+            $user->password = Hash::make($input['password']);
+        }
         $user->save();
 
         return redirect()->route('user.list')->with('success', 'Cập nhật thông tin quản trị viên thành công!');

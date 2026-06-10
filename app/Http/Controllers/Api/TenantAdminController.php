@@ -667,8 +667,8 @@ class TenantAdminController extends Controller
         }
 
         // Gửi qua Telegram Bot (Đọc token cấu hình từ env)
-        $botToken = env('TELEGRAM_BOT_TOKEN');
-        $chatId = env('TELEGRAM_CHAT_ID');
+        $botToken = config('services.telegram.bot_token');
+        $chatId = config('services.telegram.chat_id');
 
         if ($botToken && $chatId) {
             try {
@@ -712,8 +712,8 @@ class TenantAdminController extends Controller
         ]);
 
         // Gửi thông báo tự động khi ticket được xử lý / phân công
-        $botToken = env('TELEGRAM_BOT_TOKEN');
-        $chatId = env('TELEGRAM_CHAT_ID');
+        $botToken = config('services.telegram.bot_token');
+        $chatId = config('services.telegram.chat_id');
         if ($botToken && $chatId) {
             $msg = "🛠️ [SmartRoom] Cập nhật tiến độ sự cố #{$ticket->id}\n"
                  . "Phòng: {$ticket->room->room_number}\n"

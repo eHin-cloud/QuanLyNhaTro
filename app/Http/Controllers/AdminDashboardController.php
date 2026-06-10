@@ -128,11 +128,13 @@ class AdminDashboardController extends Controller
 
         // 8. Contact Requests Tab
         $contactRequestStats = [
-            'total' => \App\Models\ContactRequest::count(),
-            'pending' => \App\Models\ContactRequest::where('status', 'pending')->count(),
-            'processed' => \App\Models\ContactRequest::where('status', 'processed')->count(),
+            'total' => \App\Models\ContactRequest::whereHas('room', fn($q) => $q->where('tenant_id', $tenantId))->count(),
+            'pending' => \App\Models\ContactRequest::whereHas('room', fn($q) => $q->where('tenant_id', $tenantId))->where('status', 'pending')->count(),
+            'processed' => \App\Models\ContactRequest::whereHas('room', fn($q) => $q->where('tenant_id', $tenantId))->where('status', 'processed')->count(),
         ];
-        $contactRequests = \App\Models\ContactRequest::with('room')->orderBy('id', 'desc')->paginate(10, ['*'], 'contact_page');
+        $contactRequests = \App\Models\ContactRequest::with('room')
+            ->whereHas('room', fn($q) => $q->where('tenant_id', $tenantId))
+            ->orderBy('id', 'desc')->paginate(10, ['*'], 'contact_page');
 
         // 9. Smart alerts
         $today = Carbon::today();
@@ -140,6 +142,7 @@ class AdminDashboardController extends Controller
         $emptyRoomWarningDate = $today->copy()->subDays(30);
 
         $expiringContracts = Contract::with(['room', 'resident'])
+            ->where('tenant_id', $tenantId)
             ->where('status', 'active')
             ->whereDate('end_date', '>=', $today)
             ->whereDate('end_date', '<=', $contractWarningDate)
@@ -157,6 +160,7 @@ class AdminDashboardController extends Controller
             });
 
         $overdueBills = Bill::with('room')
+            ->whereHas('room', fn($q) => $q->where('tenant_id', $tenantId))
             ->whereIn('status', ['pending', 'overdue'])
             ->orderBy('billing_month')
             ->get()
@@ -175,6 +179,7 @@ class AdminDashboardController extends Controller
             });
 
         $overdueUtilities = UtilityRecord::with('room')
+            ->whereHas('room', fn($q) => $q->where('tenant_id', $tenantId))
             ->whereIn('status', ['sent', 'overdue'])
             ->orderBy('billing_month')
             ->get()
@@ -197,7 +202,8 @@ class AdminDashboardController extends Controller
                 ];
             });
 
-        $emptyRoomAlerts = Room::where('status', 'empty')
+        $emptyRoomAlerts = Room::where('tenant_id', $tenantId)
+            ->where('status', 'empty')
             ->where('updated_at', '<=', $emptyRoomWarningDate)
             ->orderBy('updated_at')
             ->take(6)

@@ -22,8 +22,8 @@ use App\Http\Controllers\VerificationDocumentController;
 // ==========================================
 // 1. PUBLIC ROUTES (Khách vãng lai & Tìm trọ)
 // ==========================================
-Route::post('/auth/register', [AuthController::class, 'register']);
-Route::post('/auth/login', [AuthController::class, 'login']);
+Route::post('/auth/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
+Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 
 Route::get('/renty/rooms', [VisitorController::class, 'index']);
 Route::get('/renty/rooms/map', [VisitorController::class, 'map']);
