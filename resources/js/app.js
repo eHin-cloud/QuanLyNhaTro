@@ -1,5 +1,6 @@
 import './bootstrap';
 import './quan-ly-nha-tro';
+import './rentry';
 
 const THEME_STORAGE_KEY = 'renty_theme_mode';
 
