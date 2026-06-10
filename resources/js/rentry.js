@@ -2212,6 +2212,19 @@ document.addEventListener('DOMContentLoaded', () => {
 let rentyChatbotOpen = false;
 let rentyChatbotHistory = [];
 let rentyChatbotInitialized = false;
+let rentyChatbotSending = false;
+const RENTY_CHATBOT_MAX_LENGTH = 300;
+
+// ── Conversation Context (Ngữ cảnh hội thoại) ──────────────────────
+let chatbotContext = {
+    locations: [],       // Khu vực đã hỏi
+    maxPrice: null,      // Giá tối đa
+    minPrice: null,      // Giá tối thiểu
+    amenities: { pets: false, loft: false, balcony: false, wc: false },
+    lastResults: [],     // Kết quả lần trước
+    lastQuery: '',       // Câu hỏi gốc lần trước
+    turnCount: 0         // Số lượt hội thoại
+};
 
 function toggleRentyChatbot() {
     const panel = document.getElementById('renty-chatbot-panel');
@@ -2228,7 +2241,15 @@ function toggleRentyChatbot() {
     // Show welcome message on first open
     if (rentyChatbotOpen && !rentyChatbotInitialized) {
         rentyChatbotInitialized = true;
-        addBotMessage('Xin chào! 👋 Mình là <strong>Renty AI</strong>, trợ lý tìm trọ của bạn.<br><br>Bạn có thể hỏi mình về:<br>• 📍 Phòng trọ theo khu vực<br>• 💰 Phòng theo ngân sách<br>• 🏠 Tiện ích phòng (ban công, thú cưng...)<br>• 🛡️ Mẹo thuê trọ an toàn<br><br>Hoặc nhấn nút gợi ý phía dưới để bắt đầu nhanh!');
+        addBotMessage(
+            `👋 Chào bạn! Mình là <strong>Renty AI</strong> - Trợ lý tìm kiếm phòng trọ, chung cư mini, căn hộ và review không gian sống thông minh. 🏠<br><br>` +
+            `Mình có thể hỗ trợ bạn:<br>` +
+            `• 📍 Tìm kiếm nơi ở theo khu vực, tuyến đường, địa danh<br>` +
+            `• 💰 Lọc phòng theo khoảng giá và ngân sách phù hợp<br>` +
+            `• 🏠 Lọc nhanh phòng có ban công, gác lửng, cho nuôi thú cưng...<br>` +
+            `• 🛡️ Tư vấn mẹo thuê phòng an toàn và tránh các rủi ro đặt cọc<br><br>` +
+            `Bạn cần mình tìm kiếm nơi ở tại khu vực nào hoặc có tiêu chuẩn cụ thể gì không? Nhắn cho mình biết nhé! 👇`
+        );
     }
 }
 window.toggleRentyChatbot = toggleRentyChatbot;
@@ -2238,6 +2259,11 @@ function clearRentyChatbot() {
     if (container) container.innerHTML = '';
     rentyChatbotHistory = [];
     rentyChatbotInitialized = false;
+    chatbotContext = {
+        locations: [], maxPrice: null, minPrice: null,
+        amenities: { pets: false, loft: false, balcony: false, wc: false },
+        lastResults: [], lastQuery: '', turnCount: 0
+    };
     addBotMessage('Đã xoá lịch sử. Bạn muốn tìm phòng trọ như thế nào? 😊');
     rentyChatbotInitialized = true;
 }
@@ -2323,6 +2349,32 @@ function removeTypingIndicator() {
     if (el) el.remove();
 }
 
+function setRentyChatbotBusy(isBusy) {
+    rentyChatbotSending = isBusy;
+
+    const input = document.getElementById('renty-chatbot-input');
+    const sendButton = document.querySelector('.renty-chatbot-send-btn');
+    const quickButtons = document.querySelectorAll('#renty-chatbot-quick button');
+
+    if (input) {
+        input.disabled = isBusy;
+        input.placeholder = isBusy ? 'Renty AI đang trả lời...' : 'Hỏi về phòng trọ, khu vực, giá cả...';
+    }
+
+    if (sendButton) {
+        sendButton.disabled = isBusy;
+        sendButton.classList.toggle('opacity-50', isBusy);
+        sendButton.classList.toggle('cursor-not-allowed', isBusy);
+        sendButton.setAttribute('aria-busy', isBusy ? 'true' : 'false');
+    }
+
+    quickButtons.forEach(button => {
+        button.disabled = isBusy;
+        button.classList.toggle('opacity-50', isBusy);
+        button.classList.toggle('cursor-not-allowed', isBusy);
+    });
+}
+
 // ── Core: Search rooms from rentyRoomsData ──────────────────────────
 function chatbotSearchRooms(query) {
     const data = window.rentyRoomsData;
@@ -2332,7 +2384,7 @@ function chatbotSearchRooms(query) {
     const parsed = parseNaturalSearch(query);
     const norm = normalizeText(query);
 
-    // Clean prefix words
+    // Dọn dẹp từ khóa tìm kiếm thô
     const cleanQuery = norm
         .replace(/^(gan|o|tim|cho thue|khu vuc|xung quanh)\s+/g, '')
         .replace(/\b(gan|o|tim|cho thue|khu vuc|xung quanh)\b/g, '')
@@ -2356,120 +2408,383 @@ function chatbotSearchRooms(query) {
         if (parsed.amenities.balcony && room.balcony !== 'true' && room.balcony_txt !== 'Có') return false;
         if (parsed.amenities.wc && room.wc !== 'true' && room.wc_txt !== 'Có') return false;
 
-        // Location filter
+        // Location filter (Nếu nhận diện được quận/địa danh cụ thể)
         if (parsed.locations.length > 0) {
             const locMatch = parsed.locations.some(loc => searchable.includes(loc));
             if (!locMatch) return false;
         }
 
-        // Keyword match
+        // Keyword match (Khớp từ khóa nghiêm ngặt bằng ranh giới từ AND)
         if (cleanQuery.length > 0) {
+            // Nếu có khớp trực tiếp cụm từ nguyên bản
             if (searchable.includes(cleanQuery)) return true;
 
             const stopWords = ['tim', 'phong', 'tro', 'duoi', 'o', 'gan', 'dai', 'hoc', 'trieu', 'tr',
                 'gia', 'co', 'khong', 'cho', 'thue', 'can', 'ho', 'va', 'voi', 'trong',
-                'ngoai', 'dep', 're', 'nha', 'chinh', 'chu', 'thang'];
+                'ngoai', 'dep', 're', 'nha', 'chinh', 'chu', 'thang', 'lam'];
             const words = cleanQuery.split(/\s+/).filter(w => !stopWords.includes(w) && w.length > 1);
+            
             if (words.length > 0) {
-                const matched = words.filter(w => searchable.includes(w)).length;
-                return matched / words.length >= 0.5;
+                // TẤT CẢ các từ khóa quan trọng phải xuất hiện trong searchable dưới dạng từ nguyên gốc
+                const allWordsMatch = words.every(w => {
+                    // Tránh ký tự regex đặc biệt
+                    const escapedWord = w.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+                    const regex = new RegExp('\\b' + escapedWord + '\\b', 'i');
+                    return regex.test(searchable);
+                });
+                return allWordsMatch;
             }
         }
 
-        // Only amenity/location/price filters applied
+        // Nếu người dùng không nhập từ khóa mà chỉ chọn lọc tiện ích/giá
         return true;
     });
 
-    // Sort by rating descending, then by price ascending
+    // Sắp xếp: Ưu tiên phòng trống lên đầu, sau đó sắp xếp theo rating giảm dần, giá tăng dần
     results.sort((a, b) => {
-        const ratingDiff = parseFloat(b.rating) - parseFloat(a.rating);
+        // Trạng thái trống (empty) lên trước
+        const aEmpty = a.status === 'empty' ? 1 : 0;
+        const bEmpty = b.status === 'empty' ? 1 : 0;
+        if (aEmpty !== bEmpty) {
+            return bEmpty - aEmpty; // 1 (empty) đứng trước 0 (khác)
+        }
+
+        // Cùng trạng thái trống thì xếp theo rating giảm dần
+        const ratingDiff = parseFloat(b.rating || 0) - parseFloat(a.rating || 0);
         if (ratingDiff !== 0) return ratingDiff;
+
+        // Cùng rating thì xếp theo giá tăng dần
         return a.price - b.price;
     });
 
-    // Only available rooms first
-    const available = results.filter(r => r.status === 'empty');
-    const others = results.filter(r => r.status !== 'empty');
-    return [...available, ...others].slice(0, 5);
+    return results.slice(0, 5);
 }
 
 // ── Core: Generate response ─────────────────────────────────────────
+// ── Follow-up detection ─────────────────────────────────────────────
+function detectFollowUp(norm) {
+    const patterns = {
+        cheaper: /\b(re hon|gia re|re nhat|thap hon|it tien)\b/,
+        expensive: /\b(dat hon|cao hon|sang hon|xin hon)\b/,
+        bigger: /\b(rong hon|to hon|lon hon)\b/,
+        other: /\b(phong khac|cai khac|xem them|con gi|co gi khac|khac khong)\b/,
+        sameArea: /\b(o do|khu do|cho do|gan do|quanh do|khu vuc do)\b/,
+        addBalcony: /\b(co ban cong|them ban cong|ban cong)\b/,
+        addPets: /\b(nuoi thu cung|thu cung|co pet|nuoi cho|nuoi meo)\b/,
+        addLoft: /\b(co gac|gac lung|gac xep|them gac)\b/,
+        addWc: /\b(wc rieng|khep kin|ve sinh rieng)\b/,
+        howMany: /\b(bao nhieu phong|co may phong|tong cong)\b/,
+        cheapest: /\b(re nhat|thap nhat|gia nhat)\b/,
+        best: /\b(tot nhat|diem cao nhat|danh gia cao)\b/
+    };
+    for (const [type, regex] of Object.entries(patterns)) {
+        if (regex.test(norm)) return type;
+    }
+    return null;
+}
+
+// ── Core: Generate response ─────────────────────────────────────────
+
 function generateChatbotResponse(userMsg) {
     const norm = normalizeText(userMsg);
+    chatbotContext.turnCount++;
 
-    // ── FAQ / Tips detection ─────────────────────────────────────────
+    // ── FAQ / Mẹo thuê trọ detection ──────────────────────────────────
     if (norm.includes('tip') || norm.includes('meo') || norm.includes('an toan') || norm.includes('luu y') || norm.includes('kinh nghiem')) {
         return {
             text: `🛡️ <strong>Mẹo thuê trọ an toàn từ Renty:</strong><br><br>` +
-                `1️⃣ <strong>Xem phòng trực tiếp</strong> – Không đặt cọc khi chưa đến xem thực tế.<br>` +
-                `2️⃣ <strong>Kiểm tra giấy tờ</strong> – Yêu cầu xem sổ đỏ hoặc hợp đồng thuê gốc.<br>` +
-                `3️⃣ <strong>Đọc kỹ hợp đồng</strong> – Chú ý điều khoản hoàn cọc, tăng giá, phí phát sinh.<br>` +
-                `4️⃣ <strong>Kiểm tra an ninh</strong> – Camera, khóa cửa, có bảo vệ hay không.<br>` +
-                `5️⃣ <strong>Hỏi hàng xóm</strong> – Nếu được, hỏi người thuê cũ hoặc hàng xóm.<br>` +
-                `6️⃣ <strong>Chụp lại hiện trạng</strong> – Ghi nhận tình trạng phòng trước khi nhận để tránh tranh chấp.<br><br>` +
-                `💡 Bạn có thể kiểm tra <strong>huy hiệu xác minh</strong> trên Renty để ưu tiên chủ trọ đáng tin cậy!`,
+                `• <strong>Xem phòng trực tiếp</strong>: Không đặt cọc khi chưa đến xem thực tế.<br>` +
+                `• <strong>Kiểm tra giấy tờ pháp lý</strong>: Yêu cầu xem sổ đỏ hoặc hợp đồng thuê gốc của chủ nhà.<br>` +
+                `• <strong>Đọc kỹ hợp đồng</strong>: Chú ý kỹ các điều khoản hoàn cọc, chu kỳ tăng giá và chi phí dịch vụ phụ.<br>` +
+                `• <strong>Kiểm tra an ninh xung quanh</strong>: Hệ thống camera, khóa cửa vân tay, hoặc có bảo vệ trông giữ.<br>` +
+                `• <strong>Hỏi ý kiến cư dân cũ</strong>: Trò chuyện với người đang thuê xung quanh để biết thêm thông tin.<br>` +
+                `• <strong>Chụp ảnh hiện trạng lúc bàn giao</strong>: Lưu lại hình ảnh thiết bị hư hỏng cũ để tránh tranh chấp khi trả phòng sau này.`,
             rooms: []
         };
     }
-
-    if (norm.includes('xin chao') || norm.includes('hello') || norm.includes('hi ') || norm === 'hi' || norm.includes('chao')) {
-        return {
-            text: `Chào bạn! 😄 Rất vui được hỗ trợ. Bạn đang tìm phòng trọ ở khu vực nào, ngân sách bao nhiêu? Mình sẽ tìm giúp ngay!`,
-            rooms: []
-        };
+    if (norm.includes('xin chao') || norm.includes('hello') || norm === 'hi' || norm.includes('chao')) {
+        return { text: `Chào bạn! 😄 Mình là Renty AI đây. Bạn muốn tìm phòng trọ, chung cư mini hay căn hộ ở khu vực nào, ngân sách tầm bao nhiêu để mình gợi ý cho bạn nhé?`, rooms: [] };
     }
-
-    if (norm.includes('cam on') || norm.includes('thanks') || norm.includes('thank')) {
-        return {
-            text: `Không có gì! 🌟 Nếu cần thêm thông tin, cứ hỏi mình nhé. Chúc bạn tìm được phòng trọ ưng ý!`,
-            rooms: []
-        };
+    if (norm.includes('cam on') || norm.includes('thanks') || norm === 'tks') {
+        return { text: `Không có gì nè! 🌟 Rất vui vì đã giúp được bạn. Cần tìm gì thêm cứ nhắn mình nhé!`, rooms: [] };
     }
-
     if (norm.includes('so sanh') || norm.includes('nen chon')) {
         return {
-            text: `📊 Để so sánh phòng trọ, bạn nên xét các yếu tố:<br><br>` +
-                `• <strong>Giá/m²</strong> – Chia giá cho diện tích để so sánh công bằng<br>` +
-                `• <strong>Khoảng cách</strong> – Gần trường/công ty tiết kiệm chi phí đi lại<br>` +
-                `• <strong>Tiện ích</strong> – Ban công, WC riêng, gác lửng ảnh hưởng chất lượng sống<br>` +
-                `• <strong>Đánh giá</strong> – Xem review từ người thuê trước<br><br>` +
-                `Bạn muốn mình tìm phòng theo tiêu chí nào?`,
+            text: `📊 <strong>Để so sánh nơi ở (phòng trọ, chung cư mini, căn hộ), bạn nên chú ý:</strong><br><br>` +
+                `• <strong>Giá thuê / diện tích (m²)</strong> để tính đơn giá hợp lý.<br>` +
+                `• <strong>Khoảng cách di chuyển</strong> đến nơi học tập, làm việc (đo bằng phút đi xe hoặc đi bộ).<br>` +
+                `• <strong>Tiện ích sinh hoạt</strong>: Có WC riêng, máy giặt chung/riêng, chỗ phơi đồ đón nắng không.<br>` +
+                `• <strong>Chi phí điện nước</strong>: Giá nhà nước hay giá kinh doanh tự phát.<br><br>` +
+                `Bạn muốn mình tìm phòng theo tiêu chí nào trong số này?`,
             rooms: []
         };
     }
 
-    // ── Room search ──────────────────────────────────────────────────
-    const rooms = chatbotSearchRooms(userMsg);
-
-    if (rooms.length > 0) {
-        const areaNames = [...new Set(rooms.map(r => r.area_name))].join(', ');
-        const priceRange = rooms.map(r => r.price);
-        const minPrice = Math.min(...priceRange).toLocaleString('vi-VN');
-        const maxPrice = Math.max(...priceRange).toLocaleString('vi-VN');
-        const availableCount = rooms.filter(r => r.status === 'empty').length;
-
-        let summary = `🔍 Tìm thấy <strong>${rooms.length} phòng</strong> phù hợp`;
-        if (areaNames) summary += ` tại <strong>${areaNames}</strong>`;
-        summary += `.<br>💰 Giá từ <strong>${minPrice}đ</strong> đến <strong>${maxPrice}đ</strong>/tháng.`;
-        if (availableCount > 0) {
-            summary += `<br>✅ Có <strong>${availableCount} phòng</strong> đang trống, sẵn sàng cho thuê.`;
+    // ── TRƯỜNG HỢP 2: Khu vực chưa có dữ liệu hoặc tỉnh thành khác (Ví dụ: Thủ Đức, Quận 9, TP.HCM...) ──
+    const unsupportedLocations = [
+        'thu duc', 'thu duoc', 'quan 9', 'q9', 'quan 1', 'q1', 'quan 7', 'q7', 'quan 2', 'q2', 'quan 3', 'q3',
+        'quan 10', 'q10', 'quan 5', 'q5', 'quan 12', 'q12', 'quan 8', 'q8', 'binh thanh',
+        'tan binh', 'tan phu', 'go vap', 'phu nhuan', 'binh tan', 'ho chi minh', 'hcm', 'sai gon', 'da nang', 'hai phong', 'can tho'
+    ];
+    const requestedUnsupported = unsupportedLocations.find(loc => norm.includes(loc));
+    if (requestedUnsupported) {
+        let matchedName = requestedUnsupported.toUpperCase();
+        if (requestedUnsupported === 'hcm' || requestedUnsupported === 'ho chi minh' || requestedUnsupported === 'sai gon') matchedName = "TP. Hồ Chí Minh";
+        if (requestedUnsupported === 'thu duc' || requestedUnsupported === 'thu duoc') matchedName = "Thủ Đức (TP.HCM)";
+        if (requestedUnsupported.startsWith('q') && requestedUnsupported.length <= 3) {
+            matchedName = `Quận ${requestedUnsupported.substring(1)} (TP.HCM)`;
         }
-        summary += `<br><br>👇 Nhấn vào phòng để xem chi tiết:`;
-
-        return { text: summary, rooms };
+        
+        return {
+            text: `✨ <strong>Chào bạn thân mến,</strong><br><br>` +
+                `Hiện tại Renty đang tập trung dữ liệu review và thông tin phòng xác thực tại khu vực <strong>Hà Nội</strong> (như Cầu Giấy, Đống Đa, Hai Bà Trưng, Thanh Xuân, Nam Từ Liêm...) nên thật tiếc là mình chưa có nhiều thông tin tại <strong>${matchedName}</strong>. 😢<br><br>` +
+                `💡 <strong>Giải pháp thay thế cho bạn:</strong><br>` +
+                `• Bạn có muốn tham khảo <strong>kinh nghiệm và mẹo thuê phòng an toàn</strong> áp dụng chung không?<br>` +
+                `• Hoặc bạn có muốn tìm kiếm thử các phòng, căn hộ xác thực tại các khu vực thuộc <strong>Hà Nội</strong> không?<br><br>` +
+                `Nhắn cho mình biết nếu bạn muốn chuyển hướng nhé!`,
+            rooms: []
+        };
     }
 
-    // ── Fallback ─────────────────────────────────────────────────────
+    // ── TRƯỜNG HỢP 3: Chỉ nhập từ khóa ngắn thiếu ngữ cảnh (Ví dụ: "thú cưng", "dưới 3 triệu", "ban công", "wc riêng") ──
+    const shortKeywords = {
+        pets: /\b(nuoi thu cung|thu cung|co pet|nuoi cho|nuoi meo|pet|thu cung)\b/,
+        price: /\b(duoi 3 trieu|duoi 3tr|3 trieu|gia re|3tr|re)\b/,
+        balcony: /\b(ban cong|co ban cong|thoang mat)\b/,
+        wc: /\b(wc rieng|khep kin|ve sinh rieng|wc rieng)\b/,
+        loft: /\b(co gac|gac lung|gac xep)\b/
+    };
+
+    let isOnlyShortKeyword = false;
+    let shortType = '';
+    
+    // Nếu tin nhắn rất ngắn (< 15 ký tự) và khớp một trong các bộ lọc tiện ích/giá mà không có quận, trường học
+    const hasLocationOrUni = norm.includes('cau giay') || norm.includes('dong da') || norm.includes('thanh xuan') || 
+                             norm.includes('hai ba') || norm.includes('hoang mai') || norm.includes('ba dinh') ||
+                             norm.includes('tay ho') || norm.includes('ha dong') || norm.includes('tu liem') || 
+                             norm.includes('bach khoa') || norm.includes('ngoai thuong') || norm.includes('quoc gia') ||
+                             norm.includes('su pham') || norm.includes('kinh te') || norm.includes('duong') || norm.includes('ngo');
+
+    if (!hasLocationOrUni && userMsg.length < 25) {
+        for (const [key, regex] of Object.entries(shortKeywords)) {
+            if (regex.test(norm)) {
+                isOnlyShortKeyword = true;
+                shortType = key;
+                break;
+            }
+        }
+    }
+
+    if (isOnlyShortKeyword) {
+        let specName = '';
+        if (shortType === 'pets') specName = 'cho phép nuôi thú cưng 🐾';
+        if (shortType === 'price') specName = 'có giá dưới 3 triệu 💰';
+        if (shortType === 'balcony') specName = 'có ban công thoáng mát 🌿';
+        if (shortType === 'wc') specName = 'có vệ sinh khép kín riêng tư 🚿';
+        if (shortType === 'loft') specName = 'có gác lửng tiện lợi 🏠';
+
+        return {
+            text: `🔍 <strong>Mình đã ghi nhận nhu cầu của bạn!</strong><br><br>` +
+                `Mình thấy bạn đang tìm kiếm những nơi ở <strong>${specName}</strong>.<br><br>` +
+                `👉 Để mình lọc chính xác nhất, bạn muốn tìm quanh <strong>khu vực quận nào</strong>, <strong>tuyến đường nào</strong> hoặc gần <strong>địa danh nào</strong> không? Nhắn cho mình biết nhé!`,
+            rooms: []
+        };
+    }
+
+    // ── Follow-up context handling ───────────────────────────────────
+    const followUp = detectFollowUp(norm);
+    if (followUp && chatbotContext.turnCount > 1) {
+        return handleFollowUp(followUp, userMsg);
+    }
+
+    // ── TRƯỜNG HỢP 1: Thực hiện tìm kiếm phòng bình thường ─────────────────
+    const parsed = parseNaturalSearch(userMsg);
+
+    // Merge vào context để ghi nhớ
+    if (parsed.locations.length > 0) chatbotContext.locations = parsed.locations;
+    if (parsed.maxPrice) chatbotContext.maxPrice = parsed.maxPrice;
+    if (parsed.amenities.pets) chatbotContext.amenities.pets = true;
+    if (parsed.amenities.loft) chatbotContext.amenities.loft = true;
+    if (parsed.amenities.balcony) chatbotContext.amenities.balcony = true;
+    if (parsed.amenities.wc) chatbotContext.amenities.wc = true;
+    chatbotContext.lastQuery = userMsg;
+
+    const rooms = chatbotSearchRooms(userMsg);
+    chatbotContext.lastResults = rooms;
+
+    if (rooms.length > 0) {
+        return buildRoomResponse(rooms, userMsg);
+    }
+
+    // Nếu hoàn toàn không có phòng nào khớp với khu vực Hà Nội được hỏi
+    const locationPart = parsed.locations.length > 0 ? ` tại khu vực <strong>${parsed.locations.join(', ')}</strong>` : '';
     return {
-        text: `🤔 Mình chưa tìm thấy phòng phù hợp với "<em>${escapeHtml(userMsg)}</em>".<br><br>` +
-            `Bạn thử mô tả rõ hơn nhé, ví dụ:<br>` +
-            `• "Phòng dưới 3 triệu ở Cầu Giấy"<br>` +
-            `• "Phòng có ban công khu Thanh Xuân"<br>` +
-            `• "Phòng cho nuôi thú cưng"<br><br>` +
-            `Hoặc nhấn nút gợi ý phía dưới! 👇`,
+        text: `😢 <strong>Renty AI chưa tìm thấy phòng phù hợp</strong>${locationPart} với đầy đủ các tiêu chí của bạn.<br><br>` +
+            `💡 <strong>Gợi ý dành cho bạn:</strong><br>` +
+            `• Thử nới rộng ngân sách hoặc giảm bớt một vài bộ lọc tiện ích (như ban công hoặc nuôi thú cưng) để xem thêm nhiều lựa chọn.<br>` +
+            `• Hoặc thử tìm kiếm theo một số khu vực lân cận xem sao nhé!<br><br>` +
+            `Nếu bạn cần tư vấn thêm về khu vực này, cứ nhắn cho mình!`,
         rooms: []
     };
 }
+
+
+function handleFollowUp(type, userMsg) {
+    const data = window.rentyRoomsData ? Object.values(window.rentyRoomsData) : [];
+    let results = [];
+    let msg = '';
+
+    switch (type) {
+        case 'cheaper': {
+            const maxP = chatbotContext.lastResults.length > 0
+                ? Math.min(...chatbotContext.lastResults.map(r => r.price))
+                : (chatbotContext.maxPrice || 5000000);
+            results = data.filter(r => r.price < maxP && !chatbotContext.lastResults.some(lr => lr.id === r.id));
+            if (chatbotContext.locations.length > 0) {
+                results = results.filter(r => {
+                    const s = normalizeText(`${r.area_name} ${r.address} ${r.location_description}`);
+                    return chatbotContext.locations.some(l => s.includes(l));
+                });
+            }
+            results.sort((a, b) => a.price - b.price);
+            results = results.slice(0, 5);
+            msg = results.length > 0
+                ? `💰 Đây là các phòng <strong>rẻ hơn</strong> (dưới ${maxP.toLocaleString('vi-VN')}đ):`
+                : `😅 Không tìm thấy phòng rẻ hơn${chatbotContext.locations.length ? ' ở ' + chatbotContext.locations.join(', ') : ''} rồi.`;
+            break;
+        }
+        case 'expensive': {
+            const minP = chatbotContext.lastResults.length > 0
+                ? Math.max(...chatbotContext.lastResults.map(r => r.price))
+                : 0;
+            results = data.filter(r => r.price > minP);
+            if (chatbotContext.locations.length > 0) {
+                results = results.filter(r => {
+                    const s = normalizeText(`${r.area_name} ${r.address}`);
+                    return chatbotContext.locations.some(l => s.includes(l));
+                });
+            }
+            results.sort((a, b) => a.price - b.price);
+            results = results.slice(0, 5);
+            msg = results.length > 0
+                ? `✨ Phòng <strong>cao cấp hơn</strong> (trên ${minP.toLocaleString('vi-VN')}đ):`
+                : `Không có phòng đắt hơn ở khu vực này rồi.`;
+            break;
+        }
+        case 'other': {
+            const excludeIds = chatbotContext.lastResults.map(r => r.id);
+            results = data.filter(r => !excludeIds.includes(r.id));
+            if (chatbotContext.locations.length > 0) {
+                results = results.filter(r => {
+                    const s = normalizeText(`${r.area_name} ${r.address}`);
+                    return chatbotContext.locations.some(l => s.includes(l));
+                });
+            }
+            if (chatbotContext.maxPrice) results = results.filter(r => r.price <= chatbotContext.maxPrice);
+            results.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
+            results = results.slice(0, 5);
+            msg = results.length > 0
+                ? `🔄 Đây là các phòng <strong>khác</strong> phù hợp:`
+                : `Hết phòng khác ở khu vực này rồi. Thử khu vực mới nhé?`;
+            break;
+        }
+        case 'sameArea': {
+            if (chatbotContext.locations.length === 0) {
+                return { text: `📍 Bạn chưa chọn khu vực nào trước đó. Hãy cho mình biết khu vực bạn muốn tìm!`, rooms: [] };
+            }
+            results = data.filter(r => {
+                const s = normalizeText(`${r.area_name} ${r.address} ${r.location_description}`);
+                return chatbotContext.locations.some(l => s.includes(l));
+            });
+            results.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
+            results = results.slice(0, 5);
+            msg = `📍 Tất cả phòng ở <strong>${chatbotContext.locations.join(', ')}</strong>:`;
+            break;
+        }
+        case 'addBalcony': case 'addPets': case 'addLoft': case 'addWc': {
+            const amenityMap = { addBalcony: 'balcony', addPets: 'pets', addLoft: 'loft', addWc: 'wc' };
+            const amenityNames = { addBalcony: 'ban công', addPets: 'thú cưng', addLoft: 'gác lửng', addWc: 'WC riêng' };
+            chatbotContext.amenities[amenityMap[type]] = true;
+            results = chatbotSearchRooms(chatbotContext.lastQuery + ' ' + amenityNames[type]);
+            msg = results.length > 0
+                ? `🏠 Phòng có <strong>${amenityNames[type]}</strong>${chatbotContext.locations.length ? ' ở ' + chatbotContext.locations.join(', ') : ''}:`
+                : `Không tìm thấy phòng có ${amenityNames[type]}${chatbotContext.locations.length ? ' ở ' + chatbotContext.locations.join(', ') : ''}.`;
+            break;
+        }
+        case 'cheapest': {
+            results = chatbotContext.lastResults.length > 0
+                ? [...chatbotContext.lastResults].sort((a, b) => a.price - b.price).slice(0, 1)
+                : data.sort((a, b) => a.price - b.price).slice(0, 3);
+            msg = `💎 Phòng <strong>rẻ nhất</strong>:`;
+            break;
+        }
+        case 'best': {
+            results = chatbotContext.lastResults.length > 0
+                ? [...chatbotContext.lastResults].sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating)).slice(0, 1)
+                : data.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating)).slice(0, 3);
+            msg = `⭐ Phòng <strong>đánh giá cao nhất</strong>:`;
+            break;
+        }
+        default: {
+            results = chatbotContext.lastResults;
+            msg = `Mình hiểu bạn muốn tìm thêm. Hãy thử mô tả cụ thể hơn nhé!`;
+        }
+    }
+
+    chatbotContext.lastResults = results;
+    if (results.length > 0) {
+        return buildRoomResponse(results, msg);
+    }
+    return { text: msg, rooms: [] };
+}
+
+function buildRoomResponse(rooms, customMsg) {
+    const areaNames = [...new Set(rooms.map(r => r.area_name).filter(Boolean))].join(', ');
+    const prices = rooms.map(r => r.price);
+    const minP = Math.min(...prices).toLocaleString('vi-VN');
+    const maxP = Math.max(...prices).toLocaleString('vi-VN');
+    const available = rooms.filter(r => r.status === 'empty').length;
+
+    let text = '';
+    
+    // Nếu customMsg chứa HTML sẵn thì dùng, không thì tự dựng tiêu đề chuyên nghiệp
+    if (typeof customMsg === 'string' && (customMsg.includes('<') || customMsg.includes('rẻ hơn') || customMsg.includes('cao cấp') || customMsg.includes('khác'))) {
+        text = customMsg;
+    } else {
+        text = `🔍 <strong>Renty AI tìm thấy ${rooms.length} nơi ở phù hợp</strong>`;
+        if (areaNames) text += ` tại khu vực <strong>${areaNames}</strong>`;
+        text += `:<br>💰 Giá từ <strong>${minP}đ</strong> đến <strong>${maxP}đ</strong>/tháng.`;
+        if (available > 0) text += `<br>✅ Hiện có <strong>${available}</strong> nơi đang trống sẵn sàng chuyển đến.`;
+    }
+
+    text += `<br><br>📝 <strong>Chi tiết các lựa chọn tốt nhất:</strong><br>`;
+    
+    rooms.forEach((r, idx) => {
+        const ratingVal = r.rating ? parseFloat(r.rating).toFixed(1) : 'Chưa có';
+        const ratingStar = ratingVal !== 'Chưa có' ? `⭐ ${ratingVal}/5` : '📝 Chưa có đánh giá';
+        
+        // Ghi nhận tiện ích nổi bật
+        let amList = [];
+        if (r.has_wc === 1 || r.has_wc === '1') amList.push('WC khép kín');
+        if (r.has_balcony === 1 || r.has_balcony === '1') amList.push('Có ban công');
+        if (r.has_loft === 1 || r.has_loft === '1') amList.push('Có gác lửng');
+        if (r.allow_pets === 1 || r.allow_pets === '1') amList.push('Cho nuôi pet');
+        const amString = amList.length > 0 ? amList.join(', ') : 'Đầy đủ điện nước';
+
+        const priceText = parseInt(r.price).toLocaleString('vi-VN') + 'đ';
+
+        text += `${idx + 1}️⃣ <strong>${escapeHtml(r.title)}</strong><br>` +
+                `• 📍 Địa chỉ: ${escapeHtml(r.address || r.area_name)}<br>` +
+                `• 💰 Giá: <strong>${priceText}</strong>/tháng<br>` +
+                `• 🌿 Tiện ích: ${amString}<br>` +
+                `• ${ratingStar} (Đánh giá thực tế từ người thuê trước)<br><br>`;
+    });
+
+    text += `👇 Bạn có thể click vào các thẻ nơi ở bên dưới để xem hình ảnh thực tế và liên hệ chủ nhà nhé!`;
+    return { text, rooms };
+}
+
+
 
 // ── Send message handler ────────────────────────────────────────────
 // ── Profanity Filter ────────────────────────────────────────────────
@@ -2554,9 +2869,20 @@ function getRemainingChatbotQuota() {
 
 // ── Send message handler (with profanity + rate limit) ──────────────
 function sendRentyChatbotMessage(presetMsg) {
+    if (rentyChatbotSending) return;
+
     const input = document.getElementById('renty-chatbot-input');
     const text = presetMsg || (input ? input.value.trim() : '');
     if (!text) return;
+
+    if (text.length > RENTY_CHATBOT_MAX_LENGTH) {
+        addBotMessage(
+            `⚠️ <strong>Tin nhắn quá dài</strong><br><br>` +
+            `Bạn vui lòng rút gọn câu hỏi còn tối đa <strong>${RENTY_CHATBOT_MAX_LENGTH} ký tự</strong>. ` +
+            `Ví dụ: <strong>"Cầu Giấy dưới 4 triệu có ban công"</strong>.`
+        );
+        return;
+    }
 
     // Open panel if not open
     if (!rentyChatbotOpen) {
@@ -2614,21 +2940,54 @@ function sendRentyChatbotMessage(presetMsg) {
 
     // Show typing, then respond
     showTypingIndicator();
+    setRentyChatbotBusy(true);
 
-    const delay = 400 + Math.random() * 600;
-    setTimeout(() => {
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+    fetch('/renty/chatbot/chat', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ prompt: text })
+    })
+    .then(res => res.json().then(data => ({ ok: res.ok, data })).catch(() => ({
+        ok: false,
+        data: {}
+    })))
+    .then(({ ok, data }) => {
         removeTypingIndicator();
-        const response = generateChatbotResponse(text);
-
-        // Thêm thông báo lượt còn lại khi sắp hết
+        setRentyChatbotBusy(false);
+        
         let quotaNote = '';
         if (newRemaining <= 3 && newRemaining > 0) {
             quotaNote = `<br><br><em style="font-size:10px;color:#f59e0b;">⚠️ Còn ${newRemaining} lượt hỏi hôm nay${isGuest ? ' — <a href="/login" style="color:#10b981;font-weight:600;">đăng nhập</a> để có 50 lượt' : ''}.</em>`;
         }
 
-        addBotMessage(response.text + quotaNote, response.rooms);
-    }, delay);
+        if (ok && data.success) {
+            addBotMessage((data.response || '') + quotaNote, data.rooms || []);
+        } else {
+            addBotMessage(
+                `⚠️ <strong>Renty AI gặp sự cố</strong><br><br>` +
+                `Mình chưa thể xử lý câu hỏi này ngay lúc này. Bạn vui lòng thử lại sau ít phút hoặc dùng bộ lọc phòng ở phía trên nhé.` +
+                quotaNote
+            );
+        }
+    })
+    .catch(err => {
+        console.error('Chatbot API error:', err);
+        removeTypingIndicator();
+        setRentyChatbotBusy(false);
+        
+        let quotaNote = '';
+        if (newRemaining <= 3 && newRemaining > 0) {
+            quotaNote = `<br><br><em style="font-size:10px;color:#f59e0b;">⚠️ Còn ${newRemaining} lượt hỏi hôm nay${isGuest ? ' — <a href="/login" style="color:#10b981;font-weight:600;">đăng nhập</a> để có 50 lượt' : ''}.</em>`;
+        }
+        addBotMessage(`⚠️ <strong>Lỗi kết nối</strong><br><br>Không thể gửi tin nhắn đi. Vui lòng kiểm tra lại kết nối mạng!` + quotaNote);
+    });
 }
 window.sendRentyChatbotMessage = sendRentyChatbotMessage;
-
 

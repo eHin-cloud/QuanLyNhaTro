@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="Renty Review - Nền tảng tìm kiếm và đánh giá phòng trọ chân thực.">
     <title>Renty Review - Tìm Phòng Trọ & Đánh Giá Không Gian Sống</title>
     <script>
@@ -1561,7 +1562,7 @@
 
     <!-- Input -->
     <div class="renty-chatbot-input-area">
-        <input type="text" id="renty-chatbot-input" placeholder="Hỏi về phòng trọ, khu vực, giá cả..."
+        <input type="text" id="renty-chatbot-input" placeholder="Hỏi về phòng trọ, khu vực, giá cả..." maxlength="300"
             onkeydown="if(event.key==='Enter'){sendRentyChatbotMessage();event.preventDefault();}" autocomplete="off">
         <button type="button" onclick="sendRentyChatbotMessage()" aria-label="Gửi tin nhắn" class="renty-chatbot-send-btn">
             <i class="fa-solid fa-paper-plane"></i>
