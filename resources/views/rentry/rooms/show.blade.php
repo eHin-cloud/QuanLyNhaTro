@@ -126,88 +126,25 @@
         <section class="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 items-start">
             <div class="space-y-6">
                 <!-- Bento Gallery Grid (Airbnb Style) -->
-                <div class="relative rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 p-1.5 shadow-2xl shadow-slate-950/50">
+                <div class="relative rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 shadow-2xl shadow-slate-950/50">
                     @php
                         $imgCount = count($images);
                     @endphp
                     
-                    @if($imgCount === 1)
-                        <!-- 1 ảnh duy nhất -->
-                        <button type="button" onclick="openZoomWithIndex(0)" class="relative block w-full h-[320px] md:h-[480px] rounded-xl overflow-hidden group text-left">
-                            <img id="main-image" src="{{ $images[0]['url'] ?? $room['cover_image'] }}" alt="{{ $images[0]['label'] ?? 'Ảnh phòng' }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.015]" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
-                            <span class="media-overlay-label absolute left-4 bottom-4 z-10">
-                                <i class="fa-solid fa-camera text-emerald-300 mr-1.5"></i><span id="main-image-label">{{ $images[0]['label'] ?? 'View toàn phòng' }}</span>
-                            </span>
-                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/40 to-transparent z-0"></div>
-                            <span class="absolute right-4 bottom-4 w-10 h-10 rounded-xl bg-slate-950/75 border border-white/10 text-emerald-300 flex items-center justify-center backdrop-blur z-10">
-                                <i class="fa-solid fa-expand"></i>
-                            </span>
-                        </button>
-                    @elseif($imgCount === 2)
-                        <!-- 2 ảnh chia đôi -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 h-[320px] md:h-[480px]">
-                            @foreach(array_slice($images, 0, 2) as $idx => $img)
-                                <button type="button" onclick="openZoomWithIndex({{ $idx }})" class="relative w-full h-full rounded-xl overflow-hidden group text-left">
-                                    <img src="{{ $img['url'] }}" alt="{{ $img['label'] }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
-                                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/30 to-transparent"></div>
-                                    <span class="media-overlay-label absolute left-4 bottom-4 text-[10px]">{{ $img['label'] }}</span>
-                                </button>
-                            @endforeach
-                        </div>
-                    @elseif($imgCount === 3)
-                        <!-- 3 ảnh: 1 lớn bên trái, 2 nhỏ dọc bên phải -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-2 h-[320px] md:h-[480px]">
-                            <button type="button" onclick="openZoomWithIndex(0)" class="relative md:col-span-2 w-full h-full rounded-xl overflow-hidden group text-left">
-                                <img src="{{ $images[0]['url'] }}" alt="{{ $images[0]['label'] }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.015]" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
-                                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/40 to-transparent"></div>
-                                <span class="media-overlay-label absolute left-4 bottom-4">
-                                    <i class="fa-solid fa-camera text-emerald-300 mr-1.5"></i><span>{{ $images[0]['label'] }}</span>
-                                </span>
-                            </button>
-                            <div class="hidden md:grid grid-rows-2 gap-2 h-full">
-                                @foreach(array_slice($images, 1, 2) as $subIdx => $img)
-                                    <button type="button" onclick="openZoomWithIndex({{ $subIdx + 1 }})" class="relative w-full h-full rounded-xl overflow-hidden group text-left">
-                                        <img src="{{ $img['url'] }}" alt="{{ $img['label'] }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
-                                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/30 to-transparent"></div>
-                                        <span class="media-overlay-label absolute left-3 bottom-3 text-[10px]">{{ $img['label'] }}</span>
-                                    </button>
-                                @endforeach
-                            </div>
-                        </div>
-                    @else
-                        <!-- 4 hoặc nhiều ảnh hơn: Bento Grid 5 ô (ảnh 1 to bên trái, 4 ảnh nhỏ bên phải) -->
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-2.5 h-[340px] md:h-[480px]">
-                            <!-- Ảnh chính -->
-                            <button type="button" onclick="openZoomWithIndex(0)" class="relative md:col-span-2 w-full h-full rounded-xl overflow-hidden group text-left">
-                                <img src="{{ $images[0]['url'] }}" alt="{{ $images[0]['label'] }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.015]" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
-                                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/40 to-transparent"></div>
-                                <span class="media-overlay-label absolute left-4 bottom-4">
-                                    <i class="fa-solid fa-camera text-emerald-300 mr-1.5"></i><span>{{ $images[0]['label'] }}</span>
-                                </span>
-                            </button>
-                            <!-- 4 ảnh phụ -->
-                            <div class="hidden md:grid md:col-span-2 grid-cols-2 grid-rows-2 gap-2.5 h-full">
-                                @for($i = 1; $i <= 4; $i++)
-                                    @if(isset($images[$i]))
-                                        <button type="button" onclick="openZoomWithIndex({{ $i }})" class="relative w-full h-full rounded-xl overflow-hidden group text-left">
-                                            <img src="{{ $images[$i]['url'] }}" alt="{{ $images[$i]['label'] }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
-                                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/30 to-transparent"></div>
-                                            <span class="media-overlay-label absolute left-3 bottom-3 text-[10px] truncate max-w-full block">{{ $images[$i]['label'] }}</span>
-                                            @if($i === 4 && $imgCount > 5)
-                                                <div class="absolute inset-0 bg-slate-950/65 flex flex-col items-center justify-center backdrop-blur-[2px] transition-colors group-hover:bg-slate-950/55">
-                                                    <span class="text-white text-base font-extrabold">+{{ $imgCount - 5 }}</span>
-                                                    <span class="text-[9px] text-emerald-300 font-bold tracking-wider uppercase mt-1">Góc khác</span>
-                                                </div>
-                                            @endif
-                                        </button>
-                                    @endif
-                                @endfor
-                            </div>
-                        </div>
-                    @endif
+                    <!-- Ảnh chính tràn toàn bộ khung -->
+                    <button type="button" onclick="openZoomWithIndex(activeImageIndex)" class="relative block w-full h-[320px] md:h-[480px] rounded-xl overflow-hidden group text-left">
+                        <img id="main-image" src="{{ $images[0]['url'] ?? $room['cover_image'] }}" alt="{{ $images[0]['label'] ?? 'Ảnh phòng' }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.015]" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
+                        <span class="media-overlay-label absolute left-4 bottom-4 z-10">
+                            <i class="fa-solid fa-camera text-emerald-300 mr-1.5"></i><span id="main-image-label">{{ $images[0]['label'] ?? 'View toàn phòng' }}</span>
+                        </span>
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/40 to-transparent z-0"></div>
+                        <span class="absolute right-4 bottom-4 w-10 h-10 rounded-xl bg-slate-950/75 border border-white/10 text-emerald-300 flex items-center justify-center backdrop-blur z-10">
+                            <i class="fa-solid fa-expand"></i>
+                        </span>
+                    </button>
 
                     <!-- Nút xem đầy đủ ở góc -->
-                    <button type="button" onclick="openZoom()" class="absolute right-4 bottom-4 px-3.5 py-2 rounded-xl bg-slate-950/80 border border-white/10 text-emerald-355 hover:text-white flex items-center gap-2 text-xs font-bold backdrop-blur transition-all active:scale-95 shadow-md">
+                    <button type="button" onclick="openZoom()" class="renty-zoom-btn absolute right-4 bottom-4 px-3.5 py-2 rounded-xl bg-slate-950/80 border border-white/10 text-emerald-355 hover:text-white flex items-center gap-2 text-xs font-bold backdrop-blur transition-all active:scale-95 shadow-md">
                         <i class="fa-solid fa-images text-emerald-400"></i>
                         <span>Xem tất cả {{ $imgCount }} ảnh</span>
                     </button>
@@ -216,14 +153,13 @@
                 <!-- Thư viện ảnh dạng danh sách Thumbnail trượt chọn -->
                 <div class="flex gap-2.5 overflow-x-auto py-1.5 px-0.5 custom-scroll">
                     @foreach($images as $index => $image)
-                        <button type="button" onclick="selectImage({{ $index }})" class="thumb-button shrink-0 relative w-24 h-16 rounded-xl overflow-hidden border {{ $index === 0 ? 'border-emerald-400' : 'border-slate-800' }} hover:border-emerald-500/70 bg-slate-950 transition-all">
+                        <button type="button" onclick="selectImage({{ $index }})" title="{{ $image['label'] }}" class="thumb-button shrink-0 relative w-28 h-20 rounded-xl overflow-hidden border {{ $index === 0 ? 'border-emerald-400' : 'border-slate-800' }} hover:border-emerald-500/70 bg-slate-950 transition-all">
                             <img src="{{ $image['url'] }}" alt="{{ $image['label'] }}" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
-                            <span class="absolute inset-x-0 bottom-0 bg-slate-950/80 text-[8px] text-slate-300 py-0.5 px-1 truncate text-center">{{ $image['label'] }}</span>
                         </button>
                     @endforeach
                 </div>
 
-                <p class="rounded-2xl border border-slate-850 bg-slate-900/25 px-4 py-3.5 text-[11px] leading-relaxed text-slate-400">
+                <p class="renty-media-note rounded-2xl border border-slate-850 bg-slate-900/25 px-4 py-3.5 text-[11px] leading-relaxed text-slate-400">
                     <i class="fa-solid fa-circle-info text-emerald-400 mr-2 text-xs shrink-0"></i>{{ $room['media_source_note'] }}
                 </p>
 
@@ -475,11 +411,11 @@
                     </h2>
                     
                     <div class="flex gap-2.5 mb-4">
-                        <a href="tel:0987654321" class="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 hover:shadow-lg hover:shadow-emerald-600/15 text-white text-xs font-bold text-center flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]">
+                        <a href="tel:0396519196" class="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 hover:shadow-lg hover:shadow-emerald-600/15 text-white text-xs font-bold text-center flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]">
                             <i class="fa-solid fa-phone"></i>
                             <span>Gọi điện</span>
                         </a>
-                        <a href="https://zalo.me/0987654321" target="_blank" class="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-600/15 text-white text-xs font-bold text-center flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]">
+                        <a href="https://zalo.me/0396519196" target="_blank" class="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-600/15 text-white text-xs font-bold text-center flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]">
                             <i class="fa-solid fa-comments"></i>
                             <span>Nhắn Zalo</span>
                         </a>

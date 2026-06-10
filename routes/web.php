@@ -235,11 +235,18 @@ $rentyRooms = function () {
         };
         $buildingName = $building?->name ?? 'Rentry Review';
         $buildingAddress = $building?->address ?? 'Khu nhà trọ đang cập nhật địa chỉ';
-        $areaName = str_contains($buildingAddress, 'Thanh Xuân')
-            ? 'Thanh Xuân'
-            : (str_contains($buildingAddress, 'Cầu Giấy')
-                ? 'Cầu Giấy'
-                : (str_contains($buildingAddress, 'Quận 10') ? 'Quận 10' : 'khu vực trung tâm'));
+        $areaName = 'khu vực trung tâm';
+        $areaMap = [
+            'Thanh Xuân', 'Cầu Giấy', 'Đống Đa', 'Hai Bà Trưng', 'Tây Hồ', 'Ba Đình',
+            'Quận 10', 'Quận 1', 'Quận 7', 'Quận 4',
+            'Bình Thạnh', 'Tân Bình', 'Gò Vấp', 'Thủ Đức', 'Phú Mỹ Hưng',
+        ];
+        foreach ($areaMap as $area) {
+            if (str_contains($buildingAddress, $area)) {
+                $areaName = $area;
+                break;
+            }
+        }
         $amenities = collect($room->amenities ?? [])->map(fn ($item) => mb_strtolower($item));
 
         $pets = $amenities->contains(fn ($item) => str_contains($item, 'thú cưng')) || ($num % 2 == 1);
@@ -456,6 +463,97 @@ Route::post('/renty/room/{id}/report', function (Illuminate\Http\Request $reques
         'description' => $request->description,
         'status' => 'pending',
     ]);
-
     return back()->with('success', 'Cảm ơn bạn đã gửi báo cáo. Renty Review sẽ kiểm tra phòng này sớm nhất.');
 })->middleware('throttle:5,1')->name('renty.room.report.store');
+
+Route::get('/renty/notifications', function () {
+    if (!auth()->check()) {
+        return response()->json([
+            'success' => true,
+            'notifications' => [],
+            'count' => 0
+        ]);
+    }
+
+    $user = auth()->user();
+    $notifications = collect();
+
+    if ($user->isAdmin()) {
+        // Fetch verifications pending
+        $verifications = \App\Models\LandlordVerificationRequest::where('status', 'pending')
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => 'verify_' . $item->id,
+                    'title' => 'Duyệt KYC: ' . $item->landlord_name,
+                    'message' => 'Yêu cầu xác minh tài khoản chủ trọ từ ' . $item->landlord_name . '.',
+                    'time' => $item->created_at->diffForHumans(),
+                    'link' => route('admin.verifications.index'),
+                    'icon' => 'fa-user-shield',
+                    'color' => 'text-amber-500'
+                ];
+            });
+
+        // Fetch pending reports
+        $reports = \App\Models\RoomReport::where('status', 'pending')
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => 'report_' . $item->id,
+                    'title' => 'Báo cáo vi phạm',
+                    'message' => 'Phòng ID #' . $item->room_id . ' bị báo cáo: ' . $item->description,
+                    'time' => $item->created_at->diffForHumans(),
+                    'link' => route('smartroom.admin'),
+                    'icon' => 'fa-flag',
+                    'color' => 'text-rose-500'
+                ];
+            });
+
+        // Merge notifications
+        $notifications = $verifications->concat($reports)->sortByDesc('time')->values();
+    } else {
+        // Landlord or tenant notifications
+        $logs = \App\Models\NotificationLog::where('tenant_id', $user->tenant_id)
+            ->orderBy('created_at', 'desc')
+            ->take(8)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => 'log_' . $item->id,
+                    'title' => $item->subject ?? 'Thông báo hệ thống',
+                    'message' => $item->message,
+                    'time' => $item->created_at->diffForHumans(),
+                    'link' => '#',
+                    'icon' => 'fa-bell',
+                    'color' => 'text-indigo-500'
+                ];
+            });
+
+        $notifications = collect($logs);
+    }
+
+    // Fallback if empty to make the tray look nice and realistic
+    if ($notifications->isEmpty()) {
+        $notifications = collect([
+            [
+                'id' => 'welcome',
+                'title' => 'Chào mừng quay lại!',
+                'message' => 'Chúc bạn một ngày làm việc hiệu quả và tìm được phòng trọ ưng ý.',
+                'time' => 'Vừa xong',
+                'link' => '#',
+                'icon' => 'fa-sparkles',
+                'color' => 'text-emerald-500'
+            ]
+        ]);
+    }
+
+    return response()->json([
+        'success' => true,
+        'notifications' => $notifications,
+        'count' => $notifications->count()
+    ]);
+})->middleware('auth')->name('renty.notifications');

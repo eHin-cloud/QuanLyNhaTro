@@ -1958,6 +1958,32 @@ function loadMoreQaQuestions(button) {
     const grid = document.getElementById('qa-grid');
     if (!grid) return;
 
+    // Check if extra cards are already added
+    const extraCards = grid.querySelectorAll('.qa-card-extra');
+
+    if (extraCards.length > 0) {
+        // Toggle visibility
+        const isHidden = extraCards[0].classList.contains('hidden');
+        if (isHidden) {
+            extraCards.forEach(card => {
+                card.classList.remove('hidden');
+                card.style.animation = 'fadeSlideDown 0.4s ease-out forwards';
+            });
+            button.innerHTML = '<i class="fa-solid fa-angles-up text-[10px] mr-1.5"></i> Thu gọn câu hỏi';
+        } else {
+            extraCards.forEach(card => {
+                card.classList.add('hidden');
+            });
+            button.innerHTML = '<i class="fa-solid fa-angles-down text-[10px] mr-1.5"></i> Xem thêm câu hỏi';
+            // Scroll back to the top of QA section smoothly
+            const qaHeader = document.querySelector('.qa-section-header');
+            if (qaHeader) {
+                qaHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+        return;
+    }
+
     const originalHtml = button.innerHTML;
     button.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Đang tải thêm câu hỏi...';
     button.classList.add('pointer-events-none', 'opacity-80');
@@ -1992,7 +2018,7 @@ function loadMoreQaQuestions(button) {
 
         mockQuestions.forEach((qa, idx) => {
             const card = document.createElement('div');
-            card.className = 'qa-card rounded-2xl border border-slate-800/50 flex flex-col justify-between transition-all duration-300 hover:border-slate-700/60 group/card overflow-hidden animate-fade-in';
+            card.className = 'qa-card qa-card-extra rounded-2xl border border-slate-800/50 flex flex-col justify-between transition-all duration-300 hover:border-slate-700/60 group/card overflow-hidden animate-fade-in';
             card.style.backgroundColor = '#1a1a20';
             card.style.animationDelay = `${idx * 0.1}s`;
 
@@ -2067,9 +2093,8 @@ function loadMoreQaQuestions(button) {
         });
 
         // Update button status
-        button.innerHTML = '<i class="fa-solid fa-circle-check mr-1.5"></i> Đã tải hết câu hỏi';
+        button.innerHTML = '<i class="fa-solid fa-angles-up text-[10px] mr-1.5"></i> Thu gọn câu hỏi';
         button.classList.remove('pointer-events-none', 'opacity-80');
-        button.classList.add('pointer-events-none', 'opacity-60', 'bg-teal-500/10', 'text-teal-400', 'border-teal-500/20');
     }, 800);
 }
 
@@ -2203,4 +2228,46 @@ document.addEventListener('DOMContentLoaded', () => {
     if (slider) {
         updateDistanceSlider(slider.value);
     }
+
+    // Event delegation for mouse tracking radial glow on room cards
+    const grid = document.getElementById('rooms-grid');
+    if (grid) {
+        grid.addEventListener('mousemove', (e) => {
+            const card = e.target.closest('.room-item-card');
+            if (card) {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            }
+        });
+    }
+
+    // Dynamic Scroll Progress Indicator
+    const progressContainer = document.createElement('div');
+    progressContainer.style.position = 'fixed';
+    progressContainer.style.top = '0';
+    progressContainer.style.left = '0';
+    progressContainer.style.width = '100%';
+    progressContainer.style.height = '3px';
+    progressContainer.style.zIndex = '9999';
+    progressContainer.style.pointerEvents = 'none';
+
+    const progressBar = document.createElement('div');
+    progressBar.style.width = '0%';
+    progressBar.style.height = '100%';
+    progressBar.style.background = 'linear-gradient(to right, #10b981, #06b6d4, #6366f1)';
+    progressBar.style.transition = 'width 0.08s ease-out';
+    progressContainer.appendChild(progressBar);
+    document.body.appendChild(progressContainer);
+
+    window.addEventListener('scroll', () => {
+        const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+        if (scrollHeight > 0) {
+            const progress = (window.scrollY / scrollHeight) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+    }, { passive: true });
 });
+
