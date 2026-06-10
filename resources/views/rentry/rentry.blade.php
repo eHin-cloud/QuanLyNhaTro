@@ -291,7 +291,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16" id="rooms-grid">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16" id="rooms-grid">
             @foreach($rooms as $room)
             <div class="room-item-card glass-card rounded-2xl overflow-hidden group flex flex-col justify-between relative" 
                  data-room-id="{{ $room['id'] }}"
