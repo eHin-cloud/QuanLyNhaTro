@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Bill;
 use App\Models\Contract;
 use App\Models\Equipment;
+use App\Models\LandlordVerificationRequest;
 use App\Models\NotificationLog;
 use App\Models\Room;
 use App\Models\Resident;
@@ -26,6 +27,17 @@ class AdminDashboardController extends Controller
     public function index(Request $request)
     {
         $tenantId = $this->currentTenantId();
+        $tenant = Tenant::find($tenantId);
+        $kycRequest = LandlordVerificationRequest::with('documents')
+            ->where('tenant_id', $tenantId)
+            ->where('type', 'kyc')
+            ->latest()
+            ->first();
+        $premiumRequest = LandlordVerificationRequest::with('documents')
+            ->where('tenant_id', $tenantId)
+            ->where('type', 'premium')
+            ->latest()
+            ->first();
 
         // 1. Stats ribbon
         $totalRooms = Room::where('tenant_id', $tenantId)->count();
@@ -296,7 +308,10 @@ class AdminDashboardController extends Controller
             'smartAlertGroups',
             'smartAlertTotal',
             'notificationLogs',
-            'notificationSummary'
+            'notificationSummary',
+            'tenant',
+            'kycRequest',
+            'premiumRequest'
         ));
     }
 
@@ -314,6 +329,13 @@ class AdminDashboardController extends Controller
         }
 
         return (int) $fallbackTenantId;
+    }
+
+    private function tenantCanReceiveOnlinePayments(): bool
+    {
+        return Tenant::where('id', $this->currentTenantId())
+            ->whereIn('verification_status', ['kyc_verified', 'premium_pending', 'premium_verified'])
+            ->exists();
     }
 
     private function prefixLike(string $value): string
@@ -1015,6 +1037,13 @@ class AdminDashboardController extends Controller
 
     public function autoRemindUtilities(NotificationService $notificationService)
     {
+        if (!$this->tenantCanReceiveOnlinePayments()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Can hoan tat KYC truoc khi tu dong gui nhac thanh toan kem thong tin chuyen khoan.',
+            ], 403);
+        }
+
         $currentMonth = now()->format('Y-m');
         $logs = $notificationService->sendPaymentReminders($this->currentTenantId(), $currentMonth);
         $sentRooms = $logs
@@ -1064,7 +1093,9 @@ class AdminDashboardController extends Controller
     public function notifyAll(NotificationService $notificationService)
     {
         $tenantId = $this->currentTenantId();
-        $paymentLogs = $notificationService->sendPaymentReminders($tenantId);
+        $paymentLogs = $this->tenantCanReceiveOnlinePayments()
+            ? $notificationService->sendPaymentReminders($tenantId)
+            : collect();
         $contractLogs = $notificationService->sendContractExpiryReminders($tenantId);
         $maintenanceLogs = $notificationService->sendMaintenanceReminders($tenantId);
         $sentCount = $paymentLogs->concat($contractLogs)->concat($maintenanceLogs)->where('status', 'sent')->count();

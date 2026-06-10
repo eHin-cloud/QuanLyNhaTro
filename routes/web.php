@@ -8,7 +8,11 @@ use App\Http\Controllers\EquipmentController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\AdminActivityLogController;
+use App\Http\Controllers\AdminVerificationController;
 use App\Http\Controllers\ResidentPortalController;
+use App\Http\Controllers\LandlordOnboardingController;
+use App\Http\Controllers\LandlordVerificationController;
+use App\Http\Controllers\VerificationDocumentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,6 +32,8 @@ Route::post('login', [CrudUserController::class, 'authUser'])->name('user.authUs
 
 Route::get('create', [CrudUserController::class, 'createUser'])->name('user.createUser');
 Route::post('create', [CrudUserController::class, 'postUser'])->name('user.postUser');
+Route::get('landlord/register', [LandlordOnboardingController::class, 'create'])->name('landlord.register');
+Route::post('landlord/register', [LandlordOnboardingController::class, 'store'])->name('landlord.register.store');
 
 Route::middleware('role:admin')->group(function () {
     Route::get('read', [CrudUserController::class, 'readUser'])->name('user.readUser');
@@ -36,7 +42,16 @@ Route::middleware('role:admin')->group(function () {
     Route::post('update', [CrudUserController::class, 'postUpdateUser'])->name('user.postUpdateUser');
     Route::post('users/role', [CrudUserController::class, 'updateRole'])->name('user.updateRole');
     Route::get('list', [CrudUserController::class, 'listUser'])->name('user.list');
+    Route::get('admin/verifications', [AdminVerificationController::class, 'index'])->name('admin.verifications.index');
+    Route::post('admin/verifications/{verification}/approve', [AdminVerificationController::class, 'approve'])->name('admin.verifications.approve');
+    Route::post('admin/verifications/{verification}/reject', [AdminVerificationController::class, 'reject'])->name('admin.verifications.reject');
+    Route::get('admin/verification-documents/{document}', [VerificationDocumentController::class, 'show'])->name('admin.verification-documents.show');
+    Route::post('admin/verification-documents/{document}/unlock', [VerificationDocumentController::class, 'unlock'])->name('admin.verification-documents.unlock');
 });
+
+Route::get('admin/verification-documents/{document}/stream', [VerificationDocumentController::class, 'stream'])
+    ->middleware(['auth', 'signed'])
+    ->name('admin.verification-documents.stream');
 
 Route::get('signout', [CrudUserController::class, 'signOut'])->name('signout');
 
@@ -61,6 +76,8 @@ Route::middleware('admin')->group(function () {
     Route::post('/smartroom/admin/utility/{id}/pay', [AdminDashboardController::class, 'payUtility'])->name('smartroom.admin.utility.pay');
     Route::get('/smartroom/admin/utility/{id}/print', [AdminDashboardController::class, 'printUtility'])->name('smartroom.admin.utility.print');
     Route::post('/smartroom/admin/utility/{id}/notify', [AdminDashboardController::class, 'notifyUtility'])->name('smartroom.admin.utility.notify');
+    Route::post('/smartroom/admin/verification/kyc', [LandlordVerificationController::class, 'submitKyc'])->name('smartroom.admin.verification.kyc');
+    Route::post('/smartroom/admin/verification/premium', [LandlordVerificationController::class, 'submitPremium'])->name('smartroom.admin.verification.premium');
 
     Route::middleware('role:landlord')->group(function () {
         Route::post('/smartroom/admin/ai/dashboard-insight', [AdminDashboardController::class, 'aiDashboardInsight'])->name('smartroom.admin.ai.dashboard_insight');
@@ -134,6 +151,26 @@ $rentyRooms = function () {
         
         $distance = 0.4 + (($num * 3) % 12) / 10;
         $building = $room->building;
+        $tenant = $room->tenant;
+        $verificationStatus = $tenant->verification_status ?? 'unverified';
+        $listingBadge = $tenant->listing_badge ?? 'unverified';
+        $trustBadge = match ($listingBadge) {
+            'verified', 'premium_verified' => [
+                'label' => 'Tich xanh',
+                'class' => 'bg-sky-500/10 text-sky-300 border-sky-500/25',
+                'icon' => 'fa-circle-check',
+            ],
+            'kyc_verified' => [
+                'label' => 'Da xac minh',
+                'class' => 'bg-emerald-500/10 text-emerald-300 border-emerald-500/25',
+                'icon' => 'fa-shield-halved',
+            ],
+            default => [
+                'label' => 'Chua xac minh',
+                'class' => 'bg-slate-950/75 text-slate-300 border-white/10',
+                'icon' => 'fa-circle-info',
+            ],
+        };
         $buildingName = $building?->name ?? 'Rentry Review';
         $buildingAddress = $building?->address ?? 'Khu nhà trọ đang cập nhật địa chỉ';
         $areaName = str_contains($buildingAddress, 'Thanh Xuân')
@@ -257,6 +294,10 @@ $rentyRooms = function () {
             'media_source_note' => $hasVerifiedMedia
                 ? 'Ảnh do chủ trọ đăng tải, nên đối chiếu khi xem phòng trực tiếp.'
                 : 'Phòng chưa có ảnh thật được tải lên. Nên yêu cầu chủ trọ gửi ảnh/video thực tế trước khi đặt cọc.',
+            'tenant_verification_status' => $verificationStatus,
+            'listing_badge' => $listingBadge,
+            'trust_badge' => $trustBadge,
+            'boost_score' => (int) ($tenant->boost_score ?? 0),
             'reviews' => $reviewsList
         ];
     });
@@ -292,7 +333,9 @@ $rentyRooms = function () {
         return $room;
     });
 
-    return $mappedRooms;
+    return $mappedRooms
+        ->sortByDesc(fn ($room) => (int) ($room['boost_score'] ?? 0))
+        ->values();
 };
 
 $rentyPage = function () use ($rentyRooms) {

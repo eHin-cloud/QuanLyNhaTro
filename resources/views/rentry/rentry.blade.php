@@ -269,6 +269,11 @@
                             </span>
                         @endif
 
+                        <span class="absolute {{ $room['price_warning'] ? 'top-24' : 'top-14' }} right-4 px-2.5 py-1 border rounded-lg text-[9px] font-extrabold uppercase tracking-wider shadow-sm z-10 flex items-center gap-1.5 {{ $room['trust_badge']['class'] }}">
+                            <i class="fa-solid {{ $room['trust_badge']['icon'] }}"></i>
+                            {{ $room['trust_badge']['label'] }}
+                        </span>
+
                         <button type="button" onclick="openQuickRoomPreview(event, '{{ $room['id'] }}')" class="absolute top-4 right-4 px-3 py-1.5 rounded-xl bg-slate-950/82 border border-white/10 text-[10px] font-extrabold text-slate-100 backdrop-blur z-20 flex items-center gap-1.5 hover:border-emerald-400/60 hover:text-emerald-200 quick-eye-button" title="Xem nhanh thông tin phòng">
                             <i class="fa-solid fa-eye text-slate-300"></i>
                             Xem nhanh

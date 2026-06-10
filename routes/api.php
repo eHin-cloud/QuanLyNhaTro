@@ -5,6 +5,8 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\VisitorController;
 use App\Http\Controllers\Api\TenantAdminController;
 use App\Http\Controllers\Api\ResidentController;
+use App\Http\Controllers\Api\SensitiveDataController;
+use App\Http\Controllers\VerificationDocumentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,6 +45,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // ------------------------------------------
     // A. PHÂN HỆ CHỦ TRỌ / QUẢN LÝ (Tenant Admin)
     // ------------------------------------------
+    Route::middleware('role:admin')->prefix('platform-admin')->group(function () {
+        Route::post('/verification-documents/{document}/unlock', [VerificationDocumentController::class, 'unlock']);
+    });
+
     Route::middleware('role:landlord')->prefix('admin')->group(function () {
         // Thống kê Dashboard
         Route::get('/dashboard', [TenantAdminController::class, 'dashboard']);
@@ -67,6 +73,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/residents', [TenantAdminController::class, 'storeResident']);
         Route::put('/residents/{id}', [TenantAdminController::class, 'updateResident']);
         Route::delete('/residents/{id}', [TenantAdminController::class, 'deleteResident']);
+        Route::post('/residents/{resident}/sensitive', [SensitiveDataController::class, 'resident']);
+        Route::post('/tenant/bank-account/reveal', [SensitiveDataController::class, 'tenantBankAccount']);
 
         // Hợp đồng online
         Route::get('/contracts', [TenantAdminController::class, 'listContracts']);
@@ -229,10 +237,98 @@ Route::middleware('auth:sanctum')->group(function () {
         ]);
     });
 
+    Route::get('/utility-bill/{id}/qr', function ($id) {
+        $user = auth()->user();
+        $tenantId = $user?->tenant_id;
+
+        if (!$tenantId) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Khong xac dinh duoc tenant hien tai.',
+            ], 403);
+        }
+
+        $tenant = \App\Models\Tenant::find($tenantId);
+
+        if (!in_array(($tenant?->verification_status ?? 'unverified'), ['kyc_verified', 'premium_pending', 'premium_verified'], true)) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Can hoan tat KYC truoc khi hien thi VietQR/chuyen khoan.',
+            ], 403);
+        }
+
+        if (blank($tenant->bank_account_no) || blank($tenant->bank_account_name)) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Tenant chua co thong tin tai khoan ngan hang hop le.',
+            ], 422);
+        }
+
+        $bill = \App\Models\UtilityRecord::with('room.residents')
+            ->where('tenant_id', $tenantId)
+            ->findOrFail($id);
+
+        $room = $bill->room;
+        $resident = $room?->residents?->first();
+        $elecUsed = max(0, (int) $bill->new_electricity - (int) $bill->old_electricity);
+        $waterUsed = max(0, (int) $bill->new_water - (int) $bill->old_water);
+        $amount = (int) ($room?->price ?? 0)
+            + ($elecUsed * (int) $bill->electricity_price)
+            + ($waterUsed * (int) $bill->water_price)
+            + 150000;
+
+        $bankId = strtoupper((string) ($tenant->bank_name ?: 'MB'));
+        $accountNo = (string) $tenant->bank_account_no;
+        $accountName = mb_strtoupper((string) $tenant->bank_account_name);
+        $description = 'Thanh toan Phong ' . ($room?->room_number ?? 'N/A') . ' thang ' . $bill->billing_month;
+        $qrUrl = "https://img.vietqr.io/image/{$bankId}-{$accountNo}-compact.png?amount={$amount}&addInfo="
+            . rawurlencode($description)
+            . '&accountName=' . rawurlencode($accountName);
+
+        return response()->json([
+            'success' => true,
+            'room_number' => $room?->room_number ?? 'N/A',
+            'resident_name' => $resident?->name ?? 'Khach moi / Cu dan',
+            'amount' => $amount,
+            'bank_id' => $bankId,
+            'account_no' => $accountNo,
+            'account_name' => $accountName,
+            'description' => rawurlencode($description),
+            'qr_url' => $qrUrl,
+        ]);
+    });
+
     Route::post('/utility-bills/auto-remind', function () {
+        $user = auth()->user();
+        $tenantId = $user?->tenant_id;
+
+        if (!$tenantId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Khong xac dinh duoc tenant hien tai.',
+            ], 403);
+        }
+
+        $tenant = \App\Models\Tenant::find($tenantId);
+
+        if (!in_array(($tenant?->verification_status ?? 'unverified'), ['kyc_verified', 'premium_pending', 'premium_verified'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Can hoan tat KYC truoc khi tu dong gui nhac thanh toan kem VietQR/chuyen khoan.',
+            ], 403);
+        }
+
+        if (blank($tenant->bank_account_no) || blank($tenant->bank_account_name)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tenant chua co thong tin tai khoan ngan hang hop le.',
+            ], 422);
+        }
+
         $currentMonth = now()->format('Y-m');
         
         $unpaidBills = \App\Models\UtilityRecord::with('room.residents')
+            ->where('tenant_id', $tenantId)
             ->where('status', '!=', 'paid')
             ->where('billing_month', $currentMonth)
             ->get();
@@ -256,9 +352,9 @@ Route::middleware('auth:sanctum')->group(function () {
             $totalFormatted = number_format($totalAmount, 0, ',', '.') . 'đ';
             
             // QR payment URL
-            $bankId = 'MB';
-            $accountNo = '9999888889999';
-            $accountName = 'NGUYEN VAN CHU NHA';
+            $bankId = strtoupper((string) ($tenant->bank_name ?: 'MB'));
+            $accountNo = (string) $tenant->bank_account_no;
+            $accountName = mb_strtoupper((string) $tenant->bank_account_name);
             $addInfo = rawurlencode("Thanh toan Phong " . $room->room_number . " thang " . now()->format('m'));
             $accNameEscaped = rawurlencode($accountName);
             $qrUrl = "https://img.vietqr.io/image/{$bankId}-{$accountNo}-compact.png?amount={$totalAmount}&addInfo={$addInfo}&accountName={$accNameEscaped}";

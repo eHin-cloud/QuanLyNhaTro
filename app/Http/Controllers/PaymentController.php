@@ -92,6 +92,14 @@ class PaymentController extends Controller
             'payment_method' => 'nullable|required_if:status,paid|in:cash,bank_transfer,vietqr,other',
         ]);
 
+        if (
+            $validated['status'] === 'paid'
+            && in_array($validated['payment_method'], ['bank_transfer', 'vietqr'], true)
+            && !$this->tenantCanReceiveOnlinePayments($this->currentTenantId())
+        ) {
+            return back()->with('error', 'Can hoan tat KYC truoc khi ghi nhan thanh toan chuyen khoan/VietQR.');
+        }
+
         $before = $payment->only(['status', 'payment_date', 'payment_method']);
 
         $payment->update([
@@ -348,6 +356,13 @@ class PaymentController extends Controller
         }
 
         return (int) $fallbackTenantId;
+    }
+
+    private function tenantCanReceiveOnlinePayments(int $tenantId): bool
+    {
+        return Tenant::where('id', $tenantId)
+            ->whereIn('verification_status', ['kyc_verified', 'premium_pending', 'premium_verified'])
+            ->exists();
     }
 
     private function prefixLike(string $value): string

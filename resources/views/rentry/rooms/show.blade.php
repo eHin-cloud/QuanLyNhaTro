@@ -64,6 +64,9 @@
                     <div class="flex flex-wrap items-center gap-2 mb-3">
                         <span class="px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-extrabold text-emerald-300 uppercase tracking-wider">{{ $room['media_source_label'] }}</span>
                         <span class="px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[10px] font-extrabold text-slate-300 uppercase tracking-wider">Phòng {{ $room['room_number'] }}</span>
+                        <span class="px-3 py-1 rounded-lg border text-[10px] font-extrabold uppercase tracking-wider {{ $room['trust_badge']['class'] }}">
+                            <i class="fa-solid {{ $room['trust_badge']['icon'] }} mr-1"></i>{{ $room['trust_badge']['label'] }}
+                        </span>
                     </div>
                     <h1 class="text-2xl md:text-4xl font-extrabold tracking-tight text-slate-100">{{ $room['title'] }}</h1>
                     <p class="mt-3 text-sm text-slate-500 flex items-start gap-2">

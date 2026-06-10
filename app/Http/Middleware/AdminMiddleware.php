@@ -27,7 +27,7 @@ class AdminMiddleware
                 ->with('error', 'Admin he thong khong truy cap truc tiep dashboard chu tro.');
         }
 
-        if (!$user->isLandlord() && !$user->isManager()) {
+        if (!$user->canAccessLandlordDashboard()) {
             return redirect()
                 ->route($user->isResident() ? 'smartroom.resident' : 'renty.user')
                 ->with('error', 'Tai khoan cua ban khong co quyen truy cap cong Admin.');
