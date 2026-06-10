@@ -1389,9 +1389,14 @@ class AdminDashboardController extends Controller
             'sent_at' => now(),
         ]);
 
+        $msg = 'Mã OTP đã được gửi đến số điện thoại đăng ký của cư dân thành công!';
+        if (config('app.env') === 'local' || config('app.debug')) {
+            $msg .= " (Mã OTP thử nghiệm: {$otp})";
+        }
+
         return response()->json([
             'success' => true,
-            'message' => 'Mã OTP đã được gửi đến số điện thoại đăng ký của cư dân thành công!',
+            'message' => $msg,
         ]);
     }
 
