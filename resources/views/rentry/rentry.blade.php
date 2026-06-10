@@ -58,160 +58,134 @@
     <div class="absolute top-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full bg-emerald-600/5 blur-[120px] pointer-events-none"></div>
     <div class="absolute bottom-0 right-[-10%] w-[500px] h-[500px] rounded-full bg-indigo-600/5 blur-[120px] pointer-events-none"></div>
 
-    <div id="renty-search-backdrop" class="renty-search-backdrop" onclick="blurRentySearch()"></div>
+    @include('header.header')
 
-    <!-- NAVBAR -->
-    <header class="h-20 border-b border-slate-900 bg-[#080b11]/80 backdrop-blur-md sticky top-0 z-40 flex items-center">
-        <div class="container mx-auto px-6 flex justify-between items-center gap-4">
-            <!-- Left: Logo and Nav Links -->
-            <div class="flex items-center gap-6 shrink-0">
-                <a href="{{ route('smartroom.portal') }}" class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                        <i class="fa-solid fa-magnifying-glass-location text-white text-lg"></i>
-                    </div>
-                    <span class="renty-brand-text text-xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Renty</span>
-                </a>
-
-                <nav class="hidden md:flex items-center gap-5 text-xs font-semibold text-slate-400">
-                    <a href="#" class="hover:text-emerald-400 transition-colors">Khám phá</a>
-                    <a href="javascript:void(0)" onclick="openHotAreasModal()" class="hover:text-emerald-400 transition-colors">Khu vực</a>
-                    <a href="javascript:void(0)" onclick="setViewMode('map')" class="hover:text-emerald-400 transition-colors flex items-center gap-1.5">
-                        Bản đồ
-                        <span class="px-1.5 py-0.5 text-[8px] font-black bg-emerald-500 text-white rounded-md uppercase tracking-wider animate-pulse">🆕</span>
-                    </a>
-                </nav>
-            </div>
-            
-            <!-- Middle: Search Bar (Glassmorphism Renty search panel) -->
-            <div id="renty-search-panel" class="renty-search-panel flex-grow max-w-md mx-4 relative hidden lg:block">
-                <div class="relative w-full renty-search-shell">
-                    <div class="renty-search-focus-ring"></div>
-                    <i class="fa-solid fa-location-dot absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 renty-search-icon"></i>
-                    <input type="text" id="search-input" onkeyup="filterItems()" onfocus="openRentySearchSuggestions()" class="renty-search-input w-full pl-11 pr-4 py-2.5 bg-[#0a0e17] border border-slate-800 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none text-xs font-semibold" placeholder="Tìm kiếm trọ, khu vực, tiện ích...">
-                    
-                    <div id="renty-search-suggestions" class="renty-search-suggestions">
-                        <div class="flex items-center justify-between gap-3 mb-2.5">
-                            <span class="text-[9px] font-extrabold uppercase tracking-widest text-slate-500">Gợi ý nhanh</span>
-                            <span class="text-[9px] font-bold text-emerald-400">Nhấn để tìm ngay</span>
-                        </div>
-                        <div class="flex flex-wrap gap-1.5">
-                            <button type="button" onclick="applySearchSuggestion('Cầu Giấy')" class="renty-suggestion-chip text-[10px] px-2.5 py-1">
-                                <i class="fa-solid fa-location-dot text-[9px]"></i> Cầu Giấy
-                            </button>
-                            <button type="button" onclick="applySearchSuggestion('Bách Khoa')" class="renty-suggestion-chip text-[10px] px-2.5 py-1">
-                                <i class="fa-solid fa-graduation-cap text-[9px]"></i> Bách Khoa
-                            </button>
-                            <button type="button" onclick="applySearchSuggestion('phòng dưới 3 triệu')" class="renty-suggestion-chip text-[10px] px-2.5 py-1">
-                                <i class="fa-solid fa-tags text-[9px]"></i> Dưới 3 triệu
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right: Admin Profile and Theme Mode Switch -->
-            <div class="flex items-center gap-3 shrink-0">
-                <nav class="flex items-center gap-3 text-xs font-semibold">
-                    @auth
-                        <div class="flex items-center gap-3 bg-slate-900/40 border border-slate-800/80 px-3.5 py-1.5 rounded-xl">
-                            <span class="font-bold text-slate-300 flex items-center gap-1.5">
-                                <i class="fa-solid fa-user-circle text-emerald-400"></i> {{ Auth::user()->name }}
-                            </span>
-                            @if(Auth::user()->role === 'admin')
-                                <a href="{{ route('smartroom.admin') }}" class="px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 hover:bg-indigo-500/20 transition-all font-semibold" title="Cổng Admin">
-                                    Admin
-                                </a>
-                            @endif
-                            <span class="w-[1px] h-3 bg-slate-800"></span>
-                            <a href="{{ route('signout') }}" class="font-semibold text-rose-450 hover:text-rose-400 transition-colors">
-                                Đăng xuất
-                            </a>
-                        </div>
-                    @else
-                        <a href="{{ route('login') }}" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-350 hover:text-slate-100 transition-all font-bold flex items-center gap-1.5">
-                            <i class="fa-solid fa-right-to-bracket text-emerald-400"></i> Đăng Nhập
-                        </a>
-                    @endauth
-                    
-                    <button type="button" onclick="toggleThemeMode()" class="theme-toggle-button renty-theme-switch" aria-label="Chuyển chế độ sáng tối" data-theme-switch>
-                        <span class="theme-switch-track">
-                            <span class="theme-switch-knob">
-                                <i class="fa-solid fa-moon theme-switch-icon theme-switch-moon"></i>
-                                <i class="fa-solid fa-sun theme-switch-icon theme-switch-sun"></i>
-                            </span>
-                        </span>
-                    </button>
-                </nav>
-            </div>
-        </div>
-    </header>
-
-    <!-- HERO SEARCH & ADVANCED FILTERS -->
-    <section class="container mx-auto px-6 pt-12 pb-6 max-w-6xl relative z-10">
-        <div class="max-w-3xl mx-auto text-center mb-8">
-            <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-4 leading-tight">
-                Tìm Trọ Đúng Nghĩa - <span class="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">Xem Review Thật</span>
-            </h1>
-            <p class="text-slate-400 text-xs md:text-sm">
-                Tránh bẫy "ảnh mạng một đằng thực tế một nẻo". Xem đánh giá điểm số chủ nhà, an ninh, điện nước trước khi cọc.
-            </p>
-        </div>
-
-        <!-- Visual & Advanced Filters Panel -->
-        <div class="max-w-4xl mx-auto bg-slate-900/35 border border-slate-800/80 p-5 rounded-3xl mb-8 backdrop-blur-sm">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-4 pb-4 border-b border-slate-800/50 mb-4">
-                <div class="text-left w-full md:w-auto">
-                    <span class="block text-xs font-bold text-slate-350 uppercase tracking-widest flex items-center gap-1.5">
-                        <i class="fa-solid fa-wand-magic-sparkles text-teal-400"></i>
-                        Bộ lọc nhanh trực quan
-                    </span>
-                    <span class="block text-[10px] text-slate-500 mt-0.5">Click nhanh để lọc phòng theo các tiêu chí phổ biến</span>
-                </div>
+    <!-- HERO BENTO GRID & ADVANCED FILTERS -->
+    <section class="container mx-auto px-6 pt-8 pb-8 max-w-6xl relative z-10">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Bento Box 1: Main Search & Visual Filters (Col span 2) -->
+            <div class="lg:col-span-2 bg-gradient-to-br from-slate-900/40 to-slate-950/40 border border-slate-800/80 rounded-3xl p-6 md:p-8 backdrop-blur-md flex flex-col justify-between relative overflow-hidden group">
+                <!-- Decorative absolute glow inside card -->
+                <div class="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-emerald-500/10 blur-[80px] pointer-events-none"></div>
                 
-                <div class="flex gap-2 w-full md:w-auto justify-end">
-                    <button onclick="toggleFilterDrawer()" class="px-4 py-2 bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-slate-100 rounded-xl text-xs font-bold flex items-center gap-2 transition-all">
-                        <i class="fa-solid fa-sliders text-emerald-400"></i> Bộ Lọc Nâng Cao
-                      </button>
+                <div class="relative z-10 w-full">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 mb-4">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Review phòng trọ thực tế
+                    </span>
+                    
+                    <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-4 leading-tight text-slate-100">
+                        Tìm Trọ Đúng Nghĩa - <br class="hidden md:inline"><span class="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">Xem Review Thật</span>
+                    </h1>
+                    
+                    <p class="text-slate-400 text-xs md:text-sm max-w-xl mb-6 leading-relaxed">
+                        Tránh bẫy "ảnh mạng một đằng thực tế một nẻo". Xem đánh giá điểm số chủ nhà, an ninh, điện nước trước khi cọc.
+                    </p>
+                    
+                    <!-- Integrated Search Bar -->
+                    <div class="relative w-full max-w-2xl mb-6 group/search">
+                        <div class="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl opacity-10 group-hover/search:opacity-25 blur-sm transition duration-300"></div>
+                        <div class="relative flex items-center bg-slate-950/80 border border-slate-800/80 rounded-2xl overflow-hidden backdrop-blur-md">
+                            <i class="fa-solid fa-location-dot pl-4 text-emerald-400"></i>
+                            <input type="text" id="hero-search-input" class="w-full pl-3 pr-4 py-3.5 bg-transparent text-slate-250 placeholder-slate-500 focus:outline-none text-xs md:text-sm font-semibold" placeholder="Tìm kiếm theo địa chỉ, khu vực, trường học hoặc tiện ích...">
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="grid grid-cols-3 gap-3 w-full md:w-auto md:flex md:flex-row justify-center">
+                <!-- Visual Filters Inner Row -->
+                <div class="relative z-10 pt-4 border-t border-slate-800/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                        <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                            <i class="fa-solid fa-wand-magic-sparkles text-teal-400"></i>
+                            Bộ lọc nhanh trực quan
+                        </span>
+                        <span class="block text-[9px] text-slate-500 mt-0.5">Click nhanh để lọc nhanh phòng trọ phù hợp</span>
+                    </div>
+                    
+                    <div class="flex items-center gap-2 flex-wrap w-full sm:w-auto">
                         <!-- Nuôi thú cưng -->
-                        <button type="button" id="vbtn-pets" onclick="toggleVisualFilter('pets')" class="vfilter-btn flex flex-col items-center justify-center p-3 rounded-2xl transition-all duration-300 relative group overflow-hidden">
-                            <div class="vfilter-glow-element absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-                            <span class="vfilter-icon-box flex items-center justify-center w-9 h-9 rounded-xl mb-1.5 transition-all duration-300">
-                                <i class="fa-solid fa-cat text-sm"></i>
-                            </span>
-                            <span class="vfilter-text text-[10px] font-bold tracking-wide">Nuôi thú cưng</span>
+                        <button type="button" id="vbtn-pets" onclick="toggleVisualFilter('pets')" class="vfilter-btn flex items-center gap-2 px-3 py-2 bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-350 hover:text-slate-100 rounded-xl transition-all duration-300 text-[10px] font-bold">
+                            <i class="fa-solid fa-cat text-teal-450"></i>
+                            <span>Thú cưng</span>
                         </button>
                         
                         <!-- WC khép kín -->
-                        <button type="button" id="vbtn-wc" onclick="toggleVisualFilter('wc')" class="vfilter-btn flex flex-col items-center justify-center p-3 rounded-2xl transition-all duration-300 relative group overflow-hidden">
-                            <div class="vfilter-glow-element absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-                            <span class="vfilter-icon-box flex items-center justify-center w-9 h-9 rounded-xl mb-1.5 transition-all duration-300">
-                                <i class="fa-solid fa-door-closed text-sm"></i>
-                            </span>
-                            <span class="vfilter-text text-[10px] font-bold tracking-wide">WC khép kín</span>
+                        <button type="button" id="vbtn-wc" onclick="toggleVisualFilter('wc')" class="vfilter-btn flex items-center gap-2 px-3 py-2 bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-350 hover:text-slate-100 rounded-xl transition-all duration-300 text-[10px] font-bold">
+                            <i class="fa-solid fa-door-closed text-teal-450"></i>
+                            <span>WC khép kín</span>
                         </button>
                         
                         <!-- Có ban công -->
-                        <button type="button" id="vbtn-balcony" onclick="toggleVisualFilter('balcony')" class="vfilter-btn flex flex-col items-center justify-center p-3 rounded-2xl transition-all duration-300 relative group overflow-hidden">
-                            <div class="vfilter-glow-element absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-                            <span class="vfilter-icon-box flex items-center justify-center w-9 h-9 rounded-xl mb-1.5 transition-all duration-300">
-                                <i class="fa-solid fa-cloud-sun text-sm"></i>
-                            </span>
-                            <span class="vfilter-text text-[10px] font-bold tracking-wide">Có ban công</span>
+                        <button type="button" id="vbtn-balcony" onclick="toggleVisualFilter('balcony')" class="vfilter-btn flex items-center gap-2 px-3 py-2 bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-350 hover:text-slate-100 rounded-xl transition-all duration-300 text-[10px] font-bold">
+                            <i class="fa-solid fa-cloud-sun text-teal-450"></i>
+                            <span>Có ban công</span>
+                        </button>
+
+                        <button type="button" onclick="toggleFilterDrawer()" class="px-3 py-2 bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-350 hover:text-slate-100 rounded-xl text-[10px] font-extrabold flex items-center gap-1.5 transition-all">
+                            <i class="fa-solid fa-sliders text-emerald-450"></i> Lọc nâng cao
                         </button>
                     </div>
+
+            <!-- Bento Box 2: Community Insights & Live Stats (Col span 1) -->
+            <div class="bg-gradient-to-br from-slate-900/40 to-slate-950/40 border border-slate-800/80 rounded-3xl p-6 backdrop-blur-md flex flex-col justify-between relative overflow-hidden group">
+                <div class="absolute -bottom-24 -right-24 w-48 h-48 rounded-full bg-teal-500/10 blur-[80px] pointer-events-none"></div>
+                
+                <div class="relative z-10">
+                    <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-4">
+                        <i class="fa-solid fa-chart-line text-emerald-400 mr-1.5"></i>
+                        Thống kê cộng đồng
+                    </span>
+                    
+                    <div class="space-y-4">
+                        <!-- Stat 1 -->
+                        <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-950/40 border border-slate-900/60 transition-all hover:border-slate-800">
+                            <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/15 flex items-center justify-center font-bold text-xs shrink-0 animate-pulse">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+                            <div>
+                                <span class="block text-xs font-extrabold text-slate-200">100% Xác thực</span>
+                                <span class="block text-[9px] text-slate-500">Mọi đánh giá đều từ sinh viên ở thực tế</span>
+                            </div>
+                        </div>
+
+                        <!-- Stat 2 -->
+                        <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-950/40 border border-slate-900/60 transition-all hover:border-slate-800">
+                            <div class="w-9 h-9 rounded-xl bg-teal-500/10 text-teal-400 border border-teal-500/15 flex items-center justify-center font-bold text-xs shrink-0">
+                                <i class="fa-solid fa-house-circle-check"></i>
+                            </div>
+                            <div>
+                                <span class="block text-xs font-extrabold text-slate-200">Tìm kiếm tối ưu</span>
+                                <span class="block text-[9px] text-slate-500">Lọc theo khoảng cách & tiện ích trực quan</span>
+                            </div>
+                        </div>
+
+                        <!-- Stat 3 -->
+                        <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-950/40 border border-slate-900/60 transition-all hover:border-slate-800">
+                            <div class="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/15 flex items-center justify-center font-bold text-xs shrink-0">
+                                <i class="fa-solid fa-user-secret"></i>
+                            </div>
+                            <div>
+                                <span class="block text-xs font-extrabold text-slate-200">Ẩn danh tuyệt đối</span>
+                                <span class="block text-[9px] text-slate-500">Đăng review và hỏi đáp không lo lộ danh tính</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative z-10 pt-4 border-t border-slate-800/50 flex items-center justify-between text-[9px] text-slate-550 font-bold uppercase tracking-wider">
+                    <span>Cập nhật trực tiếp</span>
+                    <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> Realtime</span>
                 </div>
             </div>
+        </div>
 
-            <!-- Expandable Filters -->
-            <div id="filter-drawer" class="hidden mt-4 pt-4 border-t border-slate-800/80 grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
+        <!-- Advanced Filters Dropdown (Expandable Filters) -->
+        <div id="filter-drawer" class="hidden mt-6 bg-slate-900/35 border border-slate-800/80 p-5 rounded-3xl backdrop-blur-md animate-fade-in">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- Price Range -->
                 <div>
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Giá phòng tối đa</label>
-                    <select id="filter-price" onchange="filterItems()" class="w-full px-4 py-2 bg-[#0a0e17] border border-slate-800 rounded-xl text-slate-200 text-xs focus:border-emerald-500 focus:outline-none">
+                    <select id="filter-price" onchange="filterItems()" class="w-full px-4 py-2.5 bg-[#0a0e17] border border-slate-800 rounded-xl text-slate-200 text-xs focus:border-emerald-500 focus:outline-none transition-colors">
                         <option value="all">Tất cả khoảng giá</option>
                         <option value="3000000">Dưới 3.000.000đ</option>
                         <option value="4000000">Dưới 4.000.000đ</option>
@@ -222,7 +196,7 @@
                 <!-- Ratings -->
                 <div>
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Điểm đánh giá tối thiểu</label>
-                    <select id="filter-rating" onchange="filterItems()" class="w-full px-4 py-2 bg-[#0a0e17] border border-slate-800 rounded-xl text-slate-200 text-xs focus:border-emerald-500 focus:outline-none">
+                    <select id="filter-rating" onchange="filterItems()" class="w-full px-4 py-2.5 bg-[#0a0e17] border border-slate-800 rounded-xl text-slate-200 text-xs focus:border-emerald-500 focus:outline-none transition-colors">
                         <option value="all">Mọi điểm số</option>
                         <option value="4.5">Từ 4.5⭐ trở lên</option>
                         <option value="4.0">Từ 4.0⭐ trở lên</option>
@@ -230,20 +204,52 @@
                     </select>
                 </div>
 
-                <!-- Utilities -->
+                <!-- Distance Slider Section -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Khoảng cách đến Trường/Tiện ích</label>
+                    <div class="slider-container relative mt-3 mb-2 px-1">
+                        <input 
+                            type="range" 
+                            id="distance-slider" 
+                            min="0" 
+                            max="3" 
+                            step="0.1" 
+                            value="3.0" 
+                            oninput="updateDistanceSlider(this.value)"
+                            class="custom-range-slider"
+                            style="--range-progress: 100%;"
+                        >
+                        <!-- Explicit numeric tick marks -->
+                        <div class="slider-ticks flex justify-between px-1 mt-1 text-[10px] text-slate-500 font-semibold">
+                            <span class="tick-mark cursor-pointer transition-colors" onclick="setSliderValue(0)" data-value="0">0 km</span>
+                            <span class="tick-mark cursor-pointer transition-colors" onclick="setSliderValue(1)" data-value="1">1 km</span>
+                            <span class="tick-mark cursor-pointer transition-colors" onclick="setSliderValue(2)" data-value="2">2 km</span>
+                            <span class="tick-mark cursor-pointer transition-colors" onclick="setSliderValue(3)" data-value="3">3 km</span>
+                        </div>
+                    </div>
+                    <!-- Dynamic Feedback Text Box -->
+                    <div class="feedback-box mt-3 p-2.5 bg-slate-950/40 border border-slate-800/80 rounded-xl flex items-center gap-2">
+                        <i class="fa-solid fa-location-dot text-teal-400 text-xs shrink-0 animate-pulse"></i>
+                        <span id="distance-feedback" class="text-[10px] text-slate-400 leading-normal font-semibold">
+                            Tìm phòng trong bán kính dưới 3.0km từ Đại học Bách Khoa
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Utilities Checkbox Group -->
                 <div>
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Tiện ích đặc biệt</label>
                     <div class="flex flex-wrap gap-2">
-                        <label class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0a0e17] border border-slate-800 text-[10px] font-bold text-slate-400 cursor-pointer hover:border-slate-700">
+                        <label class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0a0e17] border border-slate-800 text-[10px] font-bold text-slate-400 cursor-pointer hover:border-slate-700 transition-colors">
                             <input type="checkbox" id="tag-pets" onchange="syncFromCheckbox('pets')" class="rounded border-slate-800 text-emerald-600 focus:ring-0"> Nuôi thú cưng
                         </label>
-                        <label class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0a0e17] border border-slate-800 text-[10px] font-bold text-slate-400 cursor-pointer hover:border-slate-700">
+                        <label class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0a0e17] border border-slate-800 text-[10px] font-bold text-slate-400 cursor-pointer hover:border-slate-700 transition-colors">
                             <input type="checkbox" id="tag-loft" onchange="filterItems()" class="rounded border-slate-800 text-emerald-600 focus:ring-0"> Có gác lửng
                         </label>
-                        <label class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0a0e17] border border-slate-800 text-[10px] font-bold text-slate-400 cursor-pointer hover:border-slate-700">
+                        <label class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0a0e17] border border-slate-800 text-[10px] font-bold text-slate-400 cursor-pointer hover:border-slate-700 transition-colors">
                             <input type="checkbox" id="tag-balcony" onchange="syncFromCheckbox('balcony')" class="rounded border-slate-800 text-emerald-600 focus:ring-0"> Ban công
                         </label>
-                        <label class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0a0e17] border border-slate-800 text-[10px] font-bold text-slate-400 cursor-pointer hover:border-slate-700">
+                        <label class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0a0e17] border border-slate-800 text-[10px] font-bold text-slate-400 cursor-pointer hover:border-slate-700 transition-colors">
                             <input type="checkbox" id="tag-wc" onchange="syncFromCheckbox('wc')" class="rounded border-slate-800 text-emerald-600 focus:ring-0"> WC khép kín
                         </label>
                     </div>
@@ -285,7 +291,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16" id="rooms-grid">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16" id="rooms-grid">
             @foreach($rooms as $room)
             <div class="room-item-card glass-card rounded-2xl overflow-hidden group flex flex-col justify-between relative" 
                  data-room-id="{{ $room['id'] }}"
@@ -536,6 +542,69 @@
                 </button>
             </div>
             <div id="viewed-rooms-list" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+        </section>
+
+        <!-- FEATURED ARTICLES SECTION -->
+        <section class="mb-16">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-newspaper text-teal-400"></i>
+                        Bài viết nổi bật
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-1">Tổng hợp chia sẻ kinh nghiệm tìm phòng trọ và review khu vực từ cộng đồng sinh viên.</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Article Card 1 -->
+                <article class="group bg-slate-900/40 backdrop-blur-md border border-slate-800 hover:border-teal-500/40 rounded-2xl overflow-hidden hover:shadow-[0_20px_50px_rgba(20,184,166,0.12)] transition-all duration-300 flex flex-col justify-between">
+                    <div class="p-6">
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-teal-500/10 text-teal-400 border border-teal-500/20 uppercase tracking-wider">
+                                Review Phòng
+                            </span>
+                            <span class="text-[11px] text-slate-500 font-bold">5 giờ trước</span>
+                        </div>
+                        <h3 class="text-sm font-bold text-slate-200 group-hover:text-teal-400 transition-colors mb-3">
+                            Kinh nghiệm tìm nhà trọ quanh Đại học Bách Khoa Hà Nội
+                        </h3>
+                        <p class="text-slate-400 text-[11px] leading-relaxed mb-4">
+                            Tổng hợp danh sách các khu vực trọ an ninh tốt, giá hợp lý ở ngõ Tự Do, Trần Đại Nghĩa và Lê Thanh Nghị cho tân sinh viên khóa mới chuẩn bị nhập học.
+                        </p>
+                    </div>
+                    <div class="px-6 pb-6 pt-3 border-t border-slate-800/40 flex justify-between items-center bg-slate-950/20">
+                        <span class="text-[10px] text-slate-500 font-semibold">Tác giả: Hoàng Anh</span>
+                        <a href="javascript:void(0)" class="text-[11px] text-teal-400 hover:text-teal-300 font-bold flex items-center gap-1 group-hover:translate-x-0.5 transition-all">
+                            Đọc tiếp <i class="fa-solid fa-angle-right text-[9px]"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <!-- Article Card 2 -->
+                <article class="group bg-slate-900/40 backdrop-blur-md border border-slate-800 hover:border-teal-500/40 rounded-2xl overflow-hidden hover:shadow-[0_20px_50px_rgba(20,184,166,0.12)] transition-all duration-300 flex flex-col justify-between">
+                    <div class="p-6">
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-teal-500/10 text-teal-400 border border-teal-500/20 uppercase tracking-wider">
+                                Khu Vực
+                            </span>
+                            <span class="text-[11px] text-slate-500 font-bold">1 ngày trước</span>
+                        </div>
+                        <h3 class="text-sm font-bold text-slate-200 group-hover:text-teal-400 transition-colors mb-3">
+                            Đánh giá an ninh ngõ 119 Chùa Láng đợt nắng nóng cao điểm
+                        </h3>
+                        <p class="text-slate-400 text-[11px] leading-relaxed mb-4">
+                            Phản hồi chân thực từ cộng đồng khách thuê về tình hình điện nước, camera giám sát và giờ giấc đóng mở cửa của các tòa nhà chung cư mini trong khu vực.
+                        </p>
+                    </div>
+                    <div class="px-6 pb-6 pt-3 border-t border-slate-800/40 flex justify-between items-center bg-slate-950/20">
+                        <span class="text-[10px] text-slate-500 font-semibold">Tác giả: Khánh Linh</span>
+                        <a href="javascript:void(0)" class="text-[11px] text-teal-400 hover:text-teal-300 font-bold flex items-center gap-1 group-hover:translate-x-0.5 transition-all">
+                            Đọc tiếp <i class="fa-solid fa-angle-right text-[9px]"></i>
+                        </a>
+                    </div>
+                </article>
+            </div>
         </section>
 
         <!-- COMMUNITY Q&A SECTION -->
@@ -1396,8 +1465,44 @@
             <p class="text-[11px] text-slate-400 leading-normal mb-4" id="custom-alert-message"></p>
             <button onclick="closeCustomAlert()" class="w-full py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-extrabold text-white transition-colors">
                 Xác nhận
-            </button>
-        </div>
     </div>
+
+    <!-- Sync Hero Search Input with Navbar Search Input -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const navbarInput = document.getElementById('search-input');
+            const heroInput = document.getElementById('hero-search-input');
+
+            function syncInputs(source, target) {
+                if (source && target && target.value !== source.value) {
+                    target.value = source.value;
+                }
+            }
+
+            if (navbarInput && heroInput) {
+                navbarInput.addEventListener('input', () => {
+                    syncInputs(navbarInput, heroInput);
+                });
+                
+                heroInput.addEventListener('input', () => {
+                    syncInputs(heroInput, navbarInput);
+                    if (typeof filterItems === 'function') {
+                        filterItems();
+                    }
+                });
+
+                navbarInput.addEventListener('change', () => {
+                    syncInputs(navbarInput, heroInput);
+                });
+
+                // Periodic check for search suggestion updates
+                setInterval(() => {
+                    if (navbarInput.value !== heroInput.value) {
+                        syncInputs(navbarInput, heroInput);
+                    }
+                }, 200);
+            }
+        });
+    </script>
 </body>
 </html>

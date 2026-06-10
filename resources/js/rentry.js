@@ -761,8 +761,18 @@ function initRentyMap() {
 
     const mockRooms = window.rentyRoomsData || {};
 
-    // Center of Cầu Giấy area in Hà Nội
-    const center = [21.036, 105.790];
+    // Center of Cầu Giấy area in Hà Nội by default
+    let center = [21.036, 105.790];
+    
+    // Check if the first room is in HCMC to center the map on HCMC initially
+    const roomsArray = Object.values(mockRooms);
+    if (roomsArray.length > 0) {
+        const firstRoom = roomsArray[0];
+        const firstRoomIsHcm = (firstRoom.address && (firstRoom.address.includes('Hồ Chí Minh') || firstRoom.address.includes('Bình Thạnh') || firstRoom.address.includes('Quận 10') || firstRoom.address.includes('HCM'))) || (firstRoom.area_name && (firstRoom.area_name.includes('Quan 10') || firstRoom.area_name.includes('Bình Thạnh') || firstRoom.area_name.includes('Hồ Chí Minh')));
+        if (firstRoomIsHcm) {
+            center = [10.798, 106.705];
+        }
+    }
 
     // Create map
     rentyMap = L.map('renty-interactive-map', {
@@ -778,11 +788,12 @@ function initRentyMap() {
 
     // Add markers
     Object.values(mockRooms).forEach(room => {
-        // Generate a deterministic coordinate in Cầu Giấy based on room ID
+        // Generate a deterministic coordinate based on room address/region
+        const isHcm = (room.address && (room.address.includes('Hồ Chí Minh') || room.address.includes('Bình Thạnh') || room.address.includes('Quận 10') || room.address.includes('HCM'))) || (room.area_name && (room.area_name.includes('Quan 10') || room.area_name.includes('Bình Thạnh') || room.area_name.includes('Hồ Chí Minh')));
         const offsetLat = Math.sin(room.id * 1.7) * 0.006;
         const offsetLng = Math.cos(room.id * 2.3) * 0.006;
-        const lat = 21.036 + offsetLat;
-        const lng = 105.790 + offsetLng;
+        const lat = isHcm ? (10.798 + offsetLat) : (21.036 + offsetLat);
+        const lng = isHcm ? (106.705 + offsetLng) : (105.790 + offsetLng);
 
         const shortPrice = (function (price) {
             if (price >= 1000000) {
@@ -1107,6 +1118,8 @@ function filterItems(options = {}) {
     const normalizedQuery = normalizeText(query);
     const filterPrice = document.getElementById('filter-price').value;
     const filterRating = document.getElementById('filter-rating').value;
+    const distanceSlider = document.getElementById('distance-slider');
+    const filterDistance = distanceSlider ? parseFloat(distanceSlider.value) : 3.0;
 
     const petChecked = document.getElementById('tag-pets').checked;
     const loftChecked = document.getElementById('tag-loft').checked;
@@ -1120,6 +1133,7 @@ function filterItems(options = {}) {
         const title = card.getAttribute('data-title').toLowerCase();
         const price = parseInt(card.getAttribute('data-price'));
         const rating = parseFloat(card.getAttribute('data-rating'));
+        const distance = parseFloat(card.getAttribute('data-distance') || 0);
         const pets = card.getAttribute('data-pets') === 'true';
         const loft = card.getAttribute('data-loft') === 'true';
         const balcony = card.getAttribute('data-balcony') === 'true';
@@ -1144,6 +1158,11 @@ function filterItems(options = {}) {
         let matchesRating = true;
         if (filterRating !== 'all') {
             matchesRating = rating >= parseFloat(filterRating);
+        }
+
+        let matchesDistance = true;
+        if (distanceSlider) {
+            matchesDistance = distance <= filterDistance;
         }
 
         let matchesTags = true;
@@ -1228,10 +1247,26 @@ function blurRentySearch() {
 
 function applySearchSuggestion(query) {
     const input = document.getElementById('search-input');
-    input.value = query;
-    input.focus();
-    openRentySearchSuggestions();
-    filterItems();
+    if (input) {
+        input.value = query;
+        if (!document.getElementById('rooms-grid')) {
+            window.location.href = '/renty?search=' + encodeURIComponent(query);
+        } else {
+            input.focus();
+            openRentySearchSuggestions();
+            filterItems();
+        }
+    }
+}
+
+function handleSearchInput(e) {
+    if (!document.getElementById('rooms-grid')) {
+        if (e.key === 'Enter') {
+            window.location.href = '/renty?search=' + encodeURIComponent(e.target.value);
+        }
+    } else {
+        filterItems();
+    }
 }
 
 function initSearchListeners() {
@@ -1317,6 +1352,16 @@ function initRentyDashboard() {
     // Set initial view mode, default to 'grid'
     const savedMode = localStorage.getItem('rentry_view_mode') || 'grid';
     setViewMode(savedMode);
+
+    // Read search param from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchQuery = urlParams.get('search');
+    if (searchQuery) {
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.value = searchQuery;
+        }
+    }
 
     filterItems(); // Run initial filter to apply checked state of pets & balcony
 }
@@ -1851,6 +1896,7 @@ window.filterItems = filterItems;
 window.openRentySearchSuggestions = openRentySearchSuggestions;
 window.blurRentySearch = blurRentySearch;
 window.applySearchSuggestion = applySearchSuggestion;
+window.handleSearchInput = handleSearchInput;
 window.subscribeEmptyNotification = subscribeEmptyNotification;
 window.closeNotifySubscribeModal = closeNotifySubscribeModal;
 window.handleNotifySubscribeSubmit = handleNotifySubscribeSubmit;
@@ -1874,3 +1920,51 @@ window.subscribeNewsletter = subscribeNewsletter;
 window.openQaCommentsModal = openQaCommentsModal;
 window.closeQaCommentsModal = closeQaCommentsModal;
 window.submitQaReply = submitQaReply;
+
+function updateDistanceSlider(val) {
+    const slider = document.getElementById('distance-slider');
+    if (!slider) return;
+    const min = parseFloat(slider.min) || 0;
+    const max = parseFloat(slider.max) || 3;
+    const percentage = ((parseFloat(val) - min) / (max - min)) * 100;
+    slider.style.setProperty('--range-progress', `${percentage}%`);
+    
+    // Update feedback text
+    const feedback = document.getElementById('distance-feedback');
+    if (feedback) {
+        feedback.innerText = `Tìm phòng trong bán kính dưới ${val}km từ Đại học Bách Khoa`;
+    }
+    
+    // Update active state on ticks
+    document.querySelectorAll('.tick-mark').forEach(tick => {
+        const tickVal = parseFloat(tick.getAttribute('data-value'));
+        if (parseFloat(val) >= tickVal) {
+            tick.classList.add('active', 'text-teal-400');
+        } else {
+            tick.classList.remove('active', 'text-teal-400');
+        }
+    });
+    
+    // Run filtering
+    filterItems();
+}
+
+function setSliderValue(val) {
+    const slider = document.getElementById('distance-slider');
+    if (slider) {
+        slider.value = val;
+        updateDistanceSlider(val);
+    }
+}
+
+// Bind distance slider helpers to window
+window.updateDistanceSlider = updateDistanceSlider;
+window.setSliderValue = setSliderValue;
+
+// Initialize the distance slider progress on DOM Content Loaded
+document.addEventListener('DOMContentLoaded', () => {
+    const slider = document.getElementById('distance-slider');
+    if (slider) {
+        updateDistanceSlider(slider.value);
+    }
+});
