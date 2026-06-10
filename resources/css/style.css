@@ -968,15 +968,15 @@ body.theme-light textarea::placeholder {
 }
 
 .room-card-viewed {
-    opacity: 0.92;
+    opacity: 0.98;
 }
 
 .room-card-viewed .room-card-media::after {
-    opacity: 1;
+    opacity: 0.22;
 }
 
 .room-card-viewed .renty-card-carousel-image {
-    filter: grayscale(0.42) saturate(0.5) brightness(0.78);
+    filter: brightness(0.95);
 }
 
 .room-status-badge {
@@ -994,7 +994,7 @@ body.theme-light textarea::placeholder {
     gap: 0.55rem;
     width: fit-content;
     max-width: 100%;
-    margin: -0.15rem 0 0.85rem;
+    margin: 0 0 0.85rem 0;
     padding: 0.42rem 0.7rem;
     border-radius: 999px;
     background: linear-gradient(135deg, rgba(20, 184, 166, 0.16), rgba(15, 23, 42, 0.62));
@@ -1628,6 +1628,13 @@ table tbody tr:nth-child(4n) { animation-delay: 0.075s; }
         background var(--transition-normal);
 }
 
+.room-card-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    height: 100%;
+}
+
 .room-card:hover,
 .room-item-card:hover {
     transform: translateY(-6px) scale(1.02);
@@ -2168,19 +2175,22 @@ body.renty-map-mode #rooms-grid {
 body.renty-map-mode .room-item-card {
     display: flex;
     flex-direction: row; /* Horizontal cards in split screen mode for professional look */
-    height: 220px;
+    min-height: 220px;
+    height: auto;
 }
 
 body.renty-map-mode .room-item-card > .room-card-content {
     display: flex;
     flex-direction: row;
     width: 100%;
-    height: 100%;
+    min-height: 220px;
+    height: auto;
 }
 
 body.renty-map-mode .room-card-media {
     width: 200px;
-    height: 100% !important;
+    height: auto;
+    min-height: 220px;
     flex-shrink: 0;
     border-bottom: 0 !important;
     border-right: 1px solid rgba(255, 255, 255, 0.05);
@@ -2192,7 +2202,16 @@ body.renty-map-mode .room-item-card .p-5 {
     flex-direction: column;
     justify-content: space-between;
     flex-grow: 1;
-    height: 100%;
+    height: auto;
+    min-height: 188px; /* 220px - 32px padding */
+}
+
+body.renty-map-mode .room-item-card .viewed-room-strip {
+    margin-bottom: 0.5rem !important;
+}
+
+body.renty-map-mode .room-item-card .mb-4 {
+    margin-bottom: 0.5rem !important;
 }
 
 body.renty-map-mode .room-item-card > div:last-child {
@@ -2471,13 +2490,42 @@ body.renty-map-mode .room-item-card > div:last-child {
     }
     body.renty-map-mode .room-item-card {
         height: auto;
+        min-height: initial;
         flex-direction: column;
     }
     body.renty-map-mode .room-item-card > .room-card-content {
         flex-direction: column;
+        height: auto;
+        min-height: initial;
     }
     body.renty-map-mode .room-card-media {
         width: 100%;
         height: 180px !important;
+        min-height: initial;
     }
+    body.renty-map-mode .room-item-card .p-5 {
+        height: auto !important;
+        min-height: initial;
+    }
+}
+
+/* COMMUNITY Q&A COMPONENT */
+.qa-input-field:focus {
+    border-color: rgba(20, 184, 166, 0.8) !important;
+    box-shadow: 0 0 0 1px rgba(20, 184, 166, 0.8) !important;
+}
+
+@keyframes qaFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: qaFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

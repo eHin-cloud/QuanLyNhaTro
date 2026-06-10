@@ -192,9 +192,11 @@ function applyThemeMode(mode) {
     const isLight = mode === 'light';
     document.documentElement.classList.toggle('theme-light', isLight);
     document.body.classList.toggle('theme-light', isLight);
-    document.querySelectorAll('#theme-toggle-icon').forEach(icon => {
-        icon.classList.toggle('fa-sun', isLight);
-        icon.classList.toggle('fa-moon', !isLight);
+    document.querySelectorAll('[data-theme-icon], #theme-toggle-icon').forEach(icon => {
+        if (!icon.classList.contains('theme-switch-icon')) {
+            icon.classList.toggle('fa-sun', isLight);
+            icon.classList.toggle('fa-moon', !isLight);
+        }
     });
     document.querySelectorAll('[data-theme-switch]').forEach(button => {
         button.classList.toggle('is-light', isLight);
@@ -1194,6 +1196,125 @@ function closeNewReviewsModal() {
     document.getElementById('new-reviews-modal').classList.add('hidden');
 }
 
+// Q&A INTERACTIONS
+function submitQaQuestion() {
+    const input = document.getElementById('qa-input-field');
+    const text = input ? input.value.trim() : '';
+
+    if (!text) {
+        alert('Vui lòng nhập câu hỏi trước khi gửi!');
+        return;
+    }
+
+    const grid = document.querySelector('.renty-qa-section .grid');
+    if (!grid) return;
+
+    const newCard = document.createElement('div');
+    newCard.className = 'qa-card rounded-2xl p-5 border border-slate-800/60 flex flex-col justify-between transition-all duration-300 hover:border-slate-700/80 hover:shadow-xl hover:shadow-black/20 animate-fade-in';
+    newCard.style.backgroundColor = '#1E1E24';
+
+    newCard.innerHTML = `
+        <div>
+            <!-- Upper Meta-row -->
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 border border-slate-700">
+                        <i class="fa-solid fa-user-secret text-sm text-teal-400"></i>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-bold text-slate-200">Người dùng ẩn danh</span>
+                        <span class="block text-[10px] text-slate-500">Vừa xong</span>
+                    </div>
+                </div>
+                <span class="px-2.5 py-0.5 rounded-full bg-teal-500/10 text-teal-400 text-[10px] font-extrabold uppercase border border-teal-500/20">
+                    Hà Nội
+                </span>
+            </div>
+
+            <!-- Question Text -->
+            <h3 class="text-sm font-bold text-slate-200 leading-snug mb-4">
+                ${escapeHtml(text)}
+            </h3>
+        </div>
+
+        <div>
+            <!-- Subtle horizontal separator line -->
+            <div class="border-t border-slate-800/80 my-4"></div>
+
+            <!-- Bottom Interaction Row -->
+            <div class="flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                    <!-- Upvote/Downvote button counter -->
+                    <div class="flex items-center bg-slate-900/40 border border-slate-800/80 rounded-lg p-1">
+                        <button type="button" onclick="voteQa(this, 'up')" class="px-2 py-1 text-slate-500 hover:text-emerald-400 transition-colors text-xs">
+                            <i class="fa-solid fa-chevron-up"></i>
+                        </button>
+                        <span class="px-2 text-xs font-extrabold text-slate-300 qa-vote-count">1</span>
+                        <button type="button" onclick="voteQa(this, 'down')" class="px-2 py-1 text-slate-500 hover:text-rose-400 transition-colors text-xs">
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Comment icon & label -->
+                    <button type="button" class="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-200 transition-colors">
+                        <i class="fa-regular fa-comment text-slate-500"></i>
+                        <span>0 bình luận</span>
+                    </button>
+                </div>
+
+                <!-- Highlighted top reply -->
+                <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800/50 flex flex-col gap-2 mt-2 text-slate-500">
+                    <p class="text-xs italic">Chưa có câu trả lời nào. Hãy là người đầu tiên trả lời!</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    grid.insertBefore(newCard, grid.firstChild);
+    input.value = '';
+}
+
+
+function voteQa(button, direction) {
+    const parent = button.parentElement;
+    const countSpan = parent.querySelector('.qa-vote-count');
+    if (!countSpan) return;
+
+    let currentVotes = parseInt(countSpan.textContent) || 0;
+    const activeUp = button.classList.contains('text-emerald-400');
+    const activeDown = button.classList.contains('text-rose-400');
+
+    if (direction === 'up') {
+        const downBtn = parent.querySelector('button[onclick*="down"]');
+        if (activeUp) {
+            button.classList.remove('text-emerald-400');
+            countSpan.textContent = currentVotes - 1;
+        } else {
+            button.classList.add('text-emerald-400');
+            if (downBtn && downBtn.classList.contains('text-rose-400')) {
+                downBtn.classList.remove('text-rose-400');
+                countSpan.textContent = currentVotes + 2;
+            } else {
+                countSpan.textContent = currentVotes + 1;
+            }
+        }
+    } else if (direction === 'down') {
+        const upBtn = parent.querySelector('button[onclick*="up"]');
+        if (activeDown) {
+            button.classList.remove('text-rose-400');
+            countSpan.textContent = currentVotes + 1;
+        } else {
+            button.classList.add('text-rose-400');
+            if (upBtn && upBtn.classList.contains('text-emerald-400')) {
+                upBtn.classList.remove('text-emerald-400');
+                countSpan.textContent = currentVotes - 2;
+            } else {
+                countSpan.textContent = currentVotes - 1;
+            }
+        }
+    }
+}
+
 // Bind functions to window so inline onclick event handlers can call them
 window.toggleFilterDrawer = toggleFilterDrawer;
 window.toggleThemeMode = toggleThemeMode;
@@ -1234,3 +1355,5 @@ window.openNewReviewsModal = openNewReviewsModal;
 window.closeNewReviewsModal = closeNewReviewsModal;
 window.showMarker = showMarker;
 window.hideMarker = hideMarker;
+window.submitQaQuestion = submitQaQuestion;
+window.voteQa = voteQa;

@@ -58,68 +58,89 @@
     <div class="absolute top-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full bg-emerald-600/5 blur-[120px] pointer-events-none"></div>
     <div class="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-indigo-600/5 blur-[120px] pointer-events-none"></div>
 
+    <div id="renty-search-backdrop" class="renty-search-backdrop" onclick="blurRentySearch()"></div>
+
     <!-- NAVBAR -->
     <header class="h-20 border-b border-slate-900 bg-[#080b11]/80 backdrop-blur-md sticky top-0 z-40 flex items-center">
-        <div class="container mx-auto px-6 flex justify-between items-center">
-            <div class="flex items-center gap-3">
+        <div class="container mx-auto px-6 flex justify-between items-center gap-4">
+            <!-- Left: Logo and Nav Links -->
+            <div class="flex items-center gap-6 shrink-0">
                 <a href="{{ route('smartroom.portal') }}" class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
                         <i class="fa-solid fa-magnifying-glass-location text-white text-lg"></i>
                     </div>
-                    <span class="renty-brand-text text-xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Renty Review</span>
+                    <span class="renty-brand-text text-xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Renty</span>
                 </a>
+
+                <nav class="hidden md:flex items-center gap-5 text-xs font-semibold text-slate-400">
+                    <a href="#" class="hover:text-emerald-400 transition-colors">Khám phá</a>
+                    <a href="javascript:void(0)" onclick="openHotAreasModal()" class="hover:text-emerald-400 transition-colors">Khu vực</a>
+                    <a href="javascript:void(0)" onclick="setViewMode('map')" class="hover:text-emerald-400 transition-colors flex items-center gap-1.5">
+                        Bản đồ
+                        <span class="px-1.5 py-0.5 text-[8px] font-black bg-emerald-500 text-white rounded-md uppercase tracking-wider animate-pulse">🆕</span>
+                    </a>
+                </nav>
             </div>
             
-            <div class="flex items-center gap-4">
-                <!-- View Mode Toggle (Map vs Grid) -->
-                <div class="view-mode-toggle">
-                    <button type="button" onclick="setViewMode('map')" id="view-mode-map-btn" class="active">
-                        <i class="fa-solid fa-map-location-dot"></i> <span class="hidden sm:inline">Bản đồ</span>
-                    </button>
-                    <button type="button" onclick="setViewMode('grid')" id="view-mode-grid-btn">
-                        <i class="fa-solid fa-table-cells-large"></i> <span class="hidden sm:inline">Lưới</span>
-                    </button>
-                </div>
-
-                <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-400">
-                    <a href="#" class="text-emerald-400 hover:text-emerald-300">Khám Phá Phòng</a>
-                    <a href="javascript:void(0)" onclick="openHotAreasModal()" class="hover:text-slate-205 transition-colors">Khu Vực Hot</a>
-                    <a href="javascript:void(0)" onclick="openNewReviewsModal()" class="hover:text-slate-205 transition-colors">Đánh Giá Mới</a>
-                    @auth
-                        <div class="flex items-center gap-3 bg-slate-900/60 border border-slate-800/80 px-3.5 py-1.5 rounded-xl">
-                            <span class="text-xs font-bold text-emerald-400">
-                                <i class="fa-solid fa-user-circle mr-1"></i> {{ Auth::user()->name }}
-                            </span>
-                            <button type="button" onclick="toggleThemeMode()" class="theme-toggle-button renty-theme-switch" aria-label="Chuyển chế độ sáng tối" data-theme-switch>
-                                <span class="theme-switch-track">
-                                    <span class="theme-switch-knob">
-                                        <i class="fa-solid fa-moon theme-switch-icon theme-switch-moon" data-theme-icon></i>
-                                        <i class="fa-solid fa-sun theme-switch-icon theme-switch-sun" data-theme-icon></i>
-                                    </span>
-                                </span>
+            <!-- Middle: Search Bar (Glassmorphism Renty search panel) -->
+            <div id="renty-search-panel" class="renty-search-panel flex-grow max-w-md mx-4 relative hidden lg:block">
+                <div class="relative w-full renty-search-shell">
+                    <div class="renty-search-focus-ring"></div>
+                    <i class="fa-solid fa-location-dot absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 renty-search-icon"></i>
+                    <input type="text" id="search-input" onkeyup="filterItems()" onfocus="openRentySearchSuggestions()" class="renty-search-input w-full pl-11 pr-4 py-2.5 bg-[#0a0e17] border border-slate-800 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none text-xs font-semibold" placeholder="Tìm kiếm trọ, khu vực, tiện ích...">
+                    
+                    <div id="renty-search-suggestions" class="renty-search-suggestions">
+                        <div class="flex items-center justify-between gap-3 mb-2.5">
+                            <span class="text-[9px] font-extrabold uppercase tracking-widest text-slate-500">Gợi ý nhanh</span>
+                            <span class="text-[9px] font-bold text-emerald-400">Nhấn để tìm ngay</span>
+                        </div>
+                        <div class="flex flex-wrap gap-1.5">
+                            <button type="button" onclick="applySearchSuggestion('Cầu Giấy')" class="renty-suggestion-chip text-[10px] px-2.5 py-1">
+                                <i class="fa-solid fa-location-dot text-[9px]"></i> Cầu Giấy
                             </button>
-                            <a href="{{ route('signout') }}" class="text-xs font-semibold text-rose-400 hover:text-rose-300 transition-colors">
+                            <button type="button" onclick="applySearchSuggestion('Bách Khoa')" class="renty-suggestion-chip text-[10px] px-2.5 py-1">
+                                <i class="fa-solid fa-graduation-cap text-[9px]"></i> Bách Khoa
+                            </button>
+                            <button type="button" onclick="applySearchSuggestion('phòng dưới 3 triệu')" class="renty-suggestion-chip text-[10px] px-2.5 py-1">
+                                <i class="fa-solid fa-tags text-[9px]"></i> Dưới 3 triệu
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Admin Profile and Theme Mode Switch -->
+            <div class="flex items-center gap-3 shrink-0">
+                <nav class="flex items-center gap-3 text-xs font-semibold">
+                    @auth
+                        <div class="flex items-center gap-3 bg-slate-900/40 border border-slate-800/80 px-3.5 py-1.5 rounded-xl">
+                            <span class="font-bold text-slate-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-user-circle text-emerald-400"></i> {{ Auth::user()->name }}
+                            </span>
+                            @if(Auth::user()->role === 'admin')
+                                <a href="{{ route('smartroom.admin') }}" class="px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 hover:bg-indigo-500/20 transition-all font-semibold" title="Cổng Admin">
+                                    Admin
+                                </a>
+                            @endif
+                            <span class="w-[1px] h-3 bg-slate-800"></span>
+                            <a href="{{ route('signout') }}" class="font-semibold text-rose-450 hover:text-rose-400 transition-colors">
                                 Đăng xuất
                             </a>
                         </div>
-                        @if(Auth::user()->role === 'admin')
-                            <a href="{{ route('smartroom.admin') }}" class="px-4 py-2 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white shadow-lg shadow-indigo-600/15 transition-all flex items-center gap-2">
-                                <i class="fa-solid fa-gauge"></i> Cổng Admin
-                            </a>
-                        @endif
                     @else
-                        <button type="button" onclick="toggleThemeMode()" class="theme-toggle-button renty-theme-switch" aria-label="Chuyển chế độ sáng tối" data-theme-switch>
-                            <span class="theme-switch-track">
-                                <span class="theme-switch-knob">
-                                    <i class="fa-solid fa-moon theme-switch-icon theme-switch-moon" data-theme-icon></i>
-                                    <i class="fa-solid fa-sun theme-switch-icon theme-switch-sun" data-theme-icon></i>
-                                </span>
-                            </span>
-                        </button>
-                        <a href="{{ route('login') }}" class="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-slate-100 transition-all flex items-center gap-2">
+                        <a href="{{ route('login') }}" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-350 hover:text-slate-100 transition-all font-bold flex items-center gap-1.5">
                             <i class="fa-solid fa-right-to-bracket text-emerald-400"></i> Đăng Nhập
                         </a>
                     @endauth
+                    
+                    <button type="button" onclick="toggleThemeMode()" class="theme-toggle-button renty-theme-switch" aria-label="Chuyển chế độ sáng tối" data-theme-switch>
+                        <span class="theme-switch-track">
+                            <span class="theme-switch-knob">
+                                <i class="fa-solid fa-moon theme-switch-icon theme-switch-moon"></i>
+                                <i class="fa-solid fa-sun theme-switch-icon theme-switch-sun"></i>
+                            </span>
+                        </span>
+                    </button>
                 </nav>
             </div>
         </div>
@@ -136,57 +157,25 @@
             </p>
         </div>
 
-        <!-- Search Bar -->
-        <div id="renty-search-backdrop" class="renty-search-backdrop" onclick="blurRentySearch()"></div>
-        <div id="renty-search-panel" class="renty-search-panel max-w-4xl mx-auto bg-slate-900/60 backdrop-blur-xl border border-slate-800 p-4 rounded-3xl shadow-xl shadow-slate-950/20 mb-8">
-            <div class="flex flex-col md:flex-row gap-3">
-                <div class="flex-grow relative renty-search-shell">
-                    <div class="renty-search-focus-ring"></div>
-                    <i class="fa-solid fa-location-dot absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 renty-search-icon"></i>
-                    <input type="text" id="search-input" onkeyup="filterItems()" onfocus="openRentySearchSuggestions()" class="renty-search-input w-full pl-12 pr-4 py-3 bg-[#0a0e17] border border-slate-800 rounded-2xl text-slate-200 placeholder-slate-500 focus:outline-none text-sm font-semibold" placeholder="Tìm phòng dưới 3 triệu ở Cầu Giấy, gần đại học Bách Khoa...">
-                    <div id="renty-search-suggestions" class="renty-search-suggestions">
-                        <div class="flex items-center justify-between gap-3 mb-3">
-                            <span class="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Gợi ý nhanh</span>
-                            <span class="text-[10px] font-bold text-emerald-400">Nhấn để tìm ngay</span>
-                        </div>
-                        <div class="flex flex-wrap gap-2">
-                            <button type="button" onclick="applySearchSuggestion('Cầu Giấy')" class="renty-suggestion-chip">
-                                <i class="fa-solid fa-location-dot"></i> Cầu Giấy
-                            </button>
-                            <button type="button" onclick="applySearchSuggestion('Bách Khoa')" class="renty-suggestion-chip">
-                                <i class="fa-solid fa-graduation-cap"></i> Bách Khoa
-                            </button>
-                            <button type="button" onclick="applySearchSuggestion('phòng dưới 3 triệu')" class="renty-suggestion-chip">
-                                <i class="fa-solid fa-tags"></i> Dưới 3 triệu
-                            </button>
-                            <button type="button" onclick="applySearchSuggestion('gần đại học')" class="renty-suggestion-chip">
-                                <i class="fa-solid fa-clock-rotate-left"></i> Gần đại học
-                            </button>
-                        </div>
-                    </div>
+        <!-- Visual & Advanced Filters Panel -->
+        <div class="max-w-4xl mx-auto bg-slate-900/35 border border-slate-800/80 p-5 rounded-3xl mb-8 backdrop-blur-sm">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4 pb-4 border-b border-slate-800/50 mb-4">
+                <div class="text-left w-full md:w-auto">
+                    <span class="block text-xs font-bold text-slate-350 uppercase tracking-widest flex items-center gap-1.5">
+                        <i class="fa-solid fa-wand-magic-sparkles text-teal-400"></i>
+                        Bộ lọc nhanh trực quan
+                    </span>
+                    <span class="block text-[10px] text-slate-500 mt-0.5">Click nhanh để lọc phòng theo các tiêu chí phổ biến</span>
                 </div>
-                <div class="flex gap-2">
-                    <button onclick="toggleFilterDrawer()" class="px-4 py-3 bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-slate-100 rounded-2xl text-sm font-bold flex items-center gap-2 transition-all">
-                        <i class="fa-solid fa-sliders text-emerald-400"></i> Bộ Lọc
-                    </button>
-                    <button onclick="runSearchWithSkeleton()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-sm font-bold shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-2 shrink-0">
-                        <i class="fa-solid fa-magnifying-glass"></i> Tìm Kiếm
-                    </button>
+                
+                <div class="flex gap-2 w-full md:w-auto justify-end">
+                    <button onclick="toggleFilterDrawer()" class="px-4 py-2 bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-slate-100 rounded-xl text-xs font-bold flex items-center gap-2 transition-all">
+                        <i class="fa-solid fa-sliders text-emerald-400"></i> Bộ Lọc Nâng Cao
+                      </button>
                 </div>
             </div>
 
-            <!-- Visual Filters Bar -->
-            <div class="mt-5 pt-4 border-t border-slate-800/60">
-                <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div class="text-left w-full md:w-auto">
-                        <span class="block text-xs font-bold text-slate-350 uppercase tracking-widest flex items-center gap-1.5">
-                            <i class="fa-solid fa-wand-magic-sparkles text-teal-400"></i>
-                            Bộ lọc nhanh trực quan
-                        </span>
-                        <span class="block text-[10px] text-slate-500 mt-0.5">Click nhanh để lọc phòng theo các tiêu chí phổ biến</span>
-                    </div>
-                    
-                    <div class="grid grid-cols-3 gap-3 w-full md:w-auto md:flex md:flex-row">
+            <div class="grid grid-cols-3 gap-3 w-full md:w-auto md:flex md:flex-row justify-center">
                         <!-- Nuôi thú cưng -->
                         <button type="button" id="vbtn-pets" onclick="toggleVisualFilter('pets')" class="vfilter-btn flex flex-col items-center justify-center p-3 rounded-2xl transition-all duration-300 relative group overflow-hidden">
                             <div class="vfilter-glow-element absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
@@ -275,12 +264,24 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 border-b border-slate-900 pb-4">
             <h2 class="text-lg font-bold text-slate-200" id="results-count">Tìm thấy {{ count($rooms) }} phòng</h2>
             
-            <div class="flex items-center gap-3 bg-slate-950/45 px-4 py-2 rounded-2xl border border-slate-900/60 backdrop-blur-sm self-start sm:self-auto">
-                <span class="text-xs text-slate-400 font-bold select-none">Ẩn các phòng đã được thuê</span>
-                <label class="ios-switch">
-                    <input type="checkbox" id="hide-rented-toggle" onchange="filterItems()">
-                    <span class="ios-slider"></span>
-                </label>
+            <div class="flex flex-wrap items-center gap-3 self-start sm:self-auto">
+                <!-- View Mode Toggle (Map vs Grid) -->
+                <div class="view-mode-toggle">
+                    <button type="button" onclick="setViewMode('map')" id="view-mode-map-btn" class="active">
+                        <i class="fa-solid fa-map-location-dot"></i> <span class="hidden sm:inline">Bản đồ</span>
+                    </button>
+                    <button type="button" onclick="setViewMode('grid')" id="view-mode-grid-btn">
+                        <i class="fa-solid fa-table-cells-large"></i> <span class="hidden sm:inline">Lưới</span>
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-3 bg-slate-950/45 px-4 py-2 rounded-2xl border border-slate-900/60 backdrop-blur-sm">
+                    <span class="text-xs text-slate-400 font-bold select-none">Ẩn phòng đã thuê</span>
+                    <label class="ios-switch">
+                        <input type="checkbox" id="hide-rented-toggle" onchange="filterItems()">
+                        <span class="ios-slider"></span>
+                    </label>
+                </div>
             </div>
         </div>
 
@@ -354,17 +355,19 @@
                             </div>
                         @endif
 
-                        @if($room['price_warning'])
-                            <span class="absolute top-14 right-4 px-2.5 py-1 bg-amber-500/10 text-amber-300 border border-amber-500/25 rounded-lg text-[9px] font-extrabold uppercase tracking-wider shadow-sm z-10 flex items-center gap-1.5" title="{{ $room['price_warning']['message'] }}">
-                                <i class="fa-solid fa-triangle-exclamation"></i>
-                                {{ $room['price_warning']['type'] === 'low' ? 'Giá quá rẻ' : 'Giá cao' }}
-                            </span>
-                        @endif
+                        <div class="absolute top-14 right-4 z-10 flex flex-col items-end gap-1.5">
+                            @if($room['price_warning'])
+                                <span class="px-2.5 py-1 bg-amber-500/10 text-amber-300 border border-amber-500/25 rounded-lg text-[9px] font-extrabold uppercase tracking-wider shadow-sm flex items-center gap-1.5" title="{{ $room['price_warning']['message'] }}">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                    {{ $room['price_warning']['type'] === 'low' ? 'Giá quá rẻ' : 'Giá cao' }}
+                                </span>
+                            @endif
 
-                        <span class="absolute {{ $room['price_warning'] ? 'top-24' : 'top-14' }} right-4 px-2.5 py-1 border rounded-lg text-[9px] font-extrabold uppercase tracking-wider shadow-sm z-10 flex items-center gap-1.5 {{ $room['trust_badge']['class'] }}">
-                            <i class="fa-solid {{ $room['trust_badge']['icon'] }}"></i>
-                            {{ $room['trust_badge']['label'] }}
-                        </span>
+                            <span class="px-2.5 py-1 border rounded-lg text-[9px] font-extrabold uppercase tracking-wider shadow-sm flex items-center gap-1.5 {{ $room['trust_badge']['class'] }}">
+                                <i class="fa-solid {{ $room['trust_badge']['icon'] }}"></i>
+                                {{ $room['trust_badge']['label'] }}
+                            </span>
+                        </div>
 
                         <button type="button" onclick="openQuickRoomPreview(event, '{{ $room['id'] }}')" class="absolute top-4 right-4 px-3 py-1.5 rounded-xl bg-slate-950/82 border border-white/10 text-[10px] font-extrabold text-slate-100 backdrop-blur z-20 flex items-center gap-1.5 hover:border-emerald-400/60 hover:text-emerald-200 quick-eye-button" title="Xem nhanh thông tin phòng">
                             <i class="fa-solid fa-eye text-slate-300"></i>
@@ -530,6 +533,313 @@
                 </button>
             </div>
             <div id="viewed-rooms-list" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+        </section>
+
+        <!-- COMMUNITY Q&A SECTION -->
+        <section class="renty-qa-section mt-12 p-6 rounded-3xl border border-slate-800/80" style="background-color: #121214;">
+            <!-- Section Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-comments text-teal-400"></i>
+                        Hỏi Đáp Cộng Đồng
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-1">Chia sẻ thắc mắc ẩn danh về khu vực, phòng trọ và chủ nhà.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-1 rounded-full bg-teal-500/10 text-teal-400 text-[10px] font-extrabold uppercase border border-teal-500/20">
+                        100% Ẩn danh
+                    </span>
+                </div>
+            </div>
+
+            <!-- Input Field -->
+            <div class="relative w-full mb-8">
+                <input type="text" id="qa-input-field" placeholder="Hỏi ẩn danh về khu vực hoặc chủ nhà tại đây..." class="qa-input-field w-full pl-12 pr-28 py-3.5 bg-[#0e0e10] border border-slate-800 rounded-xl text-slate-200 placeholder-slate-500 text-sm focus:outline-none transition-all duration-300" style="border-radius: 12px;" />
+                <i class="fa-solid fa-user-secret absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-base"></i>
+                <button type="button" onclick="submitQaQuestion()" class="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-lg text-xs font-bold transition-all shadow-md shadow-teal-600/10">
+                    Gửi câu hỏi
+                </button>
+            </div>
+
+            <!-- 2-Column Q&A Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <!-- Post Card 1 -->
+                <div class="qa-card rounded-2xl p-5 border border-slate-800/60 flex flex-col justify-between transition-all duration-300 hover:border-slate-700/80 hover:shadow-xl hover:shadow-black/20" style="background-color: #1E1E24;">
+                    <div>
+                        <!-- Upper Meta-row -->
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 border border-slate-700">
+                                    <i class="fa-solid fa-user-secret text-sm text-teal-400"></i>
+                                </div>
+                                <div>
+                                    <span class="block text-xs font-bold text-slate-200">Người dùng ẩn danh</span>
+                                    <span class="block text-[10px] text-slate-500">2 giờ trước</span>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-0.5 rounded-full bg-teal-500/10 text-teal-400 text-[10px] font-extrabold uppercase border border-teal-500/20">
+                                Cầu Giấy
+                            </span>
+                        </div>
+
+                        <!-- Question Text -->
+                        <h3 class="text-sm font-bold text-slate-200 leading-snug mb-4">
+                            Khu ngõ 105 Xuân Thủy đợt này có hay mất nước không ạ? Nghe bảo hay bị mất nước đột ngột vào mùa hè.
+                        </h3>
+                    </div>
+
+                    <div>
+                        <!-- Subtle horizontal separator line -->
+                        <div class="border-t border-slate-800/80 my-4"></div>
+
+                        <!-- Bottom Interaction Row -->
+                        <div class="flex flex-col gap-3">
+                            <div class="flex items-center justify-between">
+                                <!-- Upvote/Downvote button counter -->
+                                <div class="flex items-center bg-slate-900/40 border border-slate-800/80 rounded-lg p-1">
+                                    <button type="button" onclick="voteQa(this, 'up')" class="px-2 py-1 text-slate-500 hover:text-emerald-400 transition-colors text-xs">
+                                        <i class="fa-solid fa-chevron-up"></i>
+                                    </button>
+                                    <span class="px-2 text-xs font-extrabold text-slate-300 qa-vote-count">32</span>
+                                    <button type="button" onclick="voteQa(this, 'down')" class="px-2 py-1 text-slate-500 hover:text-rose-400 transition-colors text-xs">
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- Comment icon & label -->
+                                <button type="button" class="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-200 transition-colors">
+                                    <i class="fa-regular fa-comment text-slate-500"></i>
+                                    <span>14 bình luận</span>
+                                </button>
+                            </div>
+
+                            <!-- Highlighted top reply -->
+                            <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800/50 flex flex-col gap-2 mt-2">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="text-[10px] font-bold text-slate-400">Hoàng Anh (Sinh viên sư phạm)</span>
+                                        <span class="flex items-center justify-center w-3.5 h-3.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[8px] border border-emerald-500/20" title="Đã xác minh thông tin">
+                                            <i class="fa-solid fa-check"></i>
+                                        </span>
+                                    </div>
+                                    <span class="text-[9px] text-slate-500 font-semibold">Câu trả lời hay nhất</span>
+                                </div>
+                                <p class="text-xs text-slate-300 leading-normal italic">
+                                    "Khu này bể ngầm hơi nhỏ nên nếu mất nước chung thì cúp tầm nửa ngày thôi bạn, chủ nhà có bể dự phòng nhé."
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Post Card 2 -->
+                <div class="qa-card rounded-2xl p-5 border border-slate-800/60 flex flex-col justify-between transition-all duration-300 hover:border-slate-700/80 hover:shadow-xl hover:shadow-black/20" style="background-color: #1E1E24;">
+                    <div>
+                        <!-- Upper Meta-row -->
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 border border-slate-700">
+                                    <i class="fa-solid fa-user-secret text-sm text-teal-400"></i>
+                                </div>
+                                <div>
+                                    <span class="block text-xs font-bold text-slate-200">Người dùng ẩn danh</span>
+                                    <span class="block text-[10px] text-slate-500">5 giờ trước</span>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-0.5 rounded-full bg-teal-500/10 text-teal-400 text-[10px] font-extrabold uppercase border border-teal-500/20">
+                                Đống Đa
+                            </span>
+                        </div>
+
+                        <!-- Question Text -->
+                        <h3 class="text-sm font-bold text-slate-200 leading-snug mb-4">
+                            Có bác nào ở chung chủ ngõ 119 Chùa Láng không? Cho em xin review chủ nhà có khó tính không ạ?
+                        </h3>
+                    </div>
+
+                    <div>
+                        <!-- Subtle horizontal separator line -->
+                        <div class="border-t border-slate-800/80 my-4"></div>
+
+                        <!-- Bottom Interaction Row -->
+                        <div class="flex flex-col gap-3">
+                            <div class="flex items-center justify-between">
+                                <!-- Upvote/Downvote button counter -->
+                                <div class="flex items-center bg-slate-900/40 border border-slate-800/80 rounded-lg p-1">
+                                    <button type="button" onclick="voteQa(this, 'up')" class="px-2 py-1 text-slate-500 hover:text-emerald-400 transition-colors text-xs">
+                                        <i class="fa-solid fa-chevron-up"></i>
+                                    </button>
+                                    <span class="px-2 text-xs font-extrabold text-slate-300 qa-vote-count">18</span>
+                                    <button type="button" onclick="voteQa(this, 'down')" class="px-2 py-1 text-slate-500 hover:text-rose-400 transition-colors text-xs">
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- Comment icon & label -->
+                                <button type="button" class="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-200 transition-colors">
+                                    <i class="fa-regular fa-comment text-slate-500"></i>
+                                    <span>8 bình luận</span>
+                                </button>
+                            </div>
+
+                            <!-- Highlighted top reply -->
+                            <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800/50 flex flex-col gap-2 mt-2">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="text-[10px] font-bold text-slate-400">Khánh Linh (Ngoại Thương)</span>
+                                        <span class="flex items-center justify-center w-3.5 h-3.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[8px] border border-emerald-500/20" title="Đã xác minh thông tin">
+                                            <i class="fa-solid fa-check"></i>
+                                        </span>
+                                    </div>
+                                    <span class="text-[9px] text-slate-500 font-semibold">Câu trả lời hay nhất</span>
+                                </div>
+                                <p class="text-xs text-slate-300 leading-normal italic">
+                                    "Chủ nhà ngõ này hiền lắm, giữ xe free mà 11h đêm khóa cổng thôi. Không chung đụng gì nhiều đâu em."
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Post Card 3 -->
+                <div class="qa-card rounded-2xl p-5 border border-slate-800/60 flex flex-col justify-between transition-all duration-300 hover:border-slate-700/80 hover:shadow-xl hover:shadow-black/20" style="background-color: #1E1E24;">
+                    <div>
+                        <!-- Upper Meta-row -->
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 border border-slate-700">
+                                    <i class="fa-solid fa-user-secret text-sm text-teal-400"></i>
+                                </div>
+                                <div>
+                                    <span class="block text-xs font-bold text-slate-200">Người dùng ẩn danh</span>
+                                    <span class="block text-[10px] text-slate-500">1 ngày trước</span>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-0.5 rounded-full bg-teal-500/10 text-teal-400 text-[10px] font-extrabold uppercase border border-teal-500/20">
+                                Hai Bà Trưng
+                            </span>
+                        </div>
+
+                        <!-- Question Text -->
+                        <h3 class="text-sm font-bold text-slate-200 leading-snug mb-4">
+                            Trọ gần Bách Khoa ngõ Tự Do tầm giá 3M5 đợt này có phòng nào có ban công thoáng không mọi người?
+                        </h3>
+                    </div>
+
+                    <div>
+                        <!-- Subtle horizontal separator line -->
+                        <div class="border-t border-slate-800/80 my-4"></div>
+
+                        <!-- Bottom Interaction Row -->
+                        <div class="flex flex-col gap-3">
+                            <div class="flex items-center justify-between">
+                                <!-- Upvote/Downvote button counter -->
+                                <div class="flex items-center bg-slate-900/40 border border-slate-800/80 rounded-lg p-1">
+                                    <button type="button" onclick="voteQa(this, 'up')" class="px-2 py-1 text-slate-500 hover:text-emerald-400 transition-colors text-xs">
+                                        <i class="fa-solid fa-chevron-up"></i>
+                                    </button>
+                                    <span class="px-2 text-xs font-extrabold text-slate-300 qa-vote-count">45</span>
+                                    <button type="button" onclick="voteQa(this, 'down')" class="px-2 py-1 text-slate-500 hover:text-rose-400 transition-colors text-xs">
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- Comment icon & label -->
+                                <button type="button" class="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-200 transition-colors">
+                                    <i class="fa-regular fa-comment text-slate-500"></i>
+                                    <span>21 bình luận</span>
+                                </button>
+                            </div>
+
+                            <!-- Highlighted top reply -->
+                            <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800/50 flex flex-col gap-2 mt-2">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="text-[10px] font-bold text-slate-400">Minh Đức (Bách Khoa)</span>
+                                        <span class="flex items-center justify-center w-3.5 h-3.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[8px] border border-emerald-500/20" title="Đã xác minh thông tin">
+                                            <i class="fa-solid fa-check"></i>
+                                        </span>
+                                    </div>
+                                    <span class="text-[9px] text-slate-500 font-semibold">Câu trả lời hay nhất</span>
+                                </div>
+                                <p class="text-xs text-slate-300 leading-normal italic">
+                                    "Tầm giá này ở ngõ Tự Do hơi hiếm ban công rộng, bạn chịu khó lùi ra Trần Đại Nghĩa hoặc Lê Thanh Nghị thì nhiều phòng đẹp hơn nha."
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Post Card 4 -->
+                <div class="qa-card rounded-2xl p-5 border border-slate-800/60 flex flex-col justify-between transition-all duration-300 hover:border-slate-700/80 hover:shadow-xl hover:shadow-black/20" style="background-color: #1E1E24;">
+                    <div>
+                        <!-- Upper Meta-row -->
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 border border-slate-700">
+                                    <i class="fa-solid fa-user-secret text-sm text-teal-400"></i>
+                                </div>
+                                <div>
+                                    <span class="block text-xs font-bold text-slate-200">Người dùng ẩn danh</span>
+                                    <span class="block text-[10px] text-slate-500">3 ngày trước</span>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-0.5 rounded-full bg-teal-500/10 text-teal-400 text-[10px] font-extrabold uppercase border border-teal-500/20">
+                                Cầu Giấy
+                            </span>
+                        </div>
+
+                        <!-- Question Text -->
+                        <h3 class="text-sm font-bold text-slate-200 leading-snug mb-4">
+                            Ngõ 20 Hồ Tùng Mậu an ninh thế nào ạ? Em thấy ngõ hơi sâu, con gái đi học tối về có an toàn không?
+                        </h3>
+                    </div>
+
+                    <div>
+                        <!-- Subtle horizontal separator line -->
+                        <div class="border-t border-slate-800/80 my-4"></div>
+
+                        <!-- Bottom Interaction Row -->
+                        <div class="flex flex-col gap-3">
+                            <div class="flex items-center justify-between">
+                                <!-- Upvote/Downvote button counter -->
+                                <div class="flex items-center bg-slate-900/40 border border-slate-800/80 rounded-lg p-1">
+                                    <button type="button" onclick="voteQa(this, 'up')" class="px-2 py-1 text-slate-500 hover:text-emerald-400 transition-colors text-xs">
+                                        <i class="fa-solid fa-chevron-up"></i>
+                                    </button>
+                                    <span class="px-2 text-xs font-extrabold text-slate-300 qa-vote-count">27</span>
+                                    <button type="button" onclick="voteQa(this, 'down')" class="px-2 py-1 text-slate-500 hover:text-rose-400 transition-colors text-xs">
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- Comment icon & label -->
+                                <button type="button" class="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-200 transition-colors">
+                                    <i class="fa-regular fa-comment text-slate-500"></i>
+                                    <span>12 bình luận</span>
+                                </button>
+                            </div>
+
+                            <!-- Highlighted top reply -->
+                            <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800/50 flex flex-col gap-2 mt-2">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="text-[10px] font-bold text-slate-400">Thu Trang (Báo Chí)</span>
+                                        <span class="flex items-center justify-center w-3.5 h-3.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[8px] border border-emerald-500/20" title="Đã xác minh thông tin">
+                                            <i class="fa-solid fa-check"></i>
+                                        </span>
+                                    </div>
+                                    <span class="text-[9px] text-slate-500 font-semibold">Câu trả lời hay nhất</span>
+                                </div>
+                                <p class="text-xs text-slate-300 leading-normal italic">
+                                    "Đầu ngõ có chốt dân phòng với đèn đường sáng trưng tới sáng luôn bạn, yên tâm cực kỳ nha."
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
         </div> <!-- End of .renty-split-right -->
     </main>
