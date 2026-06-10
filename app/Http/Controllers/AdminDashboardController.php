@@ -1227,6 +1227,133 @@ class AdminDashboardController extends Controller
         return redirect()->route('smartroom.admin', ['tab' => 'contract-section'])->with('success', 'Tạo hợp đồng online thành công! Cư dân có thể ký qua liên kết.');
     }
 
+    public function renewContract(Request $request, $id)
+    {
+        $oldContract = \App\Models\Contract::findOrFail($id);
+
+        $request->validate([
+            'renewal_mode' => 'required|in:extend,new_contract',
+            'room_id' => 'required|exists:rooms,id',
+            'resident_id' => 'required|exists:residents,id',
+            'start_date' => 'required_if:renewal_mode,new_contract|date',
+            'end_date' => 'required|date|after:start_date',
+            'deposit' => 'required|integer|min:0',
+            'contract_place' => 'nullable|string|max:255',
+            'sign_day' => 'nullable|integer|min:1|max:31',
+            'sign_month' => 'nullable|integer|min:1|max:12',
+            'sign_year' => 'nullable|integer|min:1900|max:2100',
+            'lessor_name' => 'required|string|max:255',
+            'lessor_id_number' => 'nullable|string|max:50',
+            'lessor_address' => 'nullable|string|max:500',
+            'lessor_phone' => 'nullable|string|max:50',
+            'lessee_name' => 'required|string|max:255',
+            'lessee_id_number' => 'nullable|string|max:50',
+            'lessee_permanent_address' => 'nullable|string|max:500',
+            'lessee_current_address' => 'nullable|string|max:500',
+            'lessee_phone' => 'nullable|string|max:50',
+            'rental_address' => 'required|string|max:500',
+            'rental_area_description' => 'nullable|string|max:1000',
+            'equipment_list' => 'nullable|string|max:4000',
+            'rental_purpose' => 'nullable|string|max:255',
+            'occupant_count' => 'nullable|integer|min:1|max:20',
+            'rent_price' => 'required|integer|min:0',
+            'payment_cycle_months' => 'required|integer|min:1|max:12',
+            'first_payment_date' => 'nullable|string|max:255',
+            'payment_method' => 'nullable|string|max:255',
+        ]);
+
+        $tenantId = $this->currentTenantId();
+        $room = Room::where('tenant_id', $tenantId)->findOrFail($request->room_id);
+        $resident = Resident::where('tenant_id', $tenantId)->findOrFail($request->resident_id);
+        $tenant = Tenant::find($tenantId);
+
+        if ($request->renewal_mode === 'extend') {
+            // Gia hạn trực tiếp hợp đồng cũ
+            // Giữ lại start_date cũ của hợp đồng
+            $request->merge(['start_date' => $oldContract->start_date]);
+            $terms = $this->buildRentalContractTerms($request, $room, $resident, $tenant);
+
+            $before = $oldContract->only(['end_date', 'deposit', 'terms', 'renewal_status', 'status']);
+            $oldContract->update([
+                'end_date' => $request->end_date,
+                'deposit' => $request->deposit,
+                'terms' => $terms,
+                'renewal_status' => 'approved',
+                'status' => 'active', // Đảm bảo trạng thái là active nếu trước đó bị hết hạn
+            ]);
+
+            AdminActivityLogger::log(
+                'update',
+                'contracts',
+                'Gia hạn trực tiếp hợp đồng ' . $oldContract->contract_code . ' thêm đến ngày ' . date('d/m/Y', strtotime($request->end_date)),
+                $oldContract,
+                ['room_number' => $room->room_number, 'resident_name' => $resident->name],
+                $before,
+                $oldContract->only(['end_date', 'deposit', 'terms', 'renewal_status', 'status'])
+            );
+
+            return redirect()->route('smartroom.admin', ['tab' => 'contract-section'])
+                ->with('success', 'Gia hạn hợp đồng trực tiếp thành công!');
+        } else {
+            // Tái ký hợp đồng mới
+            $code = 'HĐ-' . $room->room_number . '-' . date('Ymd', strtotime($request->start_date)) . '-' . $resident->id . '-' . now()->format('His');
+            $terms = $this->buildRentalContractTerms($request, $room, $resident, $tenant);
+
+            $newContract = \App\Models\Contract::create([
+                'tenant_id' => $tenantId,
+                'room_id' => $room->id,
+                'resident_id' => $resident->id,
+                'contract_code' => $code,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'deposit' => $request->deposit,
+                'status' => 'pending',
+                'terms' => $terms,
+            ]);
+
+            // Cập nhật hợp đồng cũ
+            $oldContract->update([
+                'renewal_status' => 'renewed',
+            ]);
+
+            AdminActivityLogger::log(
+                'create',
+                'contracts',
+                'Tái ký hợp đồng mới ' . $newContract->contract_code . ' cho phòng ' . $room->room_number,
+                $newContract,
+                ['room_number' => $room->room_number, 'resident_name' => $resident->name],
+                null,
+                $newContract->only(['room_id', 'resident_id', 'contract_code', 'start_date', 'end_date', 'deposit', 'status'])
+            );
+
+            return redirect()->route('smartroom.admin', ['tab' => 'contract-section'])
+                ->with('success', 'Khởi tạo hợp đồng tái ký mới thành công! Cư dân cần ký để kích hoạt.');
+        }
+    }
+
+    public function declineRenewal(Request $request, $id)
+    {
+        $contract = \App\Models\Contract::findOrFail($id);
+        $before = $contract->only(['renewal_status']);
+
+        $contract->update([
+            'renewal_status' => 'declined',
+        ]);
+
+        AdminActivityLogger::log(
+            'update',
+            'contracts',
+            'Từ chối yêu cầu gia hạn hợp đồng ' . $contract->contract_code,
+            $contract,
+            ['contract_code' => $contract->contract_code],
+            $before,
+            ['renewal_status' => 'declined']
+        );
+
+        return redirect()->route('smartroom.admin', ['tab' => 'contract-section'])
+            ->with('success', 'Đã từ chối yêu cầu gia hạn hợp đồng.');
+    }
+
     private function buildRentalContractTerms(Request $request, Room $room, Resident $resident, ?Tenant $tenant): string
     {
         $startDate = Carbon::parse($request->start_date)->format('d/m/Y');

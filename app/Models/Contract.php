@@ -23,7 +23,10 @@ class Contract extends Model
         'otp_expires_at',
         'signed_at',
         'signer_ip',
-        'is_signed'
+        'is_signed',
+        'renewal_status',
+        'renewal_months',
+        'renewal_note'
     ];
 
     public function tenant(): BelongsTo

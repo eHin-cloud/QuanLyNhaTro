@@ -164,9 +164,43 @@
                             <div class="text-xs text-slate-500 font-bold uppercase mb-2">Điều khoản</div>
                             <div class="text-sm text-slate-300 whitespace-pre-line">{{ $contract->terms }}</div>
                         </div>
-                        <a href="{{ route('smartroom.contract.sign_view', $contract->id) }}" target="_blank" class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold">
-                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Xem / ký hợp đồng
-                        </a>
+
+                        @if($contract->renewal_status === 'requested')
+                            <div class="mt-4 p-4 rounded-xl border border-amber-500/20 bg-amber-500/10 text-amber-300 text-sm flex items-center justify-between gap-4">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-hourglass-half animate-pulse text-amber-400"></i>
+                                    <span>Đang chờ duyệt yêu cầu gia hạn thêm <strong>{{ $contract->renewal_months }} tháng</strong>.</span>
+                                </div>
+                                <span class="text-xs text-slate-400 italic">Đã gửi yêu cầu</span>
+                            </div>
+                        @elseif($contract->renewal_status === 'approved')
+                            <div class="mt-4 p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-300 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                                <span>Yêu cầu gia hạn thêm <strong>{{ $contract->renewal_months }} tháng</strong> đã được chấp nhận!</span>
+                            </div>
+                        @elseif($contract->renewal_status === 'declined')
+                            <div class="mt-4 p-4 rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-300 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-circle-xmark text-rose-400"></i>
+                                <span>Yêu cầu gia hạn thêm <strong>{{ $contract->renewal_months }} tháng</strong> đã bị từ chối.</span>
+                            </div>
+                        @elseif($contract->renewal_status === 'renewed')
+                            <div class="mt-4 p-4 rounded-xl border border-indigo-500/20 bg-indigo-500/10 text-indigo-300 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-sync text-indigo-400"></i>
+                                <span>Hợp đồng đã được gia hạn/tái ký thành công.</span>
+                            </div>
+                        @endif
+
+                        <div class="mt-4 flex flex-wrap gap-3">
+                            <a href="{{ route('smartroom.contract.sign_view', $contract->id) }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i> Xem / ký hợp đồng
+                            </a>
+
+                            @if(!$contract->renewal_status || $contract->renewal_status === 'declined' || $contract->renewal_status === 'approved')
+                                <button type="button" onclick="toggleRenewalModal(true)" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all">
+                                    <i class="fa-solid fa-clock-rotate-left"></i> Yêu cầu gia hạn / Tái ký
+                                </button>
+                            @endif
+                        </div>
                     @else
                         <div class="text-sm text-slate-500">Chưa có hợp đồng.</div>
                     @endif
@@ -235,10 +269,58 @@
                     </div>
                 </section>
             @endif
+
+            <!-- RENEWAL MODAL -->
+            @if($contract)
+            <div id="renewal-modal" class="fixed inset-0 z-50 bg-[#04060b]/80 backdrop-blur-sm hidden flex items-center justify-center transition-opacity duration-300">
+                <div class="w-full max-w-lg bg-[#0a0f1d] border border-slate-800 p-6 rounded-3xl shadow-2xl relative mx-4 animate-fade-in">
+                    <button onclick="toggleRenewalModal(false)" class="absolute top-6 right-6 w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-all">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <h2 class="text-lg font-bold mb-4 text-slate-100 flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-emerald-400"></i> Yêu Cầu Gia Hạn Hợp Đồng
+                    </h2>
+                    <form action="{{ route('smartroom.resident.contract.request_renewal', $contract->id) }}" method="POST" class="space-y-4" onsubmit="return disableSubmit(this)">
+                        @csrf
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Số tháng muốn gia hạn</label>
+                            <select name="renewal_months" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none">
+                                <option value="3">3 tháng</option>
+                                <option value="6" selected>6 tháng</option>
+                                <option value="12">12 tháng (1 năm)</option>
+                                <option value="24">24 tháng (2 năm)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Ghi chú gửi chủ nhà</label>
+                            <textarea name="renewal_note" rows="3" placeholder="Ví dụ: Tôi muốn gia hạn thêm 6 tháng kể từ ngày hết hạn hợp đồng cũ..." class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-sm focus:border-indigo-500 focus:outline-none resize-none"></textarea>
+                        </div>
+                        <div class="pt-4 flex justify-end gap-3">
+                            <button type="button" onclick="toggleRenewalModal(false)" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 bg-transparent hover:bg-slate-900 border border-transparent hover:border-slate-800 transition-all">
+                                Hủy
+                            </button>
+                            <button type="submit" class="submit-btn px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-600/20 transition-all">
+                                Gửi Yêu Cầu
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            @endif
         </main>
     </div>
 
     <script>
+        function toggleRenewalModal(show) {
+            const modal = document.getElementById('renewal-modal');
+            if (!modal) return;
+            if (show) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
         function switchResidentTab(tab) {
             document.querySelectorAll('.resident-section').forEach(section => section.classList.add('hidden'));
             document.getElementById(`resident-tab-${tab}`)?.classList.remove('hidden');

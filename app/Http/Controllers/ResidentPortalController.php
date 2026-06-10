@@ -245,4 +245,30 @@ class ResidentPortalController extends Controller
             'resolved' => 'Đã hoàn tất',
         ];
     }
+
+    public function requestRenewal(Request $request, $id)
+    {
+        $resident = $this->currentResident();
+        if (!$resident) {
+            return back()->with('error', 'Không tìm thấy thông tin cư dân.');
+        }
+
+        $contract = Contract::where('resident_id', $resident->id)
+            ->findOrFail($id);
+
+        $request->validate([
+            'renewal_months' => 'required|integer|min:1|max:60',
+            'renewal_note' => 'nullable|string|max:1000',
+        ]);
+
+        $contract->update([
+            'renewal_status' => 'requested',
+            'renewal_months' => $request->renewal_months,
+            'renewal_note' => strip_tags(trim($request->renewal_note)),
+        ]);
+
+        return redirect()
+            ->route('smartroom.resident', ['tab' => 'contract'])
+            ->with('success', 'Gửi yêu cầu gia hạn hợp đồng thành công! Chủ nhà sẽ xem xét.');
+    }
 }
