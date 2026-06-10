@@ -34,9 +34,9 @@
     </style>
 </head>
 <body class="bg-[#080b11] text-slate-100 min-h-screen selection:bg-indigo-500 selection:text-white overflow-hidden">
-    @include('admin.partials.sidebar')
+    {{-- @include('admin.partials.sidebar') --}}
 
-    <div id="admin-shell" class="ml-64 min-w-0 flex flex-col h-screen overflow-y-auto relative z-10 transition-[margin-left] duration-200">
+    <div id="admin-shell" class="min-w-0 flex flex-col h-screen overflow-y-auto relative z-10 transition-[margin-left] duration-200">
         <!-- Background Elements -->
         <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-rose-600 glow-circle"></div>
         <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-pink-600 glow-circle"></div>
@@ -352,6 +352,6 @@
     </script>
         </main>
     </div>
-    <script src="{{ asset('js/admin-sidebar.js') }}"></script>
+    {{-- <script src="{{ asset('js/admin-sidebar.js') }}"></script> --}}
 </body>
 </html>

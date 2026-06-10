@@ -61,7 +61,7 @@
     @include('header.header')
 
     <!-- HERO BENTO GRID & ADVANCED FILTERS -->
-    <section class="container mx-auto px-6 pt-8 pb-8 max-w-6xl relative z-10">
+    <section id="renty-hero-section" class="container mx-auto px-6 pt-8 pb-8 max-w-6xl relative z-10">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Bento Box 1: Main Search & Visual Filters (Col span 2) -->
             <div class="lg:col-span-2 bg-gradient-to-br from-slate-900/40 to-slate-950/40 border border-slate-800/80 rounded-3xl p-6 md:p-8 backdrop-blur-md flex flex-col justify-between relative overflow-hidden group">
@@ -125,6 +125,8 @@
                             <i class="fa-solid fa-sliders text-emerald-450"></i> Lọc nâng cao
                         </button>
                     </div>
+                </div>
+            </div>
 
             <!-- Bento Box 2: Community Insights & Live Stats (Col span 1) -->
             <div class="bg-gradient-to-br from-slate-900/40 to-slate-950/40 border border-slate-800/80 rounded-3xl p-6 backdrop-blur-md flex flex-col justify-between relative overflow-hidden group">
@@ -267,7 +269,7 @@
 
         <!-- Room Cards List Pane (Right 50% in map mode) -->
         <div class="renty-split-right">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 border-b border-slate-900 pb-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 border-b border-slate-900 pb-4 renty-split-header">
             <h2 class="text-lg font-bold text-slate-200" id="results-count">Tìm thấy {{ count($rooms) }} phòng</h2>
             
             <div class="flex flex-wrap items-center gap-3 self-start sm:self-auto">
@@ -293,19 +295,23 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16" id="rooms-grid">
             @foreach($rooms as $room)
-            <div class="room-item-card glass-card rounded-2xl overflow-hidden group flex flex-col justify-between relative" 
-                 data-room-id="{{ $room['id'] }}"
-                 data-price="{{ $room['price'] }}" 
-                 data-rating="{{ $room['rating'] }}" 
-                 data-pets="{{ $room['pets'] }}" 
-                 data-loft="{{ $room['loft'] }}" 
-                 data-balcony="{{ $room['balcony'] }}" 
-                 data-wc="{{ $room['wc'] }}"
-                 data-distance="{{ $room['distance'] }}" 
-                 data-area-name="{{ $room['area_name'] }}"
-                 data-status="{{ $room['status'] }}"
-                 data-viewed="false"
-                 data-title="{{ $room['title'] }}">
+             <div class="room-item-card glass-card rounded-2xl overflow-hidden group flex flex-col justify-between relative" 
+                  data-room-id="{{ $room['id'] }}"
+                  data-price="{{ $room['price'] }}" 
+                  data-rating="{{ $room['rating'] }}" 
+                  data-pets="{{ $room['pets'] }}" 
+                  data-loft="{{ $room['loft'] }}" 
+                  data-balcony="{{ $room['balcony'] }}" 
+                  data-wc="{{ $room['wc'] }}"
+                  data-distance="{{ $room['distance'] }}" 
+                  data-area-name="{{ $room['area_name'] }}"
+                  data-status="{{ $room['status'] }}"
+                  data-viewed="false"
+                  data-title="{{ $room['title'] }}"
+                  data-address="{{ $room['address'] }}"
+                  data-location-desc="{{ $room['location_description'] }}"
+                  data-space-desc="{{ $room['space_description'] }}"
+                  data-scenery-desc="{{ $room['scenery_description'] }}">
                 <div class="room-card-skeleton" aria-hidden="true">
                     <div class="skeleton-media"></div>
                     <div class="skeleton-body">

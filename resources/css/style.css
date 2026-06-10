@@ -2287,16 +2287,40 @@ table tbody tr:nth-child(4n) {
 }
 
 /* Split-screen layout overrides when map mode is active */
+#renty-hero-section {
+    opacity: 1;
+    max-height: 1200px;
+    transform: translateY(0);
+    transition: 
+        opacity 0.45s cubic-bezier(0.25, 1, 0.5, 1),
+        max-height 0.45s cubic-bezier(0.25, 1, 0.5, 1),
+        padding 0.45s cubic-bezier(0.25, 1, 0.5, 1),
+        margin 0.45s cubic-bezier(0.25, 1, 0.5, 1),
+        transform 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
 body.renty-map-mode {
     overflow: hidden;
     /* Lock viewport scrolling, only split pane list scrolls */
     height: 100vh;
 }
 
+body.renty-map-mode #renty-hero-section {
+    opacity: 0 !important;
+    max-height: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+    transform: translateY(-30px) !important;
+}
+
 body.renty-map-mode #viewed-rooms-section,
 body.renty-map-mode .max-w-3xl.mx-auto.text-center.mb-8 {
-    display: none;
-    /* Hide hero text & viewed history to focus on search and split view */
+    display: none !important;
+    /* Hide bento hero and history sections to maximize map area */
 }
 
 /* Adjust map wrapper and grid when active */
@@ -2307,19 +2331,22 @@ body.renty-map-mode main {
     margin: 0 !important;
     display: flex;
     flex-direction: row;
-    height: calc(100vh - 80px - 140px);
-    /* Adjust to viewport minus navbar & search bar height */
+    height: calc(100vh - 80px);
+    /* Set height precisely to viewport minus the 80px navbar */
     border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Split-screen columns */
+/* Split-screen columns with smooth transition */
 .renty-split-left {
-    width: 50%;
+    width: 0;
+    opacity: 0;
     height: 100%;
     position: relative;
     border-right: 1px solid rgba(255, 255, 255, 0.05);
-    display: none;
-    /* Hidden by default in grid view */
+    overflow: hidden;
+    transition: 
+        width 0.45s cubic-bezier(0.25, 1, 0.5, 1),
+        opacity 0.45s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .renty-split-right {
@@ -2328,11 +2355,13 @@ body.renty-map-mode main {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+    transition: width 0.45s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 body.renty-map-mode .renty-split-left {
     display: block;
-    /* Show map column */
+    width: 50%;
+    opacity: 1;
 }
 
 body.renty-map-mode .renty-split-right {
@@ -2340,6 +2369,56 @@ body.renty-map-mode .renty-split-right {
     /* Make list column 50% width */
     height: 100%;
     overflow-y: auto;
+}
+
+/* Staggered card fade-in keyframes for premium transitions */
+@keyframes rentyCardFadeInHorizontal {
+    from {
+        opacity: 0;
+        transform: translateX(18px) scale(0.99);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes rentyCardFadeInVertical {
+    from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.99);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+body.renty-map-mode .room-item-card {
+    animation: rentyCardFadeInHorizontal 0.38s cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+
+body:not(.renty-map-mode) .room-item-card {
+    animation: rentyCardFadeInVertical 0.38s cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+
+/* Premium sticky header for search toolbar inside right list view */
+body.renty-map-mode .renty-split-header {
+    position: sticky;
+    top: -24px; /* Offset the 24px padding of the right container */
+    background: #080b11;
+    padding-top: 24px;
+    padding-bottom: 16px;
+    margin-top: -24px;
+    z-index: 30;
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Light theme overrides for the sticky header */
+.theme-light .renty-split-header {
+    background: #ffffff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 body.renty-map-mode #rooms-grid {
