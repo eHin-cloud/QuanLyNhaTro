@@ -1906,7 +1906,7 @@
     <!-- JS Logic -->
     <script>
         const currentUserIsLandlord = @json($isLandlord);
-        const canReceiveOnlinePayments = @json(in_array(($tenant->verification_status ?? 'unverified'), ['kyc_verified', 'premium_pending', 'premium_verified'], true));
+        const canReceiveOnlinePayments = {{ in_array(($tenant->verification_status ?? 'unverified'), ['kyc_verified', 'premium_pending', 'premium_verified'], true) ? 'true' : 'false' }};
 
         function requireKycForOnlinePayments() {
             alert('Can hoan tat KYC nhan tien truoc khi hien thi VietQR/chuyen khoan. Vui long gui CCCD va tai khoan ngan hang tren the xac minh o dau trang.');

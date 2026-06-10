@@ -75,10 +75,12 @@ class ContractSeeder extends Seeder
             ->map(fn ($item) => '- ' . $item)
             ->implode("\n") ?: '..........................................................................................................................';
 
+        $city = (strpos($building?->address ?? '', 'Hồ Chí Minh') !== false || strpos($building?->address ?? '', 'HCM') !== false || strpos($building?->address ?? '', 'Bình Thạnh') !== false) ? 'TP. Hồ Chí Minh' : 'Hà Nội';
+
         return implode("\n", [
             'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM',
             'Độc lập – Tự do – Hạnh phúc',
-            'Hà Nội, ngày ' . $startDate->day . ' tháng ' . $startDate->month . ' năm ' . $startDate->year,
+            $city . ', ngày ' . $startDate->day . ' tháng ' . $startDate->month . ' năm ' . $startDate->year,
             '',
             'HỢP ĐỒNG THUÊ NHÀ TRỌ',
             '_______',
