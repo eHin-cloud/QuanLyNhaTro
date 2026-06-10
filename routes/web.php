@@ -48,6 +48,10 @@ Route::middleware('role:admin')->group(function () {
     Route::post('admin/verifications/{verification}/reject', [AdminVerificationController::class, 'reject'])->name('admin.verifications.reject');
     Route::get('admin/verification-documents/{document}', [VerificationDocumentController::class, 'show'])->name('admin.verification-documents.show');
     Route::post('admin/verification-documents/{document}/unlock', [VerificationDocumentController::class, 'unlock'])->name('admin.verification-documents.unlock');
+    
+    // Bổ sung các tính năng giám sát & cấu hình bảo mật
+    Route::get('admin/audit-logs', [AdminVerificationController::class, 'auditLogs'])->name('admin.audit-logs');
+    Route::get('admin/analytics', [AdminVerificationController::class, 'analytics'])->name('admin.analytics');
 });
 
 Route::get('admin/verification-documents/{document}/stream', [VerificationDocumentController::class, 'stream'])

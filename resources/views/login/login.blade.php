@@ -55,7 +55,7 @@
             </button>
             @if($page === 'list')
                 <a href="{{ route('admin.verifications.index') }}" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-sky-500/25 transition-all">
-                    <i class="fa-solid fa-shield-halved mr-1.5"></i> Duyet Xac Minh
+                    <i class="fa-solid fa-shield-halved mr-1.5"></i> Giám Sát & Bảo Mật
                 </a>
                 <a href="{{ route('smartroom.admin') }}" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-500/25 transition-all">
                     <i class="fa-solid fa-gauge mr-1.5"></i> Dashboard Admin
@@ -78,7 +78,7 @@
                     </div>
                     <div class="flex flex-wrap gap-2">
                         <a href="{{ route('admin.verifications.index') }}" class="px-4 py-2.5 bg-sky-600/90 hover:bg-sky-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-sky-500/20 transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-1.5">
-                            <i class="fa-solid fa-shield-halved"></i> Duyệt Hồ Sơ
+                            <i class="fa-solid fa-shield-halved"></i> Giám Sát & Bảo Mật
                         </a>
                         <a href="{{ route('user.createUser') }}" class="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-emerald-500/20 transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-1.5">
                             <i class="fa-solid fa-user-plus"></i> Thêm Admin Mới
@@ -249,6 +249,11 @@
                             </tbody>
                         </table>
                     </div>
+                    @if($users->hasPages())
+                        <div class="mt-6 flex justify-center pb-4">
+                            {{ $users->links() }}
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -417,21 +422,21 @@
                         </form>
                         <div class="mt-8 pt-6 border-t border-slate-800/60 text-center space-y-3">
                             <p class="text-xs text-slate-400">Chưa có tài khoản quản lý?</p>
-                            <a href="{{ route('landlord.register') }}" class="login-register-link inline-flex items-center justify-center px-4 py-2 rounded-xl text-xs font-semibold transition-all">Dang ky chu tro moi</a>
-                            <a href="{{ route('user.createUser') }}" class="inline-flex items-center justify-center px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all">Dang ky tai khoan cu dan</a>
+                            <a href="{{ route('landlord.register') }}" class="login-register-link inline-flex items-center justify-center px-4 py-2 rounded-xl text-xs font-semibold transition-all">Đăng ký chủ trọ mới</a>
+                            <a href="{{ route('user.createUser') }}" class="inline-flex items-center justify-center px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all">Đăng ký tài khoản khách</a>
                         </div>
                     </section>
                 @elseif($page === 'create' || $page === 'update')
                     @php $editing = $page === 'update'; @endphp
                     <div class="register-card-header">
                         <div>
-                            <p class="login-form-kicker">{{ $editing ? 'Cập nhật hồ sơ' : 'Tạo tài khoản quản lý' }}</p>
-                            <h1>{{ $editing ? 'Chỉnh Sửa Tài Khoản' : 'Đăng Ký Tài Khoản' }}</h1>
-                            <p>{{ $editing ? 'Cập nhật thông tin quản trị viên #' . $user->id : 'Tạo tài khoản SmartRoom & Renty để quản lý phòng, hóa đơn và đánh giá trong một nơi.' }}</p>
+                            <p class="login-form-kicker">{{ $editing ? 'Cập nhật hồ sơ' : (Auth::check() ? 'Thêm thành viên mới' : 'Đăng ký tài khoản khách') }}</p>
+                            <h1>{{ $editing ? 'Chỉnh Sửa Tài Khoản' : (Auth::check() ? 'Thêm Thành Viên' : 'Đăng Ký Tài Khoản Khách') }}</h1>
+                            <p>{{ $editing ? 'Cập nhật thông tin quản trị viên #' . $user->id : (Auth::check() ? 'Tạo tài khoản mới và gán vai trò quản trị.' : 'Đăng ký tài khoản khách để tìm phòng và gửi liên hệ.') }}</p>
                         </div>
                         <div class="register-mini-badge" aria-hidden="true">
-                            <i class="fa-solid fa-building-user"></i>
-                            <span>{{ $editing ? 'Admin' : 'New Admin' }}</span>
+                            <i class="fa-solid fa-user-tag"></i>
+                            <span>{{ $editing ? 'Admin' : (Auth::check() ? 'Thêm Mới' : 'Khách') }}</span>
                         </div>
                     </div>
                     <form action="{{ $editing ? route('user.postUpdateUser') : route('user.postUser') }}" method="POST" class="register-form-grid">
@@ -471,7 +476,7 @@
                             <label class="block text-xs font-semibold text-slate-300 mb-2" for="like">Ghi chú / Mô tả</label>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500"><i class="fa-solid fa-heart"></i></span>
-                                <input type="text" name="like" id="like" value="{{ old('like', $editing ? $user->like : '') }}" required class="login-input-control w-full pl-10 pr-4 py-3 rounded-xl text-sm focus:outline-none transition-all" placeholder="Quản lý chung cư mini">
+                                <input type="text" name="like" id="like" value="{{ old('like', $editing ? $user->like : '') }}" required class="login-input-control w-full pl-10 pr-4 py-3 rounded-xl text-sm focus:outline-none transition-all" placeholder="{{ Auth::check() ? 'Ghi chú công việc hoặc vai trò' : 'Ví dụ: Tìm phòng trọ khu vực Quận 10' }}">
                             </div>
                         </div>
                         <div class="register-field register-field-wide">

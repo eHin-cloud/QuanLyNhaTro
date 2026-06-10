@@ -119,4 +119,90 @@ class AdminVerificationController extends Controller
 
         return back()->with('success', 'Da tu choi ho so xac minh.');
     }
+
+    public function auditLogs(Request $request)
+    {
+        $query = \App\Models\AdminAccessLog::with(['admin', 'targetLandlord', 'document'])
+            ->latest();
+
+        if ($request->filled('admin_id')) {
+            $query->where('admin_user_id', $request->admin_id);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('reason', 'like', "%{$search}%")
+                  ->orWhere('ip_address', 'like', "%{$search}%")
+                  ->orWhere('document_type', 'like', "%{$search}%");
+            });
+        }
+
+        $logs = $query->paginate(20);
+        
+        $admins = \App\Models\User::where('role', 'admin')
+            ->orWhereHas('roleRecord', function($q) {
+                $q->where('slug', 'admin');
+            })->get();
+
+        return view('admin.verifications.audit_logs', compact('logs', 'admins'));
+    }
+
+
+
+    public function analytics()
+    {
+        // 1. Tỷ lệ trạng thái phòng trọ toàn hệ thống
+        $roomStats = [
+            'total' => \App\Models\Room::count(),
+            'occupied' => \App\Models\Room::where('status', 'occupied')->count(),
+            'empty' => \App\Models\Room::where('status', 'empty')->count(),
+            'overdue' => \App\Models\Room::where('status', 'overdue')->count(),
+        ];
+
+        // 2. Doanh thu từ hóa đơn đã thanh toán thành công theo tháng
+        $billingData = \App\Models\Bill::selectRaw("
+            billing_month,
+            SUM(total_amount) as total_revenue,
+            COUNT(id) as paid_count
+        ")
+        ->where('status', 'paid')
+        ->groupBy('billing_month')
+        ->orderBy('billing_month')
+        ->get();
+
+        // 3. Số lượng chủ trọ mới gia nhập hệ thống theo tháng (trong vòng 6 tháng qua)
+        $landlordsData = \App\Models\User::selectRaw("
+            DATE_FORMAT(created_at, '%Y-%m') as month,
+            COUNT(id) as total_landlords
+        ")
+        ->where(function($q) {
+            $q->where('role', 'landlord')
+              ->orWhere('role', 'unverified_landlord')
+              ->orWhereHas('roleRecord', function($sq) {
+                  $sq->whereIn('slug', ['landlord', 'unverified_landlord']);
+              });
+        })
+        ->groupBy('month')
+        ->orderBy('month')
+        ->limit(6)
+        ->get();
+
+        // 4. Số lượng cư dân mới gia nhập hệ thống theo tháng
+        $residentsData = \App\Models\Resident::selectRaw("
+            DATE_FORMAT(created_at, '%Y-%m') as month,
+            COUNT(id) as total_residents
+        ")
+        ->groupBy('month')
+        ->orderBy('month')
+        ->limit(6)
+        ->get();
+
+        return view('admin.verifications.analytics', compact(
+            'roomStats',
+            'billingData',
+            'landlordsData',
+            'residentsData'
+        ));
+    }
 }

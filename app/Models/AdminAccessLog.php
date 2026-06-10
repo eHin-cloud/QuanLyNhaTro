@@ -27,4 +27,19 @@ class AdminAccessLog extends Model
     protected $casts = [
         'presigned_url_expires_at' => 'datetime',
     ];
+
+    public function admin()
+    {
+        return $this->belongsTo(User::class, 'admin_user_id');
+    }
+
+    public function targetLandlord()
+    {
+        return $this->belongsTo(User::class, 'target_landlord_id');
+    }
+
+    public function document()
+    {
+        return $this->belongsTo(LandlordVerificationDocument::class, 'document_id');
+    }
 }

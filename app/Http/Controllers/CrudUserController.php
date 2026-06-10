@@ -84,13 +84,18 @@ class CrudUserController extends Controller
         ]);
 
         $data = $request->all();
+
+        $guestRole = Role::where('slug', 'guest')->first();
+        $guestRoleId = $guestRole ? $guestRole->id : null;
+
         $check = User::create([
             'name' => $data['name'],
             'username' => $data['username'],
             'phone' => $data['phone'],
             'email' => $data['email'] ?? null,
             'like' => $data['like'],
-            'role' => 'user',
+            'role' => 'guest',
+            'role_id' => $guestRoleId,
             'password' => Hash::make($data['password'])
         ]);
 
@@ -164,7 +169,7 @@ class CrudUserController extends Controller
     public function listUser()
     {
         if (Auth::check()) {
-            $users = User::with(['roleRecord', 'tenant'])->orderByDesc('id')->get();
+            $users = User::with(['roleRecord', 'tenant'])->orderByDesc('id')->paginate(10);
             $roles = Role::whereIn('slug', ['admin', 'unverified_landlord', 'landlord', 'manager', 'resident', 'guest'])
                 ->orderByRaw("field(slug, 'admin', 'unverified_landlord', 'landlord', 'manager', 'resident', 'guest')")
                 ->get();

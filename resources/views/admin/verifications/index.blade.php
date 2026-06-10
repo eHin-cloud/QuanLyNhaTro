@@ -94,7 +94,7 @@
                     </span>
                 </div>
                 <h1 class="text-3xl font-extrabold tracking-tight text-white mt-2 flex items-center gap-3">
-                    <i class="fa-solid fa-file-signature text-sky-400"></i> Duyệt Hồ Sơ Xác Minh
+                    <i class="fa-solid fa-shield-halved text-sky-400"></i> Giám Sát & Bảo Mật
                 </h1>
                 <p class="text-xs text-slate-400">
                     Phê duyệt KYC để kích hoạt thanh toán hoặc cấp tích xanh hỗ trợ nâng cao uy tín cho chủ trọ trên Renty.
@@ -114,6 +114,19 @@
                 </a>
             </div>
         </header>
+
+        <!-- Navigation Tabs -->
+        <div class="flex flex-wrap items-center gap-2 mb-8 bg-slate-900/40 p-1.5 rounded-xl border border-slate-800/80 max-w-max">
+            <a href="{{ route('admin.verifications.index') }}" class="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 {{ request()->routeIs('admin.verifications.index') ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' : 'text-slate-400 hover:text-white hover:bg-slate-800/50' }}">
+                <i class="fa-solid fa-file-signature text-sky-400"></i> Duyệt Hồ Sơ
+            </a>
+            <a href="{{ route('admin.audit-logs') }}" class="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 {{ request()->routeIs('admin.audit-logs') ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' : 'text-slate-400 hover:text-white hover:bg-slate-800/50' }}">
+                <i class="fa-solid fa-shield-halved text-indigo-400"></i> Nhật Ký Audit
+            </a>
+            <a href="{{ route('admin.analytics') }}" class="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 {{ request()->routeIs('admin.analytics') ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' : 'text-slate-400 hover:text-white hover:bg-slate-800/50' }}">
+                <i class="fa-solid fa-chart-pie text-pink-400"></i> Thống Kê Hệ Thống
+            </a>
+        </div>
 
         <!-- Quick Stats Dashboard -->
         <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

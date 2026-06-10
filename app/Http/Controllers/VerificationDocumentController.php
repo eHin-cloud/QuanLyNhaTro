@@ -19,7 +19,8 @@ class VerificationDocumentController extends Controller
         $document->loadMissing('request.tenant');
         $this->authorizeDefaultDocumentAccess($document);
 
-        $expiresAt = now()->addSeconds((int) config('security.presigned_url_ttl_seconds', 300));
+        $ttl = (int) config('security.presigned_url_ttl_seconds', 300);
+        $expiresAt = now()->addSeconds($ttl);
         $accessLogService->recordDocumentAccess($document, 'CONSENT_PENDING_REVIEW', 'Pending landlord verification review', $expiresAt);
 
         return redirect()->away($documentService->temporaryViewUrl($document, ['admin' => Auth::id()]));
@@ -36,8 +37,22 @@ class VerificationDocumentController extends Controller
             'reason' => ['required', 'string', 'min:12', 'max:1000'],
         ]);
 
+        $requirePasskey = (bool) config('security.require_passkey', true);
+
         $user = Auth::user();
-        if ($user && $user->webAuthnCredentials()->whereEnabled()->exists()) {
+        $hasKey = $user && $user->webAuthnCredentials()->whereEnabled()->exists();
+
+        if ($requirePasskey || $hasKey) {
+            if (!$hasKey) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Bảo mật bắt buộc: Vui lòng đăng ký thiết bị bảo mật (Passkey) để truy cập tài liệu nhạy cảm.',
+                    ], 422);
+                }
+                return back()->withErrors(['webauthn' => 'Bảo mật bắt buộc: Vui lòng đăng ký thiết bị bảo mật (Passkey).']);
+            }
+
             try {
                 $assertionValidator
                     ->send(\Laragear\WebAuthn\Assertion\Validator\AssertionValidation::fromRequest($request))
@@ -56,7 +71,8 @@ class VerificationDocumentController extends Controller
         $document->loadMissing('request.user');
         $this->authorizeJitDocumentAccess($document);
 
-        $expiresAt = now()->addSeconds((int) config('security.presigned_url_ttl_seconds', 300));
+        $ttl = (int) config('security.presigned_url_ttl_seconds', 300);
+        $expiresAt = now()->addSeconds($ttl);
         $accessLogService->recordDocumentAccess($document, 'JIT_UNLOCK', $validated['reason'], $expiresAt);
 
         $url = $documentService->temporaryViewUrl($document, ['admin' => Auth::id()]);
