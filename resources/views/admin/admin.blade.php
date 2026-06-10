@@ -46,99 +46,7 @@
     <div class="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] rounded-full bg-emerald-600/5 blur-[100px] pointer-events-none"></div>
 
     <!-- SIDEBAR -->
-    <aside id="admin-sidebar" class="fixed inset-y-0 left-0 w-64 bg-[#0d121f] border-r border-slate-900 flex flex-col justify-between h-screen z-30 transition-[width] duration-200">
-        <div>
-            <!-- Sidebar Header -->
-            <div class="p-6 border-b border-slate-900 flex items-center justify-between">
-                <a href="{{ route('smartroom.portal') }}" class="sidebar-brand flex items-center gap-3 min-w-0">
-                    <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                        <i class="fa-solid fa-hotel text-white text-sm"></i>
-                    </div>
-                    <span class="text-lg font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">SmartRoom</span>
-                </a>
-                <button type="button" id="sidebar-toggle" class="w-8 h-8 rounded-lg border border-slate-800 text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 transition-all" title="Thu gọn/mở rộng sidebar">
-                    <i class="fa-solid fa-angles-left transition-transform"></i>
-                </button>
-            </div>
-            
-            <!-- Navigation Links -->
-            <nav class="p-4 space-y-1">
-                <button onclick="switchTab('dashboard-section', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/10 transition-all duration-200">
-                    <i class="fa-solid fa-chart-pie text-lg"></i>
-                    <span>Tổng Quan</span>
-                </button>
-                <button onclick="switchTab('profile-section', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                    <i class="fa-solid fa-address-card text-lg"></i>
-                    <span>Hồ Sơ</span>
-                </button>
-                <button onclick="switchTab('room-map-section', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                    <i class="fa-solid fa-cubes text-lg"></i>
-                    <span>Sơ Đồ Phòng</span>
-                </button>
-                <a href="{{ route('admin.rooms.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                    <i class="fa-solid fa-door-open text-lg"></i>
-                    <span>Cấu hình phòng</span>
-                </a>
-                <a href="{{ route('admin.equipment.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                    <i class="fa-solid fa-screwdriver-wrench text-lg"></i>
-                    <span>Thiết Bị</span>
-                </a>
-                @if($isLandlord)
-                    <a href="{{ route('admin.reports.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                        <i class="fa-solid fa-chart-column text-lg"></i>
-                        <span>Báo Cáo</span>
-                    </a>
-                @endif
-                <a href="{{ route('admin.payments.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                    <i class="fa-solid fa-money-check-dollar text-lg"></i>
-                    <span>Thanh Toán</span>
-                </a>
-                @if($isLandlord)
-                    <a href="{{ route('admin.activity_logs.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                        <i class="fa-solid fa-clock-rotate-left text-lg"></i>
-                        <span>Lịch Sử Vận Hành</span>
-                    </a>
-                @endif
-                <button onclick="switchTab('utility-section', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                    <i class="fa-solid fa-bolt text-lg"></i>
-                    <span>Chốt Điện Nước</span>
-                </button>
-                <button onclick="switchTab('resident-section', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                    <i class="fa-solid fa-users text-lg"></i>
-                    <span>Quản Lý Cư Dân</span>
-                </button>
-                <button onclick="switchTab('contract-section', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                    <i class="fa-solid fa-file-signature text-lg"></i>
-                    <span>Hợp Đồng Online</span>
-                </button>
-                <button onclick="switchTab('contact-section', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                    <i class="fa-solid fa-phone-volume text-lg"></i>
-                    <span>Yêu Cầu Tư Vấn</span>
-                    @if($contactRequests->where('status', 'pending')->count() > 0)
-                        <span class="sidebar-badge ml-auto bg-rose-500 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full animate-pulse">
-                            {{ $contactRequests->where('status', 'pending')->count() }}
-                        </span>
-                    @endif
-                </button>
-            </nav>
-        </div>
-
-        <!-- Sidebar Footer -->
-        <div class="sidebar-footer p-4 border-t border-slate-900">
-            <div class="sidebar-user flex items-center gap-3 p-2 rounded-xl bg-slate-900/50 border border-slate-800/40">
-                <div class="w-9 h-9 rounded-lg bg-indigo-900/50 border border-indigo-500/30 flex items-center justify-center font-bold text-indigo-400 text-sm">
-                    AD
-                </div>
-                <div class="sidebar-profile overflow-hidden">
-                    <h4 class="text-xs font-bold text-slate-200 truncate">Nguyễn Thành Hiền</h4>
-                    <p class="text-[10px] text-slate-500 truncate">Chủ chung cư mini</p>
-                </div>
-            </div>
-            <a href="{{ route('signout') }}" class="sidebar-logout mt-3 w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-semibold text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 transition-all duration-200">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Đăng Xuất (Thoát Admin)</span>
-            </a>
-        </div>
-    </aside>
+    @include('admin.partials.sidebar')
 
     <!-- MAIN APP WRAPPER -->
     <div id="admin-shell" class="ml-64 min-w-0 flex flex-col h-screen overflow-y-auto relative z-10 transition-[margin-left] duration-200">
@@ -355,8 +263,6 @@
                             </form>
                         </div>
                     @endif
-                </div>
-            </section>
                 </div>
             </section>
 
@@ -1172,6 +1078,11 @@
                             </tbody>
                         </table>
                     </div>
+                    @if($residents->hasPages())
+                        <div class="mt-6 flex justify-center pb-2">
+                            {{ $residents->appends(array_merge(request()->query(), ['tab' => 'resident-section']))->links() }}
+                        </div>
+                    @endif
                 </div>
             </section>
 
@@ -1184,7 +1095,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Tổng số hợp đồng</p>
-                                <h3 class="text-3xl font-extrabold text-white mt-2 tracking-tight">{{ $contracts->count() }}</h3>
+                                <h3 class="text-3xl font-extrabold text-white mt-2 tracking-tight">{{ $contractStats['total'] }}</h3>
                                 <span class="text-[10px] text-indigo-400 font-semibold mt-1 block">Tất cả bản ghi</span>
                             </div>
                             <span class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-300">
@@ -1197,7 +1108,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Hợp đồng hiệu lực</p>
-                                <h3 class="text-3xl font-extrabold text-white mt-2 tracking-tight">{{ $contracts->where('status', 'active')->count() }}</h3>
+                                <h3 class="text-3xl font-extrabold text-white mt-2 tracking-tight">{{ $contractStats['active'] }}</h3>
                                 <span class="text-[10px] text-emerald-400 font-semibold mt-1 block">Đã có chữ ký</span>
                             </div>
                             <span class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300">
@@ -1210,7 +1121,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Chờ cư dân ký</p>
-                                <h3 class="text-3xl font-extrabold text-white mt-2 tracking-tight">{{ $contracts->where('status', 'pending')->count() }}</h3>
+                                <h3 class="text-3xl font-extrabold text-white mt-2 tracking-tight">{{ $contractStats['pending'] }}</h3>
                                 <span class="text-[10px] text-amber-400 font-semibold mt-1 block">Yêu cầu chữ ký</span>
                             </div>
                             <span class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 group-hover:bg-amber-500 group-hover:text-white transition-all duration-300">
@@ -1325,6 +1236,11 @@
                             </tbody>
                         </table>
                     </div>
+                    @if($contracts->hasPages())
+                        <div class="mt-6 flex justify-center pb-2">
+                            {{ $contracts->appends(array_merge(request()->query(), ['tab' => 'contract-section']))->links() }}
+                        </div>
+                    @endif
                 </div>
             </section>
 
@@ -1337,7 +1253,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Tổng số yêu cầu</p>
-                                <h3 class="text-3xl font-extrabold text-white mt-2 tracking-tight">{{ $contactRequests->count() }}</h3>
+                                <h3 class="text-3xl font-extrabold text-white mt-2 tracking-tight">{{ $contactRequestStats['total'] }}</h3>
                             </div>
                             <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
                                 <i class="fa-solid fa-phone-volume text-xl"></i>
@@ -1350,7 +1266,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Chưa xử lý</p>
-                                <h3 class="text-3xl font-extrabold text-amber-400 mt-2 tracking-tight">{{ $contactRequests->where('status', 'pending')->count() }}</h3>
+                                <h3 class="text-3xl font-extrabold text-amber-400 mt-2 tracking-tight">{{ $contactRequestStats['pending'] }}</h3>
                             </div>
                             <div class="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400">
                                 <i class="fa-solid fa-clock-rotate-left text-xl"></i>
@@ -1363,7 +1279,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Đã liên hệ</p>
-                                <h3 class="text-3xl font-extrabold text-indigo-400 mt-2 tracking-tight">{{ $contactRequests->where('status', 'processed')->count() }}</h3>
+                                <h3 class="text-3xl font-extrabold text-indigo-400 mt-2 tracking-tight">{{ $contactRequestStats['processed'] }}</h3>
                             </div>
                             <div class="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
                                 <i class="fa-solid fa-square-check text-xl"></i>
@@ -1461,6 +1377,11 @@
                             </tbody>
                         </table>
                     </div>
+                    @if($contactRequests->hasPages())
+                        <div class="mt-6 flex justify-center pb-2">
+                            {{ $contactRequests->appends(array_merge(request()->query(), ['tab' => 'contact-section']))->links() }}
+                        </div>
+                    @endif
                 </div>
             </section>
 
@@ -2092,23 +2013,34 @@
         })();
 
         // Tab switching
-        function switchTab(tabId, btn) {
+        function switchTab(tabId, btn = null) {
             // Hide all sections
             document.querySelectorAll('.tab-content').forEach(section => {
                 section.classList.add('hidden');
             });
             // Show active section
-            document.getElementById(tabId).classList.remove('hidden');
+            const targetSection = document.getElementById(tabId);
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+            }
             
-            // Remove active style from all nav buttons
-            document.querySelectorAll('.nav-btn').forEach(button => {
+            // Remove active style from all sidebar nav links
+            document.querySelectorAll('.sidebar-nav-link').forEach(button => {
                 button.classList.remove('text-indigo-400', 'bg-indigo-500/10', 'border-indigo-500/10');
                 button.classList.add('text-slate-400', 'hover:text-slate-100', 'hover:bg-slate-800/50', 'border-transparent', 'hover:border-slate-800');
             });
             
+            // Find active button
+            let activeBtn = btn;
+            if (!activeBtn) {
+                activeBtn = document.querySelector(`.sidebar-nav-link[data-section="${tabId}"]`);
+            }
+            
             // Add active style to current button
-            btn.classList.remove('text-slate-400', 'hover:text-slate-100', 'hover:bg-slate-800/50', 'border-transparent', 'hover:border-slate-800');
-            btn.classList.add('text-indigo-400', 'bg-indigo-500/10', 'border-indigo-500/10');
+            if (activeBtn) {
+                activeBtn.classList.remove('text-slate-400', 'hover:text-slate-100', 'hover:bg-slate-800/50', 'border-transparent', 'hover:border-slate-800');
+                activeBtn.classList.add('text-indigo-400', 'bg-indigo-500/10', 'border-indigo-500/10');
+            }
             
             // Set header title
             let title = "SmartRoom Dashboard";
@@ -2119,8 +2051,45 @@
             else if(tabId === 'resident-section') title = "Quản Lý Cư Dân";
             else if(tabId === 'contract-section') title = "Quản Lý Hợp Đồng Online";
             else if(tabId === 'contact-section') title = "Yêu Cầu Tư Vấn & Xem Phòng";
-            document.getElementById('section-title').textContent = title;
+            
+            const titleEl = document.getElementById('section-title');
+            if (titleEl) {
+                titleEl.textContent = title;
+            }
+            
+            // Update URL without page reload
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('tab') !== tabId) {
+                urlParams.set('tab', tabId);
+                const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?' + urlParams.toString();
+                window.history.pushState({ tab: tabId }, '', newUrl);
+            }
         }
+
+        // Add event listener to sidebar-nav-link links on DOMContentLoaded to switch tabs dynamically without page reload
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.sidebar-nav-link[data-section]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const sectionId = this.getAttribute('data-section');
+                    if (sectionId) {
+                        e.preventDefault();
+                        switchTab(sectionId, this);
+                    }
+                });
+            });
+
+            // Initial switch tab based on URL query parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const tabParam = urlParams.get('tab') || 'dashboard-section';
+            switchTab(tabParam);
+
+            // Sync with browser back/forward buttons
+            window.addEventListener('popstate', function(event) {
+                const params = new URLSearchParams(window.location.search);
+                const currentTab = params.get('tab') || 'dashboard-section';
+                switchTab(currentTab);
+            });
+        });
 
         // Room filter function
         function filterRooms(status) {
@@ -3232,12 +3201,9 @@
             const urlParams = new URLSearchParams(window.location.search);
             const tabParam = urlParams.get('tab');
             if (tabParam) {
-                const targetBtn = Array.from(document.querySelectorAll('.nav-btn')).find(btn => {
-                    const onclickStr = btn.getAttribute('onclick') || '';
-                    return onclickStr.includes(tabParam);
-                });
-                if (targetBtn) {
-                    switchTab(tabParam, targetBtn);
+                const targetLink = document.querySelector(`.sidebar-nav-link[data-section="${tabParam}"]`);
+                if (targetLink) {
+                    switchTab(tabParam, targetLink);
                 }
                 // Clean the URL parameter without reloading the page
                 const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;

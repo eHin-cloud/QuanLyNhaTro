@@ -13,6 +13,7 @@
         tailwind.config = { theme: { extend: { fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] } } } }
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
     @vite(['resources/css/app.css', 'resources/css/style.css', 'resources/js/app.js'])
     <style>
         .panel { background: rgba(13, 18, 31, 0.72); border: 1px solid rgba(30, 41, 59, 0.86); }
@@ -21,63 +22,10 @@
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 99px; }
     </style>
 </head>
-<body class="bg-[#080b11] text-slate-100 min-h-screen flex selection:bg-indigo-500 selection:text-white overflow-hidden">
-    <aside class="w-64 bg-[#0d121f] border-r border-slate-900 flex flex-col justify-between h-screen shrink-0">
-        <div>
-            <div class="p-6 border-b border-slate-900">
-                <a href="{{ route('smartroom.admin') }}" class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                        <i class="fa-solid fa-hotel text-white text-sm"></i>
-                    </div>
-                    <span class="text-lg font-extrabold tracking-tight text-slate-100">SmartRoom</span>
-                </a>
-            </div>
+<body class="bg-[#080b11] text-slate-100 min-h-screen selection:bg-indigo-500 selection:text-white overflow-hidden">
+    @include('admin.partials.sidebar')
 
-            <nav class="p-4 space-y-1">
-                <a href="{{ route('smartroom.admin') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all">
-                    <i class="fa-solid fa-chart-pie text-lg"></i>
-                    <span>Tổng Quan</span>
-                </a>
-                <a href="{{ route('admin.rooms.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all">
-                    <i class="fa-solid fa-door-open text-lg"></i>
-                    <span>Quản Lý Phòng</span>
-                </a>
-                <a href="{{ route('admin.payments.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all">
-                    <i class="fa-solid fa-money-check-dollar text-lg"></i>
-                    <span>Thanh Toán</span>
-                </a>
-                <a href="{{ route('admin.equipment.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all">
-                    <i class="fa-solid fa-screwdriver-wrench text-lg"></i>
-                    <span>Thiết Bị</span>
-                </a>
-                <a href="{{ route('admin.reports.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all">
-                    <i class="fa-solid fa-chart-column text-lg"></i>
-                    <span>Báo Cáo</span>
-                </a>
-                <a href="{{ route('admin.activity_logs.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/10 transition-all">
-                    <i class="fa-solid fa-clock-rotate-left text-lg"></i>
-                    <span>Lịch Sử Vận Hành</span>
-                </a>
-            </nav>
-        </div>
-
-        <div class="p-4 border-t border-slate-900">
-            <div class="flex items-center gap-3 p-2 rounded-xl bg-slate-900/50 border border-slate-800/40">
-                <div class="w-9 h-9 rounded-lg bg-indigo-900/50 border border-indigo-500/30 flex items-center justify-center font-bold text-indigo-400 text-sm">
-                    {{ substr(Auth::user()->name ?? 'AD', 0, 2) }}
-                </div>
-                <div class="overflow-hidden">
-                    <h4 class="text-xs font-bold text-slate-200 truncate">{{ Auth::user()->name ?? 'Người dùng' }}</h4>
-                    <p class="text-[10px] text-slate-500 truncate">{{ Auth::user()->roleName() }}</p>
-                </div>
-            </div>
-            <a href="{{ route('signout') }}" class="mt-3 w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-semibold text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 transition-all">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng Xuất
-            </a>
-        </div>
-    </aside>
-
-    <main class="flex-grow flex flex-col h-screen overflow-y-auto">
+    <div id="admin-shell" class="ml-64 min-w-0 flex flex-col h-screen overflow-y-auto relative z-10 transition-[margin-left] duration-200">
         <header class="h-16 border-b border-slate-900 bg-[#080b11]/90 backdrop-blur-md flex items-center justify-between px-8 sticky top-0 z-20">
             <div>
                 <h1 class="text-lg font-bold text-slate-100">Lịch Sử Vận Hành</h1>
@@ -271,6 +219,7 @@
                 </section>
             </div>
         </div>
-    </main>
+    </div>
+    <script src="{{ asset('js/admin-sidebar.js') }}"></script>
 </body>
 </html>

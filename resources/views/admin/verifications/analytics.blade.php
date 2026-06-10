@@ -6,6 +6,7 @@
     <title>Thống Kê Hệ Thống - SmartRoom Console</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -32,12 +33,15 @@
         }
     </style>
 </head>
-<body class="min-h-screen text-slate-100 relative overflow-x-hidden pb-12">
-    <!-- Background Elements -->
-    <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-rose-600 glow-circle"></div>
-    <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-pink-600 glow-circle"></div>
+<body class="bg-[#080b11] text-slate-100 min-h-screen selection:bg-indigo-500 selection:text-white overflow-hidden">
+    @include('admin.partials.sidebar')
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-10 relative z-10">
+    <div id="admin-shell" class="ml-64 min-w-0 flex flex-col h-screen overflow-y-auto relative z-10 transition-[margin-left] duration-200">
+        <!-- Background Elements -->
+        <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-rose-600 glow-circle"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-pink-600 glow-circle"></div>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 py-10 relative z-10 flex-grow">
         <!-- Header Section -->
         <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 pb-6 border-b border-slate-900">
             <div class="space-y-1">
@@ -346,5 +350,8 @@
             }
         });
     </script>
+        </main>
+    </div>
+    <script src="{{ asset('js/admin-sidebar.js') }}"></script>
 </body>
 </html>

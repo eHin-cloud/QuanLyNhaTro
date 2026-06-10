@@ -115,14 +115,24 @@ class AdminDashboardController extends Controller
                 });
             })
             ->orderBy('id', 'desc')
-            ->get();
+            ->paginate(10, ['*'], 'resident_page');
         $emptyRoomsList = Room::where('tenant_id', $tenantId)->where('status', 'empty')->orderBy('room_number')->get();
 
         // 6. Contracts Tab
-        $contracts = Contract::with(['room', 'resident'])->where('tenant_id', $tenantId)->orderBy('id', 'desc')->get();
+        $contractStats = [
+            'total' => Contract::where('tenant_id', $tenantId)->count(),
+            'active' => Contract::where('tenant_id', $tenantId)->where('status', 'active')->count(),
+            'pending' => Contract::where('tenant_id', $tenantId)->where('status', 'pending')->count(),
+        ];
+        $contracts = Contract::with(['room', 'resident'])->where('tenant_id', $tenantId)->orderBy('id', 'desc')->paginate(10, ['*'], 'contract_page');
 
         // 8. Contact Requests Tab
-        $contactRequests = \App\Models\ContactRequest::with('room')->orderBy('id', 'desc')->get();
+        $contactRequestStats = [
+            'total' => \App\Models\ContactRequest::count(),
+            'pending' => \App\Models\ContactRequest::where('status', 'pending')->count(),
+            'processed' => \App\Models\ContactRequest::where('status', 'processed')->count(),
+        ];
+        $contactRequests = \App\Models\ContactRequest::with('room')->orderBy('id', 'desc')->paginate(10, ['*'], 'contact_page');
 
         // 9. Smart alerts
         $today = Carbon::today();
@@ -304,7 +314,9 @@ class AdminDashboardController extends Controller
             'emptyRoomsList',
             'recentActivities',
             'contracts',
+            'contractStats',
             'contactRequests',
+            'contactRequestStats',
             'smartAlertGroups',
             'smartAlertTotal',
             'notificationLogs',
