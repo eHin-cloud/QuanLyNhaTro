@@ -519,6 +519,9 @@
             @endforeach
         </div>
 
+        <!-- Pagination Controls -->
+        <div id="renty-pagination" class="flex justify-center items-center gap-2 mb-12 flex-wrap"></div>
+
         <section id="viewed-rooms-section" class="hidden mb-16">
             <div class="flex items-center justify-between mb-4">
                 <div>

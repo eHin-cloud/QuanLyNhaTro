@@ -1026,12 +1026,82 @@ function runSearchWithSkeleton() {
     }, 680);
 }
 
+let rentyCurrentPage = 1;
+const rentyItemsPerPage = 9;
+
+// Dynamically render premium glassmorphism pagination controls
+function renderPaginationControls(totalPages) {
+    const container = document.getElementById('renty-pagination');
+    if (!container) return;
+
+    if (totalPages <= 1) {
+        container.innerHTML = '';
+        return;
+    }
+
+    let html = '';
+
+    // Previous Button
+    html += `
+        <button type="button" 
+                onclick="changeRentyPage(${rentyCurrentPage - 1})" 
+                class="px-4 py-2 rounded-xl bg-slate-900/40 border border-slate-800/85 hover:border-emerald-500/40 hover:text-emerald-400 transition-all font-bold text-xs flex items-center justify-center gap-1.5 ${rentyCurrentPage === 1 ? 'opacity-40 cursor-not-allowed' : ''}" 
+                ${rentyCurrentPage === 1 ? 'disabled' : ''}>
+            <i class="fa-solid fa-chevron-left text-[10px]"></i> Trước
+        </button>
+    `;
+
+    // Page numbers
+    for (let i = 1; i <= totalPages; i++) {
+        const isActive = i === rentyCurrentPage;
+        html += `
+            <button type="button" 
+                    onclick="changeRentyPage(${i})" 
+                    class="w-9 h-9 rounded-xl font-extrabold text-xs transition-all border ${isActive ? 'bg-gradient-to-tr from-emerald-600 to-teal-500 text-white border-transparent shadow-lg shadow-emerald-500/20' : 'bg-slate-900/40 border-slate-800/80 text-slate-400 hover:border-emerald-500/30 hover:text-slate-200'}">
+                ${i}
+            </button>
+        `;
+    }
+
+    // Next Button
+    html += `
+        <button type="button" 
+                onclick="changeRentyPage(${rentyCurrentPage + 1})" 
+                class="px-4 py-2 rounded-xl bg-slate-900/40 border border-slate-800/85 hover:border-emerald-500/40 hover:text-emerald-400 transition-all font-bold text-xs flex items-center justify-center gap-1.5 ${rentyCurrentPage === totalPages ? 'opacity-40 cursor-not-allowed' : ''}" 
+                ${rentyCurrentPage === totalPages ? 'disabled' : ''}>
+            Sau <i class="fa-solid fa-chevron-right text-[10px]"></i>
+        </button>
+    `;
+
+    container.innerHTML = html;
+}
+
+function changeRentyPage(page) {
+    rentyCurrentPage = page;
+    filterItems({ resetPage: false });
+    
+    // Smooth scroll to top of main workspace
+    const resultsCount = document.getElementById('results-count');
+    if (resultsCount) {
+        resultsCount.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+// Make changeRentyPage global so inline event handler onclick works
+window.changeRentyPage = changeRentyPage;
+
 // Search and filter function
 function filterItems(options = {}) {
     clearTimeout(rentySearchSkeletonTimer);
     if (!options.keepSkeleton) {
         setSearchSkeletonLoading(false);
     }
+    
+    // Reset page to 1 unless explicitly requested to keep page
+    if (options.resetPage !== false) {
+        rentyCurrentPage = 1;
+    }
+    
     const query = document.getElementById('search-input').value;
     const parsedSearch = parseNaturalSearch(query);
     const normalizedQuery = normalizeText(query);
@@ -1044,7 +1114,7 @@ function filterItems(options = {}) {
     const wcChecked = document.getElementById('tag-wc') ? document.getElementById('tag-wc').checked : false;
     const hideRented = document.getElementById('hide-rented-toggle') ? document.getElementById('hide-rented-toggle').checked : false;
 
-    let matchesCount = 0;
+    let matches = [];
 
     document.querySelectorAll('.room-item-card').forEach(card => {
         const title = card.getAttribute('data-title').toLowerCase();
@@ -1096,9 +1166,8 @@ function filterItems(options = {}) {
             matchesStatus = false;
         }
 
-        if (matchesQuery && matchesPrice && matchesRating && matchesTags && matchesLocation && matchesStatus) {
-            card.classList.remove('hidden');
-            matchesCount++;
+        if (matchesQuery && matchesPrice && matchesRating && matchesDistance && matchesTags && matchesLocation && matchesStatus) {
+            matches.push(card);
             showMarker(card.getAttribute('data-room-id'));
         } else {
             card.classList.add('hidden');
@@ -1106,7 +1175,44 @@ function filterItems(options = {}) {
         }
     });
 
+    const matchesCount = matches.length;
     document.getElementById('results-count').textContent = `Tìm thấy ${matchesCount} phòng`;
+
+    // Calculate total pages
+    const totalPages = Math.ceil(matchesCount / rentyItemsPerPage);
+    if (rentyCurrentPage > totalPages) {
+        rentyCurrentPage = totalPages || 1;
+    }
+    if (rentyCurrentPage < 1) {
+        rentyCurrentPage = 1;
+    }
+
+    const startIndex = (rentyCurrentPage - 1) * rentyItemsPerPage;
+    const endIndex = startIndex + rentyItemsPerPage;
+
+    matches.forEach((card, index) => {
+        if (index >= startIndex && index < endIndex) {
+            card.classList.remove('hidden');
+        } else {
+            card.classList.add('hidden');
+        }
+    });
+
+    renderPaginationControls(totalPages);
+
+    // Fit map bounds to visible markers
+    if (rentyMap && typeof L !== 'undefined') {
+        const visibleLatLngs = [];
+        Object.values(rentyMarkers).forEach(marker => {
+            if (rentyMap.hasLayer(marker)) {
+                visibleLatLngs.push(marker.getLatLng());
+            }
+        });
+        if (visibleLatLngs.length > 0) {
+            const bounds = L.latLngBounds(visibleLatLngs);
+            rentyMap.fitBounds(bounds, { maxZoom: 14, padding: [30, 30] });
+        }
+    }
 }
 
 function openRentySearchSuggestions() {
