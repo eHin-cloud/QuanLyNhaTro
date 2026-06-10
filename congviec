@@ -1,0 +1,77 @@
+# DANH SÁCH CÔNG VIỆC CẦN LÀM (SMARTROOM & RENTY REVIEW)
+
+Dưới đây là danh sách toàn bộ các công việc đã triển khai để hoàn thiện phần backend và tích hợp dữ liệu động cho Thành viên 1.
+
+---
+
+## 🛠️ PHẦN 1: CƠ SỞ DỮ LIỆU & DỮ LIỆU MẪU (DATABASE & SEEDERS)
+
+- [x] **1.1 Tạo Migration cho bảng Chỉ số Điện Nước (`utility_records`)**
+  - Schema gồm: `id`, `room_id` (khoá ngoại), `billing_month` (tháng hóa đơn, ví dụ: "2026-06"), `old_electricity` (chỉ số điện cũ), `new_electricity` (chỉ số điện mới), `old_water` (chỉ số nước cũ), `new_water` (chỉ số nước mới), `electricity_price` (đơn giá điện), `water_price` (đơn giá nước), `status` (trạng thái: 'draft', 'sent', 'paid').
+- [x] **1.2 Tạo Database Seeder (`SmartRoomSeeder` hoặc bổ sung vào `DatabaseSeeder`)**
+  - Tạo dữ liệu mẫu cho 12 phòng trọ phân bố đều ở các tầng 1, 2, 3 với các trạng thái: Trống (empty), Đã thuê (occupied), Nợ phí (overdue).
+  - Tạo dữ liệu cư dân mẫu liên kết với các phòng đang thuê.
+  - Tạo dữ liệu điện nước lịch sử cho các tháng trước (Tháng 3, 4, 5 năm 2026) để làm dữ liệu vẽ biểu đồ doanh thu.
+- [x] **1.3 Chạy và kiểm tra đồng bộ**
+  - Chạy `.\start.bat` để xác minh việc làm mới cơ sở dữ liệu và nạp dữ liệu mẫu chạy thành công không có lỗi.
+
+---
+
+## 📊 PHẦN 2: PHÂN HỆ ADMIN - SMARTROOM (BACKEND & LIÊN KẾT GIAO DIỆN)
+
+- [x] **2.1 Tạo `AdminDashboardController`**
+  - Tạo controller quản lý và xử lý toàn bộ logic truy vấn dữ liệu cho các tab của trang Admin.
+- [x] **2.2 Tab 1: Tổng Quan (Overview Dashboard)**
+  - Hiển thị các thẻ thống kê thực tế: tổng số phòng, số phòng đang thuê, số phòng trống, số phòng nợ tiền lấy trực tiếp từ database.
+  - Biểu đồ **Xu hướng doanh thu** (Line Chart - Chart.js): Lấy tổng tiền điện nước đã thanh toán gom nhóm theo từng tháng từ database.
+  - Biểu đồ **Trạng thái phòng** (Doughnut Chart): Thống kê tỉ lệ các trạng thái phòng.
+- [x] **2.3 Tab 2: Sơ đồ phòng trực quan (Visual Room Map)**
+  - Tải danh sách phòng động theo từng tầng.
+  - Áp dụng màu sắc động dựa trên trạng thái thực tế: Xanh (Trống), Đỏ (Đã thuê), Vàng (Nợ phí).
+  - Tích hợp Drawer (bảng trượt chi tiết) hiển thị thông tin cư dân thực tế của phòng được chọn, chi tiết hóa đơn tháng hiện tại và tạo mã VietQR động dựa trên tổng số tiền cần đóng.
+- [x] **2.4 Tab 3: Chốt điện nước cuối tháng (Utility Input)**
+  - Tải danh sách các phòng đang hoạt động cùng với chỉ số cũ (lấy từ chỉ số mới của tháng trước).
+  - Cho phép nhập chỉ số mới (Điện/Nước), tự động tính toán lượng tiêu thụ và thành tiền bằng JavaScript.
+  - Khi bấm lưu, tạo bản ghi mới vào bảng `utility_records` trong database.
+- [x] **2.5 Tab 4: Quản lý cư dân (Resident CRUD)**
+  - Hiển thị danh sách cư dân từ cơ sở dữ liệu, cho phép tìm kiếm theo tên hoặc số phòng.
+  - Thiết kế form thêm cư dân mới (khi thêm thành công, tự động cập nhật trạng thái phòng đó sang 'Đã thuê').
+  - Chức năng sửa đổi thông tin cư dân.
+  - Chức năng xóa cư dân (trả phòng, tự động cập nhật trạng thái phòng đó về 'Trống').
+
+---
+
+## 🔍 PHẦN 3: PHÂN HỆ KHÁCH THUÊ - RENTY REVIEW (TÌM KIẾM & SO SÁNH)
+
+- [x] **3.1 Tính năng Tìm kiếm & Lọc nâng cao**
+  - Truy vấn danh sách phòng động từ database theo từ khóa (số phòng, tầng) và khoảng giá thuê mong muốn.
+- [x] **3.2 Tính năng So sánh phòng**
+  - Nhận diện các phòng được chọn (tối đa 3 phòng) để hiển thị bảng so sánh side-by-side chi tiết: giá thuê, diện tích, tầng, tiện ích, và đánh giá.
+
+---
+
+## 🚀 PHẦN 4: CÁC CÔNG VIỆC NÂNG CAO CẦN LÀM TIẾP THEO (PHASE 2 - ADVANCED FEATURES)
+
+- [x] **4.1 Tính năng Viết Đánh giá (Review) thực tế**
+  - Tạo bảng `reviews` gồm: `id`, `room_id`, `rating` (điểm từ 1-5), `comment` (bình luận), `author_name` (tên người dùng), `created_at`.
+  - Cho phép khách thuê viết đánh giá trực tiếp trên trang chi tiết phòng của phân hệ Renty Review.
+- [x] **4.2 Tính năng Xem chi tiết phòng trọ (Room Details Drawer)**
+  - Hiển thị danh sách các bài đánh giá cũ của phòng được chọn.
+  - Tính điểm trung bình của phòng dựa trên tất cả đánh giá thực tế trong cơ sở dữ liệu thay vì tạo mẫu ngẫu nhiên.
+- [x] **4.3 Xuất hóa đơn PDF & Excel cho Admin**
+  - Hỗ trợ xuất hóa đơn điện nước chi tiết dạng bản in / PDF tối ưu hóa riêng biệt với mã VietQR tự động.
+- [x] **4.4 Tích hợp thông báo qua Telegram/Zalo API**
+  - Gửi tin nhắn thông báo hóa đơn tự động chứa số tiền, hạn đóng và đường dẫn VietQR đến số điện thoại cư dân hoặc nhóm Telegram quản trị.
+
+---
+
+## ✍️ PHẦN 5: TẠO VÀ KÝ HỢP ĐỒNG ONLINE (ONLINE CONTRACTS)
+
+- [x] **5.1 Thiết kế Schema CSDL Hợp đồng (`contracts`)**
+  - Lưu thông tin mã hợp đồng, phòng, cư dân đại diện, tiền cọc, ngày bắt đầu/kết thúc, điều khoản và chuỗi base64 chữ ký điện tử.
+- [x] **5.2 Tích hợp Tab Quản Lý Hợp Đồng trên Admin Dashboard**
+  - Thiết kế tab riêng biệt để hiển thị danh sách hợp đồng, trạng thái (Chờ ký / Đã ký), thống kê nhanh số lượng hợp đồng hiệu lực và nút sao chép link ký.
+- [x] **5.3 Tạo Modal thêm mới hợp đồng trực quan**
+  - Cho phép admin chọn cư dân, phòng trọ, nhập tiền cọc, thời hạn thuê và tùy chỉnh các điều khoản hợp đồng.
+- [x] **5.4 Xây dựng trang ký hợp đồng online dành cho cư dân (Signature Pad)**
+  - Tích hợp khung canvas vẽ chữ ký bằng tay hỗ trợ cả chuột máy tính và cảm ứng di động, chuyển đổi thành base64 lưu vào DB để ký hợp đồng pháp lý trực tuyến.
