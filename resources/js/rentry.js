@@ -2204,3 +2204,431 @@ document.addEventListener('DOMContentLoaded', () => {
         updateDistanceSlider(slider.value);
     }
 });
+
+// ════════════════════════════════════════════════════════════════════════
+// RENTY CHATBOT ENGINE
+// ════════════════════════════════════════════════════════════════════════
+
+let rentyChatbotOpen = false;
+let rentyChatbotHistory = [];
+let rentyChatbotInitialized = false;
+
+function toggleRentyChatbot() {
+    const panel = document.getElementById('renty-chatbot-panel');
+    if (!panel) return;
+    rentyChatbotOpen = !rentyChatbotOpen;
+    panel.classList.toggle('is-open', rentyChatbotOpen);
+
+    // Hide badge when opening
+    if (rentyChatbotOpen) {
+        const badge = document.getElementById('renty-chatbot-badge');
+        if (badge) badge.classList.add('hidden');
+    }
+
+    // Show welcome message on first open
+    if (rentyChatbotOpen && !rentyChatbotInitialized) {
+        rentyChatbotInitialized = true;
+        addBotMessage('Xin chào! 👋 Mình là <strong>Renty AI</strong>, trợ lý tìm trọ của bạn.<br><br>Bạn có thể hỏi mình về:<br>• 📍 Phòng trọ theo khu vực<br>• 💰 Phòng theo ngân sách<br>• 🏠 Tiện ích phòng (ban công, thú cưng...)<br>• 🛡️ Mẹo thuê trọ an toàn<br><br>Hoặc nhấn nút gợi ý phía dưới để bắt đầu nhanh!');
+    }
+}
+window.toggleRentyChatbot = toggleRentyChatbot;
+
+function clearRentyChatbot() {
+    const container = document.getElementById('renty-chatbot-messages');
+    if (container) container.innerHTML = '';
+    rentyChatbotHistory = [];
+    rentyChatbotInitialized = false;
+    addBotMessage('Đã xoá lịch sử. Bạn muốn tìm phòng trọ như thế nào? 😊');
+    rentyChatbotInitialized = true;
+}
+window.clearRentyChatbot = clearRentyChatbot;
+
+function addBotMessage(html, roomCards) {
+    const container = document.getElementById('renty-chatbot-messages');
+    if (!container) return;
+
+    let cardsHtml = '';
+    if (roomCards && roomCards.length > 0) {
+        cardsHtml = roomCards.map(room => {
+            const price = Number(room.price || 0).toLocaleString('vi-VN');
+            const amenities = [];
+            if (room.balcony === 'true' || room.balcony_txt === 'Có') amenities.push('Ban công');
+            if (room.pets === 'true' || room.pets_txt === 'Có') amenities.push('Thú cưng');
+            if (room.loft === 'true' || room.loft_txt === 'Có') amenities.push('Gác lửng');
+            if (room.wc === 'true' || room.wc_txt === 'Có') amenities.push('WC riêng');
+            const amenityText = amenities.slice(0, 3).join(' · ') || 'Cơ bản';
+
+            return `<a href="/renty/room/${room.id}" class="renty-cb-room-card" target="_blank">
+                <img src="${escapeHtml(room.cover_image || '')}" alt="${escapeHtml(room.title || '')}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=400&q=60';">
+                <div class="renty-cb-room-info">
+                    <span class="room-title">${escapeHtml(room.title || 'Phòng trọ')}</span>
+                    <span class="room-price">${price}đ/tháng</span>
+                    <div class="room-meta">
+                        <span><i class="fa-solid fa-ruler-combined"></i> ${room.area_text || room.area + 'm²'}</span>
+                        <span><i class="fa-solid fa-star"></i> ${room.rating}</span>
+                        <span>${amenityText}</span>
+                    </div>
+                </div>
+            </a>`;
+        }).join('');
+    }
+
+    const msgEl = document.createElement('div');
+    msgEl.className = 'renty-cb-msg renty-cb-msg-bot';
+    msgEl.innerHTML = `
+        <div class="renty-cb-msg-icon"><i class="fa-solid fa-robot"></i></div>
+        <div class="renty-cb-bubble">${html}${cardsHtml}</div>
+    `;
+    container.appendChild(msgEl);
+    container.scrollTop = container.scrollHeight;
+
+    rentyChatbotHistory.push({ role: 'bot', text: html });
+}
+
+function addUserMessage(text) {
+    const container = document.getElementById('renty-chatbot-messages');
+    if (!container) return;
+
+    const msgEl = document.createElement('div');
+    msgEl.className = 'renty-cb-msg renty-cb-msg-user';
+    msgEl.innerHTML = `
+        <div class="renty-cb-msg-icon"><i class="fa-solid fa-user"></i></div>
+        <div class="renty-cb-bubble">${escapeHtml(text)}</div>
+    `;
+    container.appendChild(msgEl);
+    container.scrollTop = container.scrollHeight;
+
+    rentyChatbotHistory.push({ role: 'user', text });
+}
+
+function showTypingIndicator() {
+    const container = document.getElementById('renty-chatbot-messages');
+    if (!container) return;
+
+    const typingEl = document.createElement('div');
+    typingEl.className = 'renty-cb-msg renty-cb-msg-bot';
+    typingEl.id = 'renty-cb-typing';
+    typingEl.innerHTML = `
+        <div class="renty-cb-msg-icon"><i class="fa-solid fa-robot"></i></div>
+        <div class="renty-cb-bubble">
+            <div class="renty-cb-typing"><span></span><span></span><span></span></div>
+        </div>
+    `;
+    container.appendChild(typingEl);
+    container.scrollTop = container.scrollHeight;
+}
+
+function removeTypingIndicator() {
+    const el = document.getElementById('renty-cb-typing');
+    if (el) el.remove();
+}
+
+// ── Core: Search rooms from rentyRoomsData ──────────────────────────
+function chatbotSearchRooms(query) {
+    const data = window.rentyRoomsData;
+    if (!data) return [];
+
+    const rooms = Object.values(data);
+    const parsed = parseNaturalSearch(query);
+    const norm = normalizeText(query);
+
+    // Clean prefix words
+    const cleanQuery = norm
+        .replace(/^(gan|o|tim|cho thue|khu vuc|xung quanh)\s+/g, '')
+        .replace(/\b(gan|o|tim|cho thue|khu vuc|xung quanh)\b/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    let results = rooms.filter(room => {
+        // Build searchable text from room data
+        const searchable = normalizeText(
+            `${room.title || ''} ${room.area_name || ''} ${room.address || ''} ` +
+            `${room.location_description || ''} ${room.space_description || ''} ` +
+            `${room.scenery_description || ''}`
+        );
+
+        // Price filter
+        if (parsed.maxPrice && room.price > parsed.maxPrice) return false;
+
+        // Amenity filters
+        if (parsed.amenities.pets && room.pets !== 'true' && room.pets_txt !== 'Có') return false;
+        if (parsed.amenities.loft && room.loft !== 'true' && room.loft_txt !== 'Có') return false;
+        if (parsed.amenities.balcony && room.balcony !== 'true' && room.balcony_txt !== 'Có') return false;
+        if (parsed.amenities.wc && room.wc !== 'true' && room.wc_txt !== 'Có') return false;
+
+        // Location filter
+        if (parsed.locations.length > 0) {
+            const locMatch = parsed.locations.some(loc => searchable.includes(loc));
+            if (!locMatch) return false;
+        }
+
+        // Keyword match
+        if (cleanQuery.length > 0) {
+            if (searchable.includes(cleanQuery)) return true;
+
+            const stopWords = ['tim', 'phong', 'tro', 'duoi', 'o', 'gan', 'dai', 'hoc', 'trieu', 'tr',
+                'gia', 'co', 'khong', 'cho', 'thue', 'can', 'ho', 'va', 'voi', 'trong',
+                'ngoai', 'dep', 're', 'nha', 'chinh', 'chu', 'thang'];
+            const words = cleanQuery.split(/\s+/).filter(w => !stopWords.includes(w) && w.length > 1);
+            if (words.length > 0) {
+                const matched = words.filter(w => searchable.includes(w)).length;
+                return matched / words.length >= 0.5;
+            }
+        }
+
+        // Only amenity/location/price filters applied
+        return true;
+    });
+
+    // Sort by rating descending, then by price ascending
+    results.sort((a, b) => {
+        const ratingDiff = parseFloat(b.rating) - parseFloat(a.rating);
+        if (ratingDiff !== 0) return ratingDiff;
+        return a.price - b.price;
+    });
+
+    // Only available rooms first
+    const available = results.filter(r => r.status === 'empty');
+    const others = results.filter(r => r.status !== 'empty');
+    return [...available, ...others].slice(0, 5);
+}
+
+// ── Core: Generate response ─────────────────────────────────────────
+function generateChatbotResponse(userMsg) {
+    const norm = normalizeText(userMsg);
+
+    // ── FAQ / Tips detection ─────────────────────────────────────────
+    if (norm.includes('tip') || norm.includes('meo') || norm.includes('an toan') || norm.includes('luu y') || norm.includes('kinh nghiem')) {
+        return {
+            text: `🛡️ <strong>Mẹo thuê trọ an toàn từ Renty:</strong><br><br>` +
+                `1️⃣ <strong>Xem phòng trực tiếp</strong> – Không đặt cọc khi chưa đến xem thực tế.<br>` +
+                `2️⃣ <strong>Kiểm tra giấy tờ</strong> – Yêu cầu xem sổ đỏ hoặc hợp đồng thuê gốc.<br>` +
+                `3️⃣ <strong>Đọc kỹ hợp đồng</strong> – Chú ý điều khoản hoàn cọc, tăng giá, phí phát sinh.<br>` +
+                `4️⃣ <strong>Kiểm tra an ninh</strong> – Camera, khóa cửa, có bảo vệ hay không.<br>` +
+                `5️⃣ <strong>Hỏi hàng xóm</strong> – Nếu được, hỏi người thuê cũ hoặc hàng xóm.<br>` +
+                `6️⃣ <strong>Chụp lại hiện trạng</strong> – Ghi nhận tình trạng phòng trước khi nhận để tránh tranh chấp.<br><br>` +
+                `💡 Bạn có thể kiểm tra <strong>huy hiệu xác minh</strong> trên Renty để ưu tiên chủ trọ đáng tin cậy!`,
+            rooms: []
+        };
+    }
+
+    if (norm.includes('xin chao') || norm.includes('hello') || norm.includes('hi ') || norm === 'hi' || norm.includes('chao')) {
+        return {
+            text: `Chào bạn! 😄 Rất vui được hỗ trợ. Bạn đang tìm phòng trọ ở khu vực nào, ngân sách bao nhiêu? Mình sẽ tìm giúp ngay!`,
+            rooms: []
+        };
+    }
+
+    if (norm.includes('cam on') || norm.includes('thanks') || norm.includes('thank')) {
+        return {
+            text: `Không có gì! 🌟 Nếu cần thêm thông tin, cứ hỏi mình nhé. Chúc bạn tìm được phòng trọ ưng ý!`,
+            rooms: []
+        };
+    }
+
+    if (norm.includes('so sanh') || norm.includes('nen chon')) {
+        return {
+            text: `📊 Để so sánh phòng trọ, bạn nên xét các yếu tố:<br><br>` +
+                `• <strong>Giá/m²</strong> – Chia giá cho diện tích để so sánh công bằng<br>` +
+                `• <strong>Khoảng cách</strong> – Gần trường/công ty tiết kiệm chi phí đi lại<br>` +
+                `• <strong>Tiện ích</strong> – Ban công, WC riêng, gác lửng ảnh hưởng chất lượng sống<br>` +
+                `• <strong>Đánh giá</strong> – Xem review từ người thuê trước<br><br>` +
+                `Bạn muốn mình tìm phòng theo tiêu chí nào?`,
+            rooms: []
+        };
+    }
+
+    // ── Room search ──────────────────────────────────────────────────
+    const rooms = chatbotSearchRooms(userMsg);
+
+    if (rooms.length > 0) {
+        const areaNames = [...new Set(rooms.map(r => r.area_name))].join(', ');
+        const priceRange = rooms.map(r => r.price);
+        const minPrice = Math.min(...priceRange).toLocaleString('vi-VN');
+        const maxPrice = Math.max(...priceRange).toLocaleString('vi-VN');
+        const availableCount = rooms.filter(r => r.status === 'empty').length;
+
+        let summary = `🔍 Tìm thấy <strong>${rooms.length} phòng</strong> phù hợp`;
+        if (areaNames) summary += ` tại <strong>${areaNames}</strong>`;
+        summary += `.<br>💰 Giá từ <strong>${minPrice}đ</strong> đến <strong>${maxPrice}đ</strong>/tháng.`;
+        if (availableCount > 0) {
+            summary += `<br>✅ Có <strong>${availableCount} phòng</strong> đang trống, sẵn sàng cho thuê.`;
+        }
+        summary += `<br><br>👇 Nhấn vào phòng để xem chi tiết:`;
+
+        return { text: summary, rooms };
+    }
+
+    // ── Fallback ─────────────────────────────────────────────────────
+    return {
+        text: `🤔 Mình chưa tìm thấy phòng phù hợp với "<em>${escapeHtml(userMsg)}</em>".<br><br>` +
+            `Bạn thử mô tả rõ hơn nhé, ví dụ:<br>` +
+            `• "Phòng dưới 3 triệu ở Cầu Giấy"<br>` +
+            `• "Phòng có ban công khu Thanh Xuân"<br>` +
+            `• "Phòng cho nuôi thú cưng"<br><br>` +
+            `Hoặc nhấn nút gợi ý phía dưới! 👇`,
+        rooms: []
+    };
+}
+
+// ── Send message handler ────────────────────────────────────────────
+// ── Profanity Filter ────────────────────────────────────────────────
+const RENTY_PROFANITY_LIST = [
+    // Tiếng Việt - từ tục tĩu, xúc phạm phổ biến
+    'dm', 'dcm', 'dkm', 'dtm', 'dmm', 'đm', 'đcm', 'đkm', 'đtm', 'đmm',
+    'dit', 'dit me', 'đít', 'địt', 'địt mẹ', 'deo me', 'đéo mẹ',
+    'cc', 'cac', 'cặc', 'buoi', 'buồi', 'lon', 'lol', 'lồn',
+    'du ma', 'duma', 'đụ má', 'đụ mẹ', 'du me',
+    'ngu', 'ngu vl', 'ngu vcl', 'ngu lắm',
+    'vl', 'vcl', 'vkl', 'vleu',
+    'clgt', 'cl', 'cln',
+    'deo', 'đéo', 'đậu mẹ', 'đậu má',
+    'thang cho', 'thằng chó', 'con cho', 'con chó',
+    'mat day', 'mất dạy', 'vo hoc', 'vô học',
+    'chan cho', 'chán chó', 'nhu cho', 'như chó',
+    'thang ngu', 'thằng ngu', 'con ngu',
+    'do ngoc', 'đồ ngốc', 'do ngu', 'đồ ngu',
+    'do dien', 'đồ điên', 'thang dien', 'thằng điên',
+    'xam loz', 'xạm lồn',
+    // Tiếng Anh
+    'fuck', 'shit', 'bitch', 'ass', 'dick', 'pussy', 'bastard', 'damn',
+    'wtf', 'stfu', 'idiot', 'stupid'
+];
+
+function containsProfanity(text) {
+    const norm = text.toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd')
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    
+    return RENTY_PROFANITY_LIST.some(word => {
+        const normWord = word.toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/đ/g, 'd');
+        // Kiểm tra từ nguyên vẹn (word boundary) hoặc cụm từ
+        const regex = new RegExp(`(?:^|\\s)${normWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:\\s|$)`, 'i');
+        return regex.test(norm) || norm === normWord;
+    });
+}
+
+// ── Rate Limiter (localStorage) ─────────────────────────────────────
+function getChatbotUsageToday() {
+    const key = 'renty_chatbot_usage';
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    try {
+        const stored = JSON.parse(localStorage.getItem(key) || '{}');
+        if (stored.date !== today) {
+            // Reset cho ngày mới
+            const fresh = { date: today, count: 0 };
+            localStorage.setItem(key, JSON.stringify(fresh));
+            return fresh;
+        }
+        return stored;
+    } catch {
+        const fresh = { date: today, count: 0 };
+        localStorage.setItem(key, JSON.stringify(fresh));
+        return fresh;
+    }
+}
+
+function incrementChatbotUsage() {
+    const usage = getChatbotUsageToday();
+    usage.count += 1;
+    localStorage.setItem('renty_chatbot_usage', JSON.stringify(usage));
+    return usage.count;
+}
+
+function getChatbotDailyLimit() {
+    return window.rentyIsAuthenticated ? 50 : 10;
+}
+
+function getRemainingChatbotQuota() {
+    const usage = getChatbotUsageToday();
+    const limit = getChatbotDailyLimit();
+    return Math.max(0, limit - usage.count);
+}
+
+// ── Send message handler (with profanity + rate limit) ──────────────
+function sendRentyChatbotMessage(presetMsg) {
+    const input = document.getElementById('renty-chatbot-input');
+    const text = presetMsg || (input ? input.value.trim() : '');
+    if (!text) return;
+
+    // Open panel if not open
+    if (!rentyChatbotOpen) {
+        toggleRentyChatbot();
+    }
+
+    // Clear input
+    if (input && !presetMsg) input.value = '';
+
+    // ── Kiểm tra từ ngữ tục tĩu ─────────────────────────────────────
+    if (containsProfanity(text)) {
+        addUserMessage(text);
+        showTypingIndicator();
+        setTimeout(() => {
+            removeTypingIndicator();
+            addBotMessage(
+                `🚫 <strong>Tin nhắn bị chặn</strong><br><br>` +
+                `Renty AI không hỗ trợ các tin nhắn chứa từ ngữ không phù hợp. ` +
+                `Hãy sử dụng ngôn ngữ lịch sự để được hỗ trợ tốt nhất nhé! 🙏<br><br>` +
+                `<em style="font-size:10px;color:#64748b;">Tin nhắn vi phạm sẽ không được xử lý và không tính vào lượt hỏi.</em>`
+            );
+        }, 300);
+        return;
+    }
+
+    // ── Kiểm tra giới hạn lượt hỏi ──────────────────────────────────
+    const remaining = getRemainingChatbotQuota();
+    const limit = getChatbotDailyLimit();
+    const isGuest = !window.rentyIsAuthenticated;
+
+    if (remaining <= 0) {
+        addUserMessage(text);
+        showTypingIndicator();
+        setTimeout(() => {
+            removeTypingIndicator();
+            const loginHint = isGuest
+                ? `<br><br>💡 <strong>Mẹo:</strong> <a href="/login" style="color:#10b981;font-weight:700;text-decoration:underline;">Đăng nhập</a> để được nâng lên <strong>50 lượt/ngày</strong>!`
+                : '';
+            addBotMessage(
+                `⏳ <strong>Đã hết lượt hỏi hôm nay</strong><br><br>` +
+                `Bạn đã sử dụng hết <strong>${limit} lượt</strong> hỏi trong ngày. ` +
+                `Giới hạn sẽ được đặt lại vào <strong>0:00 ngày mai</strong>.${loginHint}<br><br>` +
+                `<em style="font-size:10px;color:#64748b;">Trong khi chờ, bạn vẫn có thể duyệt phòng trọ bằng bộ lọc ở trên!</em>`
+            );
+        }, 300);
+        return;
+    }
+
+    // ── Tính lượt và gửi tin nhắn ────────────────────────────────────
+    const currentCount = incrementChatbotUsage();
+    const newRemaining = Math.max(0, limit - currentCount);
+
+    // Add user message
+    addUserMessage(text);
+
+    // Show typing, then respond
+    showTypingIndicator();
+
+    const delay = 400 + Math.random() * 600;
+    setTimeout(() => {
+        removeTypingIndicator();
+        const response = generateChatbotResponse(text);
+
+        // Thêm thông báo lượt còn lại khi sắp hết
+        let quotaNote = '';
+        if (newRemaining <= 3 && newRemaining > 0) {
+            quotaNote = `<br><br><em style="font-size:10px;color:#f59e0b;">⚠️ Còn ${newRemaining} lượt hỏi hôm nay${isGuest ? ' — <a href="/login" style="color:#10b981;font-weight:600;">đăng nhập</a> để có 50 lượt' : ''}.</em>`;
+        }
+
+        addBotMessage(response.text + quotaNote, response.rooms);
+    }, delay);
+}
+window.sendRentyChatbotMessage = sendRentyChatbotMessage;
+
+
