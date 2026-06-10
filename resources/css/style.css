@@ -2814,3 +2814,322 @@ body.theme-light .app-brand-text {
     -webkit-text-fill-color: #0f172a !important;
 }
 
+/* ====================================================================
+   COMPREHENSIVE LIGHT MODE CONTRAST FIXES
+   Fixes all low-contrast / invisible text across all pages
+   ==================================================================== */
+
+/* --- INDEX PAGE: Hero heading gradient text --- */
+html.theme-light h1 .bg-gradient-to-r.bg-clip-text.text-transparent,
+body.theme-light h1 .bg-gradient-to-r.bg-clip-text.text-transparent {
+    background: linear-gradient(to right, #4f46e5, #7c3aed, #059669) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    color: transparent !important;
+    -webkit-text-fill-color: transparent !important;
+}
+
+/* --- INDEX PAGE: Hero subtitle paragraph --- */
+html.theme-light .text-slate-400.text-base,
+html.theme-light .text-slate-400.md\:text-lg,
+body.theme-light .text-slate-400.text-base,
+body.theme-light .text-slate-400.md\:text-lg {
+    color: #475569 !important;
+}
+
+/* --- INDEX PAGE: Portal cards background --- */
+html.theme-light #portal-admin,
+html.theme-light #portal-user,
+body.theme-light #portal-admin,
+body.theme-light #portal-user {
+    background: rgba(255, 255, 255, 0.85) !important;
+    border-color: rgba(203, 213, 225, 0.8) !important;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+}
+
+html.theme-light #portal-admin:hover,
+body.theme-light #portal-admin:hover {
+    border-color: rgba(79, 70, 229, 0.5) !important;
+    box-shadow: 0 20px 50px rgba(99, 102, 241, 0.12);
+}
+
+html.theme-light #portal-user:hover,
+body.theme-light #portal-user:hover {
+    border-color: rgba(16, 185, 129, 0.5) !important;
+    box-shadow: 0 20px 50px rgba(16, 185, 129, 0.12);
+}
+
+/* --- Portal card titles --- */
+html.theme-light #portal-admin h2,
+html.theme-light #portal-user h2,
+body.theme-light #portal-admin h2,
+body.theme-light #portal-user h2 {
+    color: #0f172a !important;
+}
+
+html.theme-light #portal-admin:hover h2,
+body.theme-light #portal-admin:hover h2 {
+    color: #4f46e5 !important;
+}
+
+html.theme-light #portal-user:hover h2,
+body.theme-light #portal-user:hover h2 {
+    color: #059669 !important;
+}
+
+/* --- Portal card descriptions & list items --- */
+html.theme-light #portal-admin p,
+html.theme-light #portal-user p,
+body.theme-light #portal-admin p,
+body.theme-light #portal-user p {
+    color: #475569 !important;
+}
+
+html.theme-light #portal-admin li,
+html.theme-light #portal-user li,
+body.theme-light #portal-admin li,
+body.theme-light #portal-user li {
+    color: #475569 !important;
+}
+
+/* --- Portal card icon containers --- */
+html.theme-light #portal-admin .bg-indigo-500\/10,
+body.theme-light #portal-admin .bg-indigo-500\/10 {
+    background: rgba(79, 70, 229, 0.1) !important;
+    border-color: rgba(79, 70, 229, 0.2) !important;
+}
+
+html.theme-light #portal-user .bg-emerald-500\/10,
+body.theme-light #portal-user .bg-emerald-500\/10 {
+    background: rgba(16, 185, 129, 0.1) !important;
+    border-color: rgba(16, 185, 129, 0.2) !important;
+}
+
+/* --- Portal decorative blobs --- */
+html.theme-light #portal-admin .bg-indigo-600\/10,
+html.theme-light #portal-user .bg-emerald-600\/10,
+body.theme-light #portal-admin .bg-indigo-600\/10,
+body.theme-light #portal-user .bg-emerald-600\/10 {
+    opacity: 0.5;
+}
+
+/* --- INDEX PAGE: Header user info bar --- */
+html.theme-light .bg-slate-900\/40.backdrop-blur-xl,
+body.theme-light .bg-slate-900\/40.backdrop-blur-xl {
+    background: rgba(255, 255, 255, 0.85) !important;
+    border-color: rgba(203, 213, 225, 0.8) !important;
+}
+
+/* --- Header login button --- */
+html.theme-light a[href*="login"].bg-slate-900,
+body.theme-light a[href*="login"].bg-slate-900 {
+    background: #ffffff !important;
+    border-color: rgba(203, 213, 225, 0.8) !important;
+    color: #334155 !important;
+}
+
+html.theme-light a[href*="login"].bg-slate-900:hover,
+body.theme-light a[href*="login"].bg-slate-900:hover {
+    border-color: rgba(99, 102, 241, 0.5) !important;
+    color: #0f172a !important;
+}
+
+/* --- Version badge --- */
+html.theme-light .bg-indigo-500\/10.border-indigo-500\/20,
+body.theme-light .bg-indigo-500\/10.border-indigo-500\/20 {
+    background: rgba(79, 70, 229, 0.08) !important;
+    border-color: rgba(79, 70, 229, 0.2) !important;
+    color: #4f46e5 !important;
+}
+
+/* --- Decorative background blobs on pages --- */
+html.theme-light .bg-indigo-600\/10.blur-\[120px\],
+html.theme-light .bg-emerald-600\/10.blur-\[120px\],
+body.theme-light .bg-indigo-600\/10.blur-\[120px\],
+body.theme-light .bg-emerald-600\/10.blur-\[120px\] {
+    opacity: 0.4;
+}
+
+/* --- FOOTER: Force light background on dark-coded footer --- */
+html.theme-light .renty-footer-wrapper,
+body.theme-light .renty-footer-wrapper {
+    background: #f8fafc !important;
+    border-color: rgba(203, 213, 225, 0.85) !important;
+    color: #475569 !important;
+}
+
+html.theme-light .renty-footer-wrapper .bg-\[\#0e0e11\],
+body.theme-light .renty-footer-wrapper .bg-\[\#0e0e11\] {
+    background-color: #f8fafc !important;
+}
+
+/* --- Footer brand text --- */
+html.theme-light .renty-footer-wrapper .text-slate-200,
+body.theme-light .renty-footer-wrapper .text-slate-200 {
+    color: #0f172a !important;
+}
+
+/* --- Footer body text --- */
+html.theme-light .renty-footer-wrapper .text-slate-500,
+html.theme-light .renty-footer-wrapper .text-slate-400,
+body.theme-light .renty-footer-wrapper .text-slate-500,
+body.theme-light .renty-footer-wrapper .text-slate-400 {
+    color: #64748b !important;
+}
+
+/* --- Footer headings --- */
+html.theme-light .renty-footer-wrapper h4,
+body.theme-light .renty-footer-wrapper h4 {
+    color: #0f172a !important;
+}
+
+/* --- Footer links --- */
+html.theme-light .renty-footer-wrapper a,
+body.theme-light .renty-footer-wrapper a {
+    color: #475569 !important;
+}
+
+html.theme-light .renty-footer-wrapper a:hover,
+body.theme-light .renty-footer-wrapper a:hover {
+    color: #0d9488 !important;
+}
+
+/* --- Footer social icons --- */
+html.theme-light .renty-footer-wrapper .bg-slate-900,
+body.theme-light .renty-footer-wrapper .bg-slate-900 {
+    background: #ffffff !important;
+    border-color: rgba(203, 213, 225, 0.8) !important;
+}
+
+html.theme-light .renty-footer-wrapper .bg-slate-900 i,
+body.theme-light .renty-footer-wrapper .bg-slate-900 i {
+    color: #64748b !important;
+}
+
+html.theme-light .renty-footer-wrapper .bg-slate-900:hover i,
+body.theme-light .renty-footer-wrapper .bg-slate-900:hover i {
+    color: #0d9488 !important;
+}
+
+/* --- Footer newsletter input --- */
+html.theme-light .renty-footer-wrapper input,
+body.theme-light .renty-footer-wrapper input {
+    background: #ffffff !important;
+    border-color: rgba(203, 213, 225, 0.8) !important;
+    color: #0f172a !important;
+}
+
+html.theme-light .renty-footer-wrapper input::placeholder,
+body.theme-light .renty-footer-wrapper input::placeholder {
+    color: #94a3b8 !important;
+}
+
+/* --- Footer bottom copyright line --- */
+html.theme-light .renty-footer-wrapper .border-slate-800\/40,
+body.theme-light .renty-footer-wrapper .border-slate-800\/40 {
+    border-color: rgba(203, 213, 225, 0.6) !important;
+}
+
+/* --- Scrollbar in light mode --- */
+html.theme-light ::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+html.theme-light ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+}
+
+html.theme-light ::-webkit-scrollbar-thumb:hover {
+    background: #4f46e5;
+}
+
+/* --- Generic dark backgrounds overrides for containers --- */
+html.theme-light .bg-\[\#0e0e11\],
+html.theme-light .bg-\[\#121214\],
+html.theme-light .bg-\[\#10131a\],
+html.theme-light .bg-\[\#0c0f18\],
+body.theme-light .bg-\[\#0e0e11\],
+body.theme-light .bg-\[\#121214\],
+body.theme-light .bg-\[\#10131a\],
+body.theme-light .bg-\[\#0c0f18\] {
+    background-color: #ffffff !important;
+}
+
+/* --- White text: only override on non-colored backgrounds --- */
+html.theme-light h1.text-white,
+html.theme-light h2.text-white,
+html.theme-light h3.text-white,
+html.theme-light h4.text-white,
+html.theme-light p.text-white,
+html.theme-light span.text-white:not([class*="bg-"]),
+html.theme-light div.text-white:not([class*="bg-"]),
+html.theme-light label.text-white,
+body.theme-light h1.text-white,
+body.theme-light h2.text-white,
+body.theme-light h3.text-white,
+body.theme-light h4.text-white,
+body.theme-light p.text-white,
+body.theme-light span.text-white:not([class*="bg-"]),
+body.theme-light div.text-white:not([class*="bg-"]),
+body.theme-light label.text-white {
+    color: #0f172a !important;
+}
+
+/* --- Signout link stays visible --- */
+html.theme-light .text-rose-400,
+body.theme-light .text-rose-400 {
+    color: #e11d48 !important;
+}
+
+html.theme-light .hover\:text-rose-300:hover,
+body.theme-light .hover\:text-rose-300:hover {
+    color: #be123c !important;
+}
+
+/* --- Admin page sidebar and content backgrounds --- */
+html.theme-light .bg-\[\#0f1117\],
+html.theme-light .bg-\[\#161b26\],
+html.theme-light .bg-\[\#1a1f2e\],
+html.theme-light .bg-\[\#151821\],
+body.theme-light .bg-\[\#0f1117\],
+body.theme-light .bg-\[\#161b26\],
+body.theme-light .bg-\[\#1a1f2e\],
+body.theme-light .bg-\[\#151821\] {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* --- Header shadow in light mode --- */
+html.theme-light header,
+body.theme-light header {
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06) !important;
+}
+
+/* --- Chat/AI assistant text in light mode --- */
+html.theme-light .text-slate-50,
+body.theme-light .text-slate-50 {
+    color: #0f172a !important;
+}
+
+/* --- text-gray variants for light mode --- */
+html.theme-light .text-gray-100,
+html.theme-light .text-gray-200,
+html.theme-light .text-gray-300,
+html.theme-light .text-gray-400,
+body.theme-light .text-gray-100,
+body.theme-light .text-gray-200,
+body.theme-light .text-gray-300,
+body.theme-light .text-gray-400 {
+    color: #475569 !important;
+}
+
+/* --- Room detail page breadcrumb and text --- */
+html.theme-light .text-slate-400 a,
+body.theme-light .text-slate-400 a {
+    color: #475569 !important;
+}
+
+html.theme-light .text-slate-400 a:hover,
+body.theme-light .text-slate-400 a:hover {
+    color: #0d9488 !important;
+}
+

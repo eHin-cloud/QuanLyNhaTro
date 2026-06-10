@@ -941,3 +941,239 @@
         line-height: 1.5;
     }
 }
+
+/* ======================================================
+   LIGHT MODE OVERRIDES for room detail & login components
+   ====================================================== */
+
+/* Room detail info tiles */
+html.theme-light .detail-info-tile,
+body.theme-light .detail-info-tile {
+    background: rgba(255, 255, 255, 0.92) !important;
+    border-color: rgba(203, 213, 225, 0.7) !important;
+}
+
+html.theme-light .detail-info-tile small,
+body.theme-light .detail-info-tile small {
+    color: #64748b !important;
+}
+
+html.theme-light .detail-info-tile strong,
+body.theme-light .detail-info-tile strong {
+    color: #0f172a !important;
+}
+
+html.theme-light .detail-info-tile span,
+body.theme-light .detail-info-tile span {
+    background: rgba(16, 185, 129, 0.1) !important;
+    color: #0d9488 !important;
+}
+
+/* Cost stepper */
+html.theme-light .cost-stepper,
+body.theme-light .cost-stepper {
+    background: rgba(255, 255, 255, 0.92) !important;
+    border-color: rgba(203, 213, 225, 0.7) !important;
+}
+
+html.theme-light .cost-stepper > span,
+body.theme-light .cost-stepper > span {
+    color: #334155 !important;
+}
+
+html.theme-light .cost-stepper strong,
+body.theme-light .cost-stepper strong {
+    color: #0f172a !important;
+}
+
+html.theme-light .cost-stepper button,
+body.theme-light .cost-stepper button {
+    background: #f1f5f9 !important;
+    border-color: rgba(203, 213, 225, 0.7) !important;
+    color: #0f172a !important;
+}
+
+/* Cost rows */
+html.theme-light .cost-row,
+body.theme-light .cost-row {
+    color: #475569 !important;
+}
+
+html.theme-light .cost-row strong,
+body.theme-light .cost-row strong {
+    color: #0f172a !important;
+}
+
+html.theme-light .cost-total,
+body.theme-light .cost-total {
+    border-color: rgba(203, 213, 225, 0.6) !important;
+}
+
+html.theme-light .cost-total span,
+html.theme-light .cost-total strong,
+body.theme-light .cost-total span,
+body.theme-light .cost-total strong {
+    color: #0f172a !important;
+}
+
+/* Review scores */
+html.theme-light .review-score-row,
+body.theme-light .review-score-row {
+    color: #475569 !important;
+}
+
+html.theme-light .review-score-row div,
+body.theme-light .review-score-row div {
+    background: rgba(203, 213, 225, 0.4) !important;
+}
+
+/* Viewed room chips */
+html.theme-light .viewed-room-chip,
+body.theme-light .viewed-room-chip {
+    background: rgba(255, 255, 255, 0.92) !important;
+    border-color: rgba(203, 213, 225, 0.7) !important;
+}
+
+html.theme-light .viewed-room-chip:hover,
+body.theme-light .viewed-room-chip:hover {
+    border-color: rgba(16, 185, 129, 0.4) !important;
+    background: #ffffff !important;
+}
+
+html.theme-light .viewed-room-chip strong,
+body.theme-light .viewed-room-chip strong {
+    color: #0f172a !important;
+}
+
+html.theme-light .viewed-room-chip small,
+body.theme-light .viewed-room-chip small {
+    color: #64748b !important;
+}
+
+/* Login page */
+html.theme-light .login-visual-panel,
+html.theme-light .login-card-upgraded,
+body.theme-light .login-visual-panel,
+body.theme-light .login-card-upgraded {
+    background: rgba(255, 255, 255, 0.92) !important;
+    border-color: rgba(203, 213, 225, 0.7) !important;
+    box-shadow: 0 28px 80px rgba(15, 23, 42, 0.08) !important;
+}
+
+html.theme-light .login-visual-copy h1,
+body.theme-light .login-visual-copy h1 {
+    color: #0f172a !important;
+}
+
+html.theme-light .login-visual-copy p,
+body.theme-light .login-visual-copy p {
+    color: #475569 !important;
+}
+
+html.theme-light .login-eyebrow,
+html.theme-light .login-form-kicker,
+body.theme-light .login-eyebrow,
+body.theme-light .login-form-kicker {
+    color: #0284c7 !important;
+}
+
+html.theme-light .login-visual-stats span,
+body.theme-light .login-visual-stats span {
+    background: rgba(248, 250, 252, 0.9) !important;
+    border-color: rgba(203, 213, 225, 0.6) !important;
+    color: #64748b !important;
+}
+
+html.theme-light .login-visual-stats strong,
+body.theme-light .login-visual-stats strong {
+    color: #0f172a !important;
+}
+
+html.theme-light .login-brand-smart,
+body.theme-light .login-brand-smart {
+    color: #0f172a !important;
+}
+
+html.theme-light .login-brand-renty,
+body.theme-light .login-brand-renty {
+    color: #2563eb !important;
+}
+
+html.theme-light .login-input-control,
+body.theme-light .login-input-control {
+    background: #ffffff !important;
+    border-color: rgba(203, 213, 225, 0.8) !important;
+    color: #0f172a !important;
+}
+
+html.theme-light .login-register-link,
+body.theme-light .login-register-link {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-color: rgba(203, 213, 225, 0.6) !important;
+    color: #2563eb !important;
+}
+
+html.theme-light .login-register-link:hover,
+body.theme-light .login-register-link:hover {
+    border-color: rgba(37, 99, 235, 0.4) !important;
+    background: rgba(239, 246, 255, 0.9) !important;
+    color: #1d4ed8 !important;
+}
+
+/* Register page */
+html.theme-light .register-card-upgraded,
+body.theme-light .register-card-upgraded {
+    background: rgba(255, 255, 255, 0.92) !important;
+    border-color: rgba(203, 213, 225, 0.7) !important;
+    box-shadow: 0 28px 80px rgba(15, 23, 42, 0.08) !important;
+}
+
+html.theme-light .register-card-header h1,
+body.theme-light .register-card-header h1 {
+    color: #0f172a !important;
+}
+
+html.theme-light .register-card-header p,
+body.theme-light .register-card-header p {
+    color: #475569 !important;
+}
+
+html.theme-light .register-mini-badge,
+body.theme-light .register-mini-badge {
+    background: rgba(239, 246, 255, 0.9) !important;
+    border-color: rgba(96, 165, 250, 0.2) !important;
+    color: #1d4ed8 !important;
+}
+
+html.theme-light .register-actions a,
+body.theme-light .register-actions a {
+    background: #ffffff !important;
+    border-color: rgba(203, 213, 225, 0.6) !important;
+    color: #334155 !important;
+}
+
+/* Sticky contact bar */
+html.theme-light .sticky-contact-bar,
+body.theme-light .sticky-contact-bar {
+    background: rgba(255, 255, 255, 0.96) !important;
+    border-color: rgba(203, 213, 225, 0.8) !important;
+    box-shadow: 0 -10px 28px rgba(15, 23, 42, 0.08) !important;
+}
+
+html.theme-light .sticky-price span,
+body.theme-light .sticky-price span {
+    color: #64748b !important;
+}
+
+html.theme-light .sticky-price strong,
+body.theme-light .sticky-price strong {
+    color: #0f172a !important;
+}
+
+html.theme-light .sticky-call-button,
+body.theme-light .sticky-call-button {
+    background: #f1f5f9 !important;
+    border-color: rgba(203, 213, 225, 0.7) !important;
+    color: #0f172a !important;
+}
+
