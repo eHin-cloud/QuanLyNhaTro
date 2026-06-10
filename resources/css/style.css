@@ -2664,3 +2664,153 @@ body.renty-map-mode .quick-eye-text {
 .hidden {
     display: none !important;
 }
+
+/* Light theme overrides for high contrast text and UI elements */
+html.theme-light .text-slate-250,
+html.theme-light .text-slate-350,
+html.theme-light .text-slate-355,
+html.theme-light .text-slate-505,
+body.theme-light .text-slate-250,
+body.theme-light .text-slate-350,
+body.theme-light .text-slate-355,
+body.theme-light .text-slate-505 {
+    color: #1e293b !important;
+}
+
+html.theme-light .text-slate-650,
+body.theme-light .text-slate-650 {
+    color: #475569 !important;
+}
+
+html.theme-light .text-emerald-400,
+html.theme-light .text-emerald-300,
+html.theme-light .text-emerald-250,
+html.theme-light .text-emerald-200,
+html.theme-light .text-emerald-100,
+body.theme-light .text-emerald-400,
+body.theme-light .text-emerald-300,
+body.theme-light .text-emerald-250,
+body.theme-light .text-emerald-200,
+body.theme-light .text-emerald-100 {
+    color: #0d9488 !important; /* Premium Teal-600 */
+}
+
+html.theme-light .text-amber-500,
+html.theme-light .text-amber-400,
+html.theme-light .text-amber-300,
+html.theme-light .text-amber-200,
+html.theme-light .text-amber-100,
+body.theme-light .text-amber-500,
+body.theme-light .text-amber-400,
+body.theme-light .text-amber-300,
+body.theme-light .text-amber-200,
+body.theme-light .text-amber-100 {
+    color: #d97706 !important; /* Amber-600 */
+}
+
+html.theme-light .text-orange-400,
+body.theme-light .text-orange-400 {
+    color: #ea580c !important; /* Orange-600 */
+}
+
+html.theme-light .text-rose-450,
+html.theme-light .text-rose-400,
+html.theme-light .text-rose-300,
+html.theme-light .text-rose-200,
+body.theme-light .text-rose-450,
+body.theme-light .text-rose-400,
+body.theme-light .text-rose-300,
+body.theme-light .text-rose-200 {
+    color: #e11d48 !important; /* Rose-600 */
+}
+
+html.theme-light .text-indigo-400,
+html.theme-light .text-violet-400,
+body.theme-light .text-indigo-400,
+body.theme-light .text-violet-400 {
+    color: #4f46e5 !important; /* Indigo-600 */
+}
+
+html.theme-light .text-blue-200,
+body.theme-light .text-blue-200 {
+    color: #2563eb !important; /* Blue-600 */
+}
+
+html.theme-light .text-teal-500,
+html.theme-light .text-teal-400,
+html.theme-light .text-teal-300,
+body.theme-light .text-teal-500,
+body.theme-light .text-teal-400,
+body.theme-light .text-teal-300 {
+    color: #0d9488 !important; /* Teal-600 */
+}
+
+html.theme-light .text-sky-400,
+html.theme-light .text-sky-300,
+html.theme-light .text-cyan-300,
+body.theme-light .text-sky-400,
+body.theme-light .text-sky-300,
+body.theme-light .text-cyan-300 {
+    color: #0284c7 !important; /* Sky-600 */
+}
+
+/* Hover specific overrides for buttons in light mode */
+html.theme-light .hover\:text-rose-300:hover,
+body.theme-light .hover\:text-rose-300:hover,
+html.theme-light .hover\:text-rose-200:hover,
+body.theme-light .hover\:text-rose-200:hover {
+    color: #be123c !important; /* Rose-700 */
+}
+
+html.theme-light .hover\:text-emerald-300:hover,
+body.theme-light .hover\:text-emerald-300:hover,
+html.theme-light .hover\:text-emerald-200:hover,
+body.theme-light .hover\:text-emerald-200:hover {
+    color: #0f766e !important; /* Teal-700 */
+}
+
+/* Light theme overrides for Q&A grid and footer bars */
+html.theme-light #qa-grid,
+body.theme-light #qa-grid {
+    background-color: #f8fafc !important;
+}
+
+html.theme-light .qa-load-more-bar,
+body.theme-light .qa-load-more-bar {
+    background-color: #f8fafc !important;
+    border-color: rgba(226, 232, 240, 0.8) !important;
+}
+
+html.theme-light .qa-load-more,
+body.theme-light .qa-load-more {
+    background-color: #ffffff !important;
+    border-color: rgba(203, 213, 225, 0.7) !important;
+    color: #475569 !important;
+}
+
+html.theme-light .qa-load-more:hover,
+body.theme-light .qa-load-more:hover {
+    background-color: rgba(13, 148, 136, 0.08) !important;
+    border-color: rgba(13, 148, 136, 0.3) !important;
+    color: #0d9488 !important;
+}
+
+/* Modal and overlay backdrops in light mode */
+html.theme-light #qa-comments-modal,
+html.theme-light #notify-subscribe-modal,
+html.theme-light #room-report-modal,
+body.theme-light #qa-comments-modal,
+body.theme-light #notify-subscribe-modal,
+body.theme-light #room-report-modal {
+    background-color: rgba(15, 23, 42, 0.5) !important;
+    backdrop-filter: blur(8px);
+}
+
+/* Brand text fill mode fixes */
+html.theme-light .renty-brand-text,
+html.theme-light .app-brand-text,
+body.theme-light .renty-brand-text,
+body.theme-light .app-brand-text {
+    -webkit-text-fill-color: #0f172a !important;
+}
+

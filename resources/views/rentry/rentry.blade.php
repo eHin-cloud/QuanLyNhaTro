@@ -704,7 +704,7 @@
             </div>
 
             <!-- Load More Bar -->
-            <div class="px-6 py-4 border-t border-slate-800/40 flex items-center justify-center" style="background-color: #121214;">
+            <div class="qa-load-more-bar px-6 py-4 border-t border-slate-800/40 flex items-center justify-center" style="background-color: #121214;">
                 <button type="button" onclick="loadMoreQaQuestions(this)" class="qa-load-more px-6 py-2.5 rounded-xl bg-slate-800/40 border border-slate-700/40 text-xs font-bold text-slate-400 hover:text-teal-400 hover:border-teal-500/30 hover:bg-teal-500/5 transition-all flex items-center gap-2">
                     <i class="fa-solid fa-angles-down text-[10px]"></i> Xem thêm câu hỏi
                 </button>
