@@ -40,7 +40,7 @@
     
     <!-- Decorative background elements -->
     <div class="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-indigo-600/10 blur-[120px] pointer-events-none"></div>
-    <div class="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-emerald-600/10 blur-[120px] pointer-events-none"></div>
+    <div class="absolute bottom-0 right-[-10%] w-[500px] h-[500px] rounded-full bg-emerald-600/10 blur-[120px] pointer-events-none"></div>
 
     <!-- Header / Navbar -->
     <header class="container mx-auto px-6 py-6 flex justify-between items-center relative z-10">
@@ -135,14 +135,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="border-t border-slate-900 bg-slate-950/50 py-6 relative z-10">
-        <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
-            <div>
-                © 2026 SmartRoom & Renty Review. Đồ án xây dựng hệ thống quản lý & số hóa nhà trọ.
-            </div>
-
-        </div>
-    </footer>
+    @include('footer.footer')
 
 </body>
 </html>

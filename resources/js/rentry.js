@@ -869,6 +869,54 @@ function initRentyMap() {
 
         rentyMarkers[room.id] = marker;
     });
+
+    // Create coordinate indicator box on the map
+    const coordBox = document.createElement('div');
+    coordBox.id = 'map-coords-indicator';
+    coordBox.className = 'absolute bottom-4 left-4 z-[1000] px-3 py-1.5 rounded-xl bg-slate-950/85 border border-white/10 text-[10px] font-extrabold text-slate-300 backdrop-blur pointer-events-none transition-opacity duration-300 opacity-0 flex items-center shadow-lg';
+    coordBox.innerHTML = `<i class="fa-solid fa-location-crosshairs text-teal-400 mr-1.5"></i> 0.00000, 0.00000`;
+    
+    const mapContainer = document.getElementById('renty-interactive-map');
+    if (mapContainer) {
+        mapContainer.appendChild(coordBox);
+    }
+
+    // Update coordinate indicator when hovering and moving mouse over the map
+    rentyMap.on('mousemove', function (e) {
+        const coordEl = document.getElementById('map-coords-indicator');
+        if (coordEl) {
+            const lat = e.latlng.lat.toFixed(5);
+            const lng = e.latlng.lng.toFixed(5);
+            coordEl.innerHTML = `<i class="fa-solid fa-location-crosshairs text-teal-400 mr-1.5"></i> Tọa độ: ${lat}, ${lng}`;
+            coordEl.style.opacity = '1';
+        }
+    });
+
+    rentyMap.on('mouseout', function () {
+        const coordEl = document.getElementById('map-coords-indicator');
+        if (coordEl) {
+            coordEl.style.opacity = '0';
+        }
+    });
+
+    // Add hover listeners to room cards to open matching map marker
+    document.querySelectorAll('.room-item-card').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            const roomId = card.getAttribute('data-room-id');
+            if (rentyMarkers[roomId] && rentyMap) {
+                // Highlight pin
+                document.querySelectorAll('.glowing-teal-pin').forEach(pin => {
+                    pin.classList.remove('active');
+                });
+                const pinEl = document.getElementById(`map-pin-${roomId}`);
+                if (pinEl) pinEl.classList.add('active');
+
+                // Open Leaflet popup
+                rentyMarkers[roomId].openPopup();
+                rentyMap.panTo(rentyMarkers[roomId].getLatLng());
+            }
+        });
+    });
 }
 
 // Helper to control marker visibility during filtering
@@ -1153,10 +1201,15 @@ function syncFromCheckbox(key) {
 }
 
 function initRentyDashboard() {
+    // Only initialize if we are on the Renty dashboard page (contains map container or mode toggle)
+    if (!document.getElementById('renty-interactive-map') && !document.getElementById('view-mode-map-btn')) {
+        return;
+    }
+
     renderViewedRooms();
     
-    // Set initial view mode, default to 'map'
-    const savedMode = localStorage.getItem('rentry_view_mode') || 'map';
+    // Set initial view mode, default to 'grid'
+    const savedMode = localStorage.getItem('rentry_view_mode') || 'grid';
     setViewMode(savedMode);
 
     filterItems(); // Run initial filter to apply checked state of pets & balcony
@@ -1196,84 +1249,147 @@ function closeNewReviewsModal() {
     document.getElementById('new-reviews-modal').classList.add('hidden');
 }
 
-// Q&A INTERACTIONS
-function submitQaQuestion() {
-    const input = document.getElementById('qa-input-field');
-    const text = input ? input.value.trim() : '';
+// Database of Q&A comments
+const qaCommentsData = {
+    0: [
+        { author: 'Hoàng Anh', meta: 'Sinh viên Sư Phạm', text: 'Khu này bể ngầm hơi nhỏ nên nếu mất nước chung thì cúp tầm nửa ngày thôi bạn, chủ nhà có bể dự phòng nhé.', is_best: true, time: '2 giờ trước' },
+        { author: 'Trần Nam', meta: 'Người dùng ẩn danh', text: 'Chính xác luôn, đợt năm ngoái nắng nóng cúp nước liên tục cơ mà nhà này vẫn có nước dùng tạm.', is_best: false, time: '1 giờ trước' },
+        { author: 'Ngọc Mai', meta: 'Sinh viên Quốc Gia', text: 'Chủ nhà có báo trước lịch cắt nước không bạn ơi?', is_best: false, time: '30 phút trước' }
+    ],
+    1: [
+        { author: 'Khánh Linh', meta: 'Ngoại Thương', text: 'Chủ nhà ngõ này hiền lắm, giữ xe free mà 11h đêm khóa cổng thôi. Không chung đụng gì nhiều đâu em.', is_best: true, time: '5 giờ trước' },
+        { author: 'Duy Bách', meta: 'Người dùng ẩn danh', text: 'Có quy định giờ giấc nghiêm ngặt không chị? Bạn bè tới chơi có phải xin phép không?', is_best: false, time: '3 giờ trước' }
+    ],
+    2: [
+        { author: 'Minh Đức', meta: 'Bách Khoa', text: 'Tầm giá này ở ngõ Tự Do hơi hiếm ban công rộng, bạn chịu khó lùi ra Trần Đại Nghĩa hoặc Lê Thanh Nghị thì nhiều phòng đẹp hơn nha.', is_best: true, time: '1 ngày trước' },
+        { author: 'Văn Hải', meta: 'Xây Dựng', text: 'Ngõ Tự Do phòng bé tí mà đắt lắm, khuyên thật nên ra Lê Thanh Nghị tìm phòng rộng hơn.', is_best: false, time: '18 giờ trước' }
+    ],
+    3: [
+        { author: 'Thu Trang', meta: 'Báo Chí', text: 'Đầu ngõ có chốt dân phòng với đèn đường sáng trưng tới sáng luôn bạn, yên tâm cực kỳ nha.', is_best: true, time: '3 ngày trước' },
+        { author: 'Hương Giang', meta: 'Sư Phạm', text: 'Mình con gái ở đây 2 năm rồi, đi làm thêm về muộn 11h đêm suốt thấy an toàn lắm.', is_best: false, time: '2 ngày trước' }
+    ],
+    4: [
+        { author: 'Hoàng Long', meta: 'ĐH Ngoại Thương', text: 'Mấy ngõ như ngõ 80 hoặc ngõ 157 Chùa Láng nhiều chung cư mini mới xây lắm bạn ơi. Có hầm xe rộng rãi nhưng nhớ hỏi kỹ xem có tính thêm phí gửi xe không nha.', is_best: true, time: '5 giờ trước' },
+        { author: 'Quốc Anh', meta: 'Người dùng ẩn danh', text: 'Ngõ 80 Chùa Láng công nhận nhiều nhà đẹp thật, cơ mà đỗ xe oto hơi khó.', is_best: false, time: '4 giờ trước' }
+    ],
+    5: [
+        { author: 'Thu Thảo', meta: 'Học viện Bưu chính', text: 'Đúng là mạn này thỉnh thoảng nước hơi yếu thật ấy, nhất là mấy khu tập thể cũ. Bạn nên mua thêm một đầu lọc thô lắp ở vòi lavabo với vòi tắm cho an tâm.', is_best: true, time: '1 ngày trước' },
+        { author: 'Đức Huy', meta: 'Mật Mã', text: 'Khu Phùng Khoang nước sinh hoạt có vị hơi lợ, nên dùng máy lọc nước RO để nấu ăn nha mọi người.', is_best: false, time: '20 giờ trước' }
+    ]
+};
 
-    if (!text) {
-        alert('Vui lòng nhập câu hỏi trước khi gửi!');
-        return;
-    }
+let activeQaIndex = null;
+let activeQaButton = null;
 
-    const grid = document.querySelector('.renty-qa-section .grid');
-    if (!grid) return;
+function openQaCommentsModal(button) {
+    activeQaButton = button;
+    activeQaIndex = button.getAttribute('data-qa-index');
+    const question = button.getAttribute('data-qa-question');
+    const area = button.getAttribute('data-qa-area');
+    const time = button.getAttribute('data-qa-time');
 
-    const newCard = document.createElement('div');
-    newCard.className = 'qa-card rounded-2xl p-5 border border-slate-800/60 flex flex-col justify-between transition-all duration-300 hover:border-slate-700/80 hover:shadow-xl hover:shadow-black/20 animate-fade-in';
-    newCard.style.backgroundColor = '#1E1E24';
+    // Populate modal fields
+    document.getElementById('qa-modal-area').textContent = area;
+    document.getElementById('qa-modal-time').textContent = time;
+    document.getElementById('qa-modal-question').textContent = question;
 
-    newCard.innerHTML = `
-        <div>
-            <!-- Upper Meta-row -->
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 border border-slate-700">
-                        <i class="fa-solid fa-user-secret text-sm text-teal-400"></i>
-                    </div>
-                    <div>
-                        <span class="block text-xs font-bold text-slate-200">Người dùng ẩn danh</span>
-                        <span class="block text-[10px] text-slate-500">Vừa xong</span>
-                    </div>
-                </div>
-                <span class="px-2.5 py-0.5 rounded-full bg-teal-500/10 text-teal-400 text-[10px] font-extrabold uppercase border border-teal-500/20">
-                    Hà Nội
-                </span>
-            </div>
+    // Reset input
+    document.getElementById('qa-reply-input').value = '';
 
-            <!-- Question Text -->
-            <h3 class="text-sm font-bold text-slate-200 leading-snug mb-4">
-                ${escapeHtml(text)}
-            </h3>
-        </div>
+    // Load comments
+    renderQaComments();
 
-        <div>
-            <!-- Subtle horizontal separator line -->
-            <div class="border-t border-slate-800/80 my-4"></div>
-
-            <!-- Bottom Interaction Row -->
-            <div class="flex flex-col gap-3">
-                <div class="flex items-center justify-between">
-                    <!-- Upvote/Downvote button counter -->
-                    <div class="flex items-center bg-slate-900/40 border border-slate-800/80 rounded-lg p-1">
-                        <button type="button" onclick="voteQa(this, 'up')" class="px-2 py-1 text-slate-500 hover:text-emerald-400 transition-colors text-xs">
-                            <i class="fa-solid fa-chevron-up"></i>
-                        </button>
-                        <span class="px-2 text-xs font-extrabold text-slate-300 qa-vote-count">1</span>
-                        <button type="button" onclick="voteQa(this, 'down')" class="px-2 py-1 text-slate-500 hover:text-rose-400 transition-colors text-xs">
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </button>
-                    </div>
-                    
-                    <!-- Comment icon & label -->
-                    <button type="button" class="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-200 transition-colors">
-                        <i class="fa-regular fa-comment text-slate-500"></i>
-                        <span>0 bình luận</span>
-                    </button>
-                </div>
-
-                <!-- Highlighted top reply -->
-                <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800/50 flex flex-col gap-2 mt-2 text-slate-500">
-                    <p class="text-xs italic">Chưa có câu trả lời nào. Hãy là người đầu tiên trả lời!</p>
-                </div>
-            </div>
-        </div>
-    `;
-
-    grid.insertBefore(newCard, grid.firstChild);
-    input.value = '';
+    // Show modal
+    document.getElementById('qa-comments-modal').classList.remove('hidden');
 }
 
+function closeQaCommentsModal() {
+    document.getElementById('qa-comments-modal').classList.add('hidden');
+}
+
+function renderQaComments() {
+    const list = document.getElementById('qa-modal-comments-list');
+    if (!list) return;
+    list.innerHTML = '';
+
+    const comments = qaCommentsData[activeQaIndex] || [];
+    comments.forEach(comment => {
+        const card = document.createElement('div');
+        const isBest = comment.is_best;
+        const borderClass = isBest ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-slate-800/80 bg-slate-900/60';
+        const badgeHtml = isBest ? '<span class="text-[8px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/15 px-1.5 py-0.5 rounded font-extrabold uppercase tracking-wider">Best Reply</span>' : '';
+
+        card.className = `p-4 rounded-2xl border ${borderClass} space-y-2 relative overflow-hidden transition-all duration-300`;
+        card.innerHTML = `
+            <div class="flex justify-between items-start">
+                <div>
+                    <span class="text-[10px] font-bold text-slate-200 block">
+                        <i class="fa-solid fa-user-circle text-teal-400 mr-1.5"></i>${comment.author}
+                    </span>
+                    <span class="text-[8px] text-indigo-400 font-extrabold uppercase mt-0.5 tracking-wider block">
+                        ${comment.meta}
+                    </span>
+                </div>
+                <div class="flex items-center gap-2">
+                    ${badgeHtml}
+                    <span class="text-[8px] text-slate-650 font-bold shrink-0">
+                        <i class="fa-regular fa-clock mr-1"></i>${comment.time}
+                    </span>
+                </div>
+            </div>
+            <p class="text-xs text-slate-350 italic pl-1 leading-relaxed border-l-2 border-slate-850">
+                "${escapeHtml(comment.text)}"
+            </p>
+        `;
+        list.appendChild(card);
+    });
+}
+
+function submitQaReply(event) {
+    event.preventDefault();
+    const input = document.getElementById('qa-reply-input');
+    if (!input) return;
+    const text = input.value.trim();
+    if (!text) return;
+
+    if (!qaCommentsData[activeQaIndex]) {
+        qaCommentsData[activeQaIndex] = [];
+    }
+
+    // Add comment to database
+    const newComment = {
+        author: 'Người dùng ẩn danh',
+        meta: 'Thành viên cộng đồng',
+        text: text,
+        is_best: false,
+        time: 'Vừa xong'
+    };
+    qaCommentsData[activeQaIndex].push(newComment);
+
+    // Render new comment
+    renderQaComments();
+
+    // Scroll last comment into view
+    const list = document.getElementById('qa-modal-comments-list');
+    if (list && list.lastChild) {
+        list.lastChild.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Clear input
+    input.value = '';
+
+    // Update comment count on Q&A card
+    if (activeQaButton) {
+        const countSpan = activeQaButton.querySelector('.qa-comment-count');
+        if (countSpan) {
+            const newCount = qaCommentsData[activeQaIndex].length;
+            countSpan.textContent = `${newCount} bình luận`;
+        }
+    }
+
+    // Show toast notice
+    alert('Cảm ơn bạn đã gửi ý kiến');
+}
 
 function voteQa(button, direction) {
     const parent = button.parentElement;
@@ -1281,38 +1397,326 @@ function voteQa(button, direction) {
     if (!countSpan) return;
 
     let currentVotes = parseInt(countSpan.textContent) || 0;
-    const activeUp = button.classList.contains('text-emerald-400');
-    const activeDown = button.classList.contains('text-rose-400');
+    const activeUp = button.classList.contains('voted-up');
+    const activeDown = button.classList.contains('voted-down');
 
     if (direction === 'up') {
-        const downBtn = parent.querySelector('button[onclick*="down"]');
+        const downBtn = parent.querySelector('button[aria-label="Downvote"]');
         if (activeUp) {
-            button.classList.remove('text-emerald-400');
+            button.classList.remove('voted-up');
             countSpan.textContent = currentVotes - 1;
         } else {
-            button.classList.add('text-emerald-400');
-            if (downBtn && downBtn.classList.contains('text-rose-400')) {
-                downBtn.classList.remove('text-rose-400');
+            button.classList.add('voted-up');
+            if (downBtn && downBtn.classList.contains('voted-down')) {
+                downBtn.classList.remove('voted-down');
                 countSpan.textContent = currentVotes + 2;
             } else {
                 countSpan.textContent = currentVotes + 1;
             }
         }
     } else if (direction === 'down') {
-        const upBtn = parent.querySelector('button[onclick*="up"]');
+        const upBtn = parent.querySelector('button[aria-label="Upvote"]');
         if (activeDown) {
-            button.classList.remove('text-rose-400');
+            button.classList.remove('voted-down');
             countSpan.textContent = currentVotes + 1;
         } else {
-            button.classList.add('text-rose-400');
-            if (upBtn && upBtn.classList.contains('text-emerald-400')) {
-                upBtn.classList.remove('text-emerald-400');
+            button.classList.add('voted-down');
+            if (upBtn && upBtn.classList.contains('voted-up')) {
+                upBtn.classList.remove('voted-up');
                 countSpan.textContent = currentVotes - 2;
             } else {
                 countSpan.textContent = currentVotes - 1;
             }
         }
     }
+}
+
+// ── Community Q&A Input Interactions ──
+function updateQaCharCount() {
+    const input = document.getElementById('qa-input-field');
+    const counter = document.getElementById('qa-char-count');
+    if (input && counter) {
+        const len = input.value.length;
+        counter.textContent = `${len}/200`;
+        counter.style.color = len >= 180 ? '#f87171' : len >= 120 ? '#fbbf24' : '';
+    }
+}
+
+function submitQaQuestion() {
+    const input = document.getElementById('qa-input-field');
+    if (!input) return;
+    const question = input.value.trim();
+    if (question.length === 0) {
+        alert('Vui lòng nhập câu hỏi của bạn.');
+        input.focus();
+        return;
+    }
+
+    const grid = document.getElementById('qa-grid');
+    if (!grid) return;
+
+    // Animate submit button
+    const submitBtn = document.querySelector('.qa-submit-btn');
+    let originalHtml = '';
+    if (submitBtn) {
+        originalHtml = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang gửi...';
+        submitBtn.classList.add('opacity-80', 'pointer-events-none');
+    }
+
+    const newId = 'qa-' + Date.now();
+    qaCommentsData[newId] = [
+        {
+            author: 'Renty Bot',
+            meta: 'Hệ thống tự động',
+            text: 'Chào bạn, câu hỏi của bạn đã được đăng thành công. Hệ thống sẽ tự động gửi thông báo đến các thành viên trong khu vực để phản hồi sớm nhất!',
+            is_best: true,
+            time: 'Vừa xong'
+        }
+    ];
+
+    setTimeout(() => {
+        // Create new element
+        const newCard = document.createElement('div');
+        newCard.className = 'qa-card rounded-2xl border border-slate-800/50 flex flex-col justify-between transition-all duration-300 hover:border-slate-700/60 group/card overflow-hidden animate-fade-in';
+        newCard.style.backgroundColor = '#1a1a20';
+        newCard.style.animationDelay = '0s';
+        
+        newCard.innerHTML = `
+            <div class="p-5 pb-0">
+                <!-- Meta Row -->
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-full bg-slate-800/80 flex items-center justify-center border border-slate-700/60">
+                            <i class="fa-solid fa-user-secret text-xs text-teal-400"></i>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-extrabold text-slate-300">Người dùng ẩn danh</span>
+                            <span class="block text-[8px] text-slate-600 font-bold mt-0.5">Vừa xong</span>
+                        </div>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold border uppercase tracking-wider bg-teal-500/10 text-teal-400 border-teal-500/20">
+                        Cầu Giấy
+                    </span>
+                </div>
+
+                <!-- Question Title -->
+                <h3 class="text-xs font-bold text-slate-200 leading-relaxed group-hover/card:text-teal-400 transition-colors mb-2.5 flex items-start gap-1.5">
+                    ${escapeHtml(question)}
+                </h3>
+
+                <!-- Tags -->
+                <div class="flex flex-wrap gap-1.5 mb-3">
+                    <span class="px-2 py-0.5 rounded-md bg-slate-800/60 text-slate-500 text-[9px] font-bold border border-slate-800/40">#HỏiẨnDanh</span>
+                    <span class="px-2 py-0.5 rounded-md bg-slate-800/60 text-slate-500 text-[9px] font-bold border border-slate-800/40">#RentyCommunity</span>
+                </div>
+            </div>
+
+            <!-- Bottom Section -->
+            <div class="px-5 pb-4 pt-3 mt-auto border-t border-slate-800/40">
+                <!-- Interaction Row -->
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-0.5 bg-slate-900/50 border border-slate-800/60 rounded-lg overflow-hidden">
+                        <button type="button" onclick="voteQa(this, 'up')" class="qa-vote-btn px-2.5 py-1.5 text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/8 transition-all text-xs" aria-label="Upvote">
+                            <i class="fa-solid fa-arrow-up"></i>
+                        </button>
+                        <span class="px-2 text-[11px] font-extrabold text-slate-300 tabular-nums qa-vote-count select-none">1</span>
+                        <button type="button" onclick="voteQa(this, 'down')" class="qa-vote-btn px-2.5 py-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/8 transition-all text-xs" aria-label="Downvote">
+                            <i class="fa-solid fa-arrow-down"></i>
+                        </button>
+                    </div>
+                    <button type="button" onclick="openQaCommentsModal(this)" class="qa-comment-btn flex items-center gap-1.5 text-[11px] font-bold text-slate-500 hover:text-slate-300 transition-colors" data-qa-index="${newId}" data-qa-question="${escapeHtml(question)}" data-qa-area="Cầu Giấy" data-qa-time="Vừa xong">
+                        <i class="fa-regular fa-message text-[10px]"></i>
+                        <span class="qa-comment-count">1 bình luận</span>
+                    </button>
+                </div>
+
+                <!-- Best Reply -->
+                <div class="qa-best-reply rounded-xl p-3 flex flex-col gap-1.5 bg-slate-900/40 border border-slate-800/30">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[10px] font-bold text-slate-400">Renty Bot</span>
+                            <span class="w-3.5 h-3.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[7px] border border-emerald-500/15 inline-flex items-center justify-center" title="Đã xác minh">
+                                <i class="fa-solid fa-check"></i>
+                            </span>
+                        </div>
+                        <span class="text-[8px] text-teal-500/70 font-bold uppercase tracking-wider">Best</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 leading-relaxed italic">
+                        "Chào bạn, câu hỏi của bạn đã được đăng thành công. Hệ thống sẽ tự động gửi thông báo đến các thành viên trong khu vực để phản hồi sớm nhất!"
+                    </p>
+                </div>
+            </div>
+        `;
+
+        grid.insertBefore(newCard, grid.firstChild);
+
+        // Scroll the newly posted comment into view smoothly without page reload or jump
+        newCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        // Show thank you toast notification
+        alert('Cảm ơn bạn đã gửi ý kiến');
+
+        input.value = '';
+        updateQaCharCount();
+        if (submitBtn) {
+            submitBtn.innerHTML = originalHtml || '<i class="fa-solid fa-paper-plane mr-1"></i> Gửi';
+            submitBtn.classList.remove('opacity-80', 'pointer-events-none');
+        }
+    }, 1000);
+}
+
+function loadMoreQaQuestions(button) {
+    if (!button) return;
+    const grid = document.getElementById('qa-grid');
+    if (!grid) return;
+
+    const originalHtml = button.innerHTML;
+    button.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Đang tải thêm câu hỏi...';
+    button.classList.add('pointer-events-none', 'opacity-80');
+
+    setTimeout(() => {
+        const mockQuestions = [
+            {
+                time: '5 giờ trước',
+                area: 'Đống Đa',
+                areaClass: 'bg-violet-500/10 text-violet-400 border-violet-500/20',
+                question: 'Khu vực Chùa Láng có nhà trọ nào tầm 3.5tr - 4tr mà có chỗ để xe máy tầng 1 rộng rãi không ạ? Nghe bảo khu này hay bị chật chỗ để xe.',
+                tags: ['Tìm phòng', 'Chùa Láng', 'Chung cư mini'],
+                votes: 19,
+                comments: 7,
+                reply_author: 'Hoàng Long',
+                reply_school: 'ĐH Ngoại Thương',
+                reply_text: 'Mấy ngõ như ngõ 80 hoặc ngõ 157 Chùa Láng nhiều chung cư mini mới xây lắm bạn ơi. Có hầm xe rộng rãi nhưng nhớ hỏi kỹ xem có tính thêm phí gửi xe không nha.'
+            },
+            {
+                time: '1 ngày trước',
+                area: 'Thanh Xuân',
+                areaClass: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+                question: 'Mọi người cho mình hỏi nước sinh hoạt ở mạn Phùng Khoang dạo này có ổn không ạ? Có bị cặn đen hay mất nước đột ngột không?',
+                tags: ['Nước sinh hoạt', 'Phùng Khoang', 'Review'],
+                votes: 8,
+                comments: 3,
+                reply_author: 'Thu Thảo',
+                reply_school: 'Học viện Bưu chính',
+                reply_text: 'Đúng là mạn này thỉnh thoảng nước hơi yếu thật ấy, nhất là mấy khu tập thể cũ. Bạn nên mua thêm một đầu lọc thô lắp ở vòi lavabo với vòi tắm cho an tâm.'
+            }
+        ];
+
+        mockQuestions.forEach((qa, idx) => {
+            const card = document.createElement('div');
+            card.className = 'qa-card rounded-2xl border border-slate-800/50 flex flex-col justify-between transition-all duration-300 hover:border-slate-700/60 group/card overflow-hidden animate-fade-in';
+            card.style.backgroundColor = '#1a1a20';
+            card.style.animationDelay = `${idx * 0.1}s`;
+
+            const tagsHtml = qa.tags.map(t => `<span class="px-2 py-0.5 rounded-md bg-slate-800/60 text-slate-500 text-[9px] font-bold border border-slate-800/40">#${t}</span>`).join('');
+
+            card.innerHTML = `
+                <div class="p-5 pb-0">
+                    <!-- Meta Row -->
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-full bg-slate-800/80 flex items-center justify-center border border-slate-700/60">
+                                <i class="fa-solid fa-user-secret text-xs text-teal-400"></i>
+                            </div>
+                            <div>
+                                <span class="block text-[10px] font-extrabold text-slate-300">Người dùng ẩn danh</span>
+                                <span class="block text-[8px] text-slate-600 font-bold mt-0.5">${qa.time}</span>
+                            </div>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold border uppercase tracking-wider ${qa.areaClass}">
+                            ${qa.area}
+                        </span>
+                    </div>
+
+                    <!-- Question Title -->
+                    <h3 class="text-xs font-bold text-slate-200 leading-relaxed group-hover/card:text-teal-400 transition-colors mb-2.5">
+                        ${qa.question}
+                    </h3>
+
+                    <!-- Tags -->
+                    <div class="flex flex-wrap gap-1.5 mb-3">
+                        ${tagsHtml}
+                    </div>
+                </div>
+
+                <!-- Bottom Section -->
+                <div class="px-5 pb-4 pt-3 mt-auto border-t border-slate-800/40">
+                    <!-- Interaction Row -->
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-0.5 bg-slate-900/50 border border-slate-800/60 rounded-lg overflow-hidden">
+                            <button type="button" onclick="voteQa(this, 'up')" class="qa-vote-btn px-2.5 py-1.5 text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/8 transition-all text-xs" aria-label="Upvote">
+                                <i class="fa-solid fa-arrow-up"></i>
+                            </button>
+                            <span class="px-2 text-[11px] font-extrabold text-slate-300 tabular-nums qa-vote-count select-none">${qa.votes}</span>
+                            <button type="button" onclick="voteQa(this, 'down')" class="qa-vote-btn px-2.5 py-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/8 transition-all text-xs" aria-label="Downvote">
+                                <i class="fa-solid fa-arrow-down"></i>
+                            </button>
+                        </div>
+                        <button type="button" onclick="openQaCommentsModal(this)" class="qa-comment-btn flex items-center gap-1.5 text-[11px] font-bold text-slate-500 hover:text-slate-300 transition-colors" data-qa-index="${idx + 4}" data-qa-question="${escapeHtml(qa.question)}" data-qa-area="${qa.area}" data-qa-time="${qa.time}">
+                            <i class="fa-regular fa-message text-[10px]"></i>
+                            <span class="qa-comment-count">${qa.comments} bình luận</span>
+                        </button>
+                    </div>
+
+                    <!-- Best Reply -->
+                    <div class="qa-best-reply rounded-xl p-3 flex flex-col gap-1.5 bg-slate-900/40 border border-slate-800/30">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-[10px] font-bold text-slate-400">${qa.reply_author} (${qa.reply_school})</span>
+                                <span class="w-3.5 h-3.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[7px] border border-emerald-500/15 inline-flex items-center justify-center" title="Đã xác minh">
+                                    <i class="fa-solid fa-check"></i>
+                                </span>
+                            </div>
+                            <span class="text-[8px] text-teal-500/70 font-bold uppercase tracking-wider">Best</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed italic">
+                            "${qa.reply_text}"
+                        </p>
+                    </div>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+
+        // Update button status
+        button.innerHTML = '<i class="fa-solid fa-circle-check mr-1.5"></i> Đã tải hết câu hỏi';
+        button.classList.remove('pointer-events-none', 'opacity-80');
+        button.classList.add('pointer-events-none', 'opacity-60', 'bg-teal-500/10', 'text-teal-400', 'border-teal-500/20');
+    }, 800);
+}
+
+function showCommentsAlert() {
+    if (typeof showCustomAlert === 'function') {
+        showCustomAlert('Hệ thống bình luận chi tiết đang được đồng bộ hóa, tính năng này sẽ khả dụng sớm nhất!', 'info');
+    }
+}
+
+function subscribeNewsletter() {
+    const emailInput = document.getElementById('footer-newsletter-email');
+    if (!emailInput) return;
+    const email = emailInput.value.trim();
+    if (!email) {
+        if (typeof showCustomAlert === 'function') {
+            showCustomAlert('Vui lòng nhập địa chỉ email của bạn.', 'warning');
+        }
+        emailInput.focus();
+        return;
+    }
+    // Simple email validation regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        if (typeof showCustomAlert === 'function') {
+            showCustomAlert('Địa chỉ email không hợp lệ. Vui lòng kiểm tra lại.', 'warning');
+        }
+        emailInput.focus();
+        return;
+    }
+
+    if (typeof showCustomAlert === 'function') {
+        showCustomAlert('Đăng ký nhận tin tức phòng trọ mới thành công!', 'success');
+    }
+    emailInput.value = '';
 }
 
 // Bind functions to window so inline onclick event handlers can call them
@@ -1357,3 +1761,10 @@ window.showMarker = showMarker;
 window.hideMarker = hideMarker;
 window.submitQaQuestion = submitQaQuestion;
 window.voteQa = voteQa;
+window.updateQaCharCount = updateQaCharCount;
+window.loadMoreQaQuestions = loadMoreQaQuestions;
+window.showCommentsAlert = showCommentsAlert;
+window.subscribeNewsletter = subscribeNewsletter;
+window.openQaCommentsModal = openQaCommentsModal;
+window.closeQaCommentsModal = closeQaCommentsModal;
+window.submitQaReply = submitQaReply;
