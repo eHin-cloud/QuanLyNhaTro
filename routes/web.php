@@ -459,3 +459,8 @@ Route::post('/renty/room/{id}/report', function (Illuminate\Http\Request $reques
 
     return back()->with('success', 'Cảm ơn bạn đã gửi báo cáo. Renty Review sẽ kiểm tra phòng này sớm nhất.');
 })->middleware('throttle:5,1')->name('renty.room.report.store');
+
+Route::post('/renty/chatbot/chat', [\App\Http\Controllers\ChatbotController::class, 'chat'])
+    ->name('renty.chatbot.chat')
+    ->middleware('throttle:60,1');
+

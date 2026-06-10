@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="Renty Review - Nền tảng tìm kiếm và đánh giá phòng trọ chân thực.">
     <title>Renty Review - Tìm Phòng Trọ & Đánh Giá Không Gian Sống</title>
     <script>
@@ -44,6 +45,7 @@
     <!-- Pass Laravel variables to Global JS context -->
     <script>
         window.rentyRoomsData = {!! json_encode($rooms->keyBy('id')) !!};
+        window.rentyIsAuthenticated = @json(auth()->check());
         window.rentySessionSuccess = {!! json_encode(session('success')) !!};
         window.rentySessionError = {!! json_encode(session('error')) !!};
     </script>
@@ -1471,6 +1473,8 @@
             <p class="text-[11px] text-slate-400 leading-normal mb-4" id="custom-alert-message"></p>
             <button onclick="closeCustomAlert()" class="w-full py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-extrabold text-white transition-colors">
                 Xác nhận
+            </button>
+        </div>
     </div>
 
     <!-- Sync Hero Search Input with Navbar Search Input -->
@@ -1510,5 +1514,61 @@
             }
         });
     </script>
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- RENTY CHATBOT - Tư vấn tìm trọ thông minh                       -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div id="renty-chatbot-toggle" class="renty-chatbot-toggle" onclick="toggleRentyChatbot()" aria-label="Mở chatbot tư vấn">
+    <div class="renty-chatbot-toggle-pulse"></div>
+    <i class="fa-solid fa-comments"></i>
+    <span class="renty-chatbot-badge" id="renty-chatbot-badge">1</span>
+</div>
+
+<div id="renty-chatbot-panel" class="renty-chatbot-panel">
+    <!-- Header -->
+    <div class="renty-chatbot-header">
+        <div class="renty-chatbot-header-left">
+            <div class="renty-chatbot-avatar">
+                <i class="fa-solid fa-robot"></i>
+                <span class="renty-chatbot-status-dot"></span>
+            </div>
+            <div>
+                <h4>Renty AI</h4>
+                <span class="renty-chatbot-status-text">Đang hoạt động</span>
+            </div>
+        </div>
+        <div class="renty-chatbot-header-actions">
+            <button type="button" onclick="clearRentyChatbot()" title="Xoá lịch sử chat" aria-label="Xoá lịch sử">
+                <i class="fa-solid fa-trash-can"></i>
+            </button>
+            <button type="button" onclick="toggleRentyChatbot()" title="Đóng" aria-label="Đóng chatbot">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="renty-chatbot-messages" id="renty-chatbot-messages">
+        <!-- Messages will be injected here by JS -->
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="renty-chatbot-quick" id="renty-chatbot-quick">
+        <button type="button" onclick="sendRentyChatbotMessage('Phòng dưới 3 triệu')">💰 Dưới 3 triệu</button>
+        <button type="button" onclick="sendRentyChatbotMessage('Phòng có ban công')">🌿 Có ban công</button>
+        <button type="button" onclick="sendRentyChatbotMessage('Khu vực Cầu Giấy')">📍 Cầu Giấy</button>
+        <button type="button" onclick="sendRentyChatbotMessage('Phòng cho nuôi thú cưng')">🐾 Thú cưng</button>
+        <button type="button" onclick="sendRentyChatbotMessage('Tips thuê trọ an toàn')">🛡️ Mẹo an toàn</button>
+    </div>
+
+    <!-- Input -->
+    <div class="renty-chatbot-input-area">
+        <input type="text" id="renty-chatbot-input" placeholder="Hỏi về phòng trọ, khu vực, giá cả..." maxlength="300"
+            onkeydown="if(event.key==='Enter'){sendRentyChatbotMessage();event.preventDefault();}" autocomplete="off">
+        <button type="button" onclick="sendRentyChatbotMessage()" aria-label="Gửi tin nhắn" class="renty-chatbot-send-btn">
+            <i class="fa-solid fa-paper-plane"></i>
+        </button>
+    </div>
+</div>
+
 </body>
 </html>
