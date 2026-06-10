@@ -40,9 +40,10 @@ class ReportManagementTest extends TestCase
             'email' => 'tenant@example.com',
         ]);
 
-        $role = Role::create([
-            'name' => 'Chu tro',
+        $role = Role::firstOrCreate([
             'slug' => 'landlord',
+        ], [
+            'name' => 'Chu tro',
         ]);
 
         $user = User::create([
@@ -118,9 +119,10 @@ class ReportManagementTest extends TestCase
             'email' => 'tenant-invalid@example.com',
         ]);
 
-        $role = Role::create([
-            'name' => 'Chu tro',
+        $role = Role::firstOrCreate([
             'slug' => 'landlord',
+        ], [
+            'name' => 'Chu tro',
         ]);
 
         $user = User::create([
