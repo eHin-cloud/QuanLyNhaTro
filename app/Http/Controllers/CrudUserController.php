@@ -37,17 +37,25 @@ class CrudUserController extends Controller
         $login = $request->input('login');
         $password = $request->input('password');
 
-        // Try logging in using phone
-        $attemptPhone = Auth::attempt(['phone' => $login, 'password' => $password]);
+        $user = null;
 
-        // If not successful, try logging in using username
-        $attemptUsername = false;
-        if (!$attemptPhone) {
-            $attemptUsername = Auth::attempt(['username' => $login, 'password' => $password]);
+        // 1. Tìm theo số điện thoại (sử dụng blind index của trường phone)
+        $phoneBlindIndex = \App\Support\SensitiveData::blindIndex($login);
+        if ($phoneBlindIndex) {
+            $user = User::where('phone_blind_index', $phoneBlindIndex)->first();
         }
 
-        if ($attemptPhone || $attemptUsername) {
-            $user = Auth::user();
+        // 2. Nếu không thấy, tìm theo username hoặc email
+        if (!$user) {
+            $user = User::where('username', $login)
+                ->orWhere('email', $login)
+                ->first();
+        }
+
+        // 3. Kiểm tra mật khẩu và đăng nhập
+        if ($user && Hash::check($password, $user->password)) {
+            Auth::login($user, $request->filled('remember'));
+            
             $defaultRoute = match (true) {
                 $user->isAdmin() => route('user.list'),
                 $user->canAccessLandlordDashboard() => route('smartroom.admin'),

@@ -18,7 +18,7 @@ class ResidentPortalController extends Controller
     {
         $this->middleware(function ($request, $next) {
             if (!Auth::check()) {
-                return redirect()->route('login')->with('error', 'Vui long dang nhap truoc.');
+                return redirect()->route('login')->with('error', 'Vui lòng đăng nhập trước.');
             }
 
             $user = Auth::user();
@@ -29,7 +29,7 @@ class ResidentPortalController extends Controller
                     default => 'renty.user',
                 };
 
-                return redirect()->route($route)->with('error', 'Tai khoan cua ban khong co quyen truy cap cong cu dan.');
+                return redirect()->route($route)->with('error', 'Tài khoản của bạn không có quyền truy cập cổng cư dân.');
             }
 
             return $next($request);
@@ -85,7 +85,7 @@ class ResidentPortalController extends Controller
     {
         $resident = $this->currentResident();
         if (!$resident || !$resident->room) {
-            return back()->with('error', 'Tai khoan chua duoc gan phong.');
+            return back()->with('error', 'Tài khoản chưa được gán phòng.');
         }
 
         $input = $request->all();
@@ -121,7 +121,7 @@ class ResidentPortalController extends Controller
 
         return redirect()
             ->route('smartroom.resident', ['tab' => 'tickets'])
-            ->with('success', 'Da gui yeu cau sua chua. Ban quan ly se xu ly som.');
+            ->with('success', 'Đã gửi yêu cầu sửa chữa. Ban quản lý sẽ xử lý sớm.');
     }
 
     public function analyzeTicket(Request $request, AiManagementService $aiManagementService)
@@ -159,7 +159,7 @@ class ResidentPortalController extends Controller
         if (!in_array(($resident->tenant?->verification_status ?? 'unverified'), ['kyc_verified', 'premium_pending', 'premium_verified'], true)) {
             return redirect()
                 ->route('smartroom.resident')
-                ->with('error', 'Chu tro dang hoan tat xac minh nhan tien. Vui long lien he ban quan ly de nhan huong dan thanh toan.');
+                ->with('error', 'Chủ trọ đang hoàn tất xác minh nhận tiền. Vui lòng liên hệ ban quản lý để nhận hướng dẫn thanh toán.');
         }
 
         $record = UtilityRecord::where('room_id', $resident->room_id)->findOrFail($id);
@@ -231,18 +231,18 @@ class ResidentPortalController extends Controller
     private function billStatusLabels(): array
     {
         return [
-            'sent' => 'Da gui',
-            'paid' => 'Da thanh toan',
-            'overdue' => 'Qua han',
+            'sent' => 'Chưa thanh toán',
+            'paid' => 'Đã thanh toán',
+            'overdue' => 'Quá hạn',
         ];
     }
 
     private function ticketStatusLabels(): array
     {
         return [
-            'pending' => 'Cho xu ly',
-            'processing' => 'Dang xu ly',
-            'resolved' => 'Da hoan tat',
+            'pending' => 'Chờ xử lý',
+            'processing' => 'Đang xử lý',
+            'resolved' => 'Đã hoàn tất',
         ];
     }
 }

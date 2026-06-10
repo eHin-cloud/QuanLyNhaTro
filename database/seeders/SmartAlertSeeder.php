@@ -73,10 +73,10 @@ class SmartAlertSeeder extends Seeder
             ],
             [
                 'tenant_id' => $tenantId,
-                'name' => 'Khach thue phong ' . $room->room_number,
+                'name' => 'Khách thuê phòng ' . $room->room_number,
                 'phone' => '090' . str_pad((string) $room->id, 7, '0', STR_PAD_LEFT),
                 'cccd' => 'CB' . str_pad((string) $room->id, 10, '0', STR_PAD_LEFT),
-                'hometown' => 'Ha Noi',
+                'hometown' => 'Hà Nội',
                 'start_date' => Carbon::today()->subMonths(10)->toDateString(),
                 'status' => 'active',
                 'temporary_residence_status' => 'registered',
@@ -97,7 +97,7 @@ class SmartAlertSeeder extends Seeder
                 'end_date' => Carbon::today()->addDays(15)->toDateString(),
                 'deposit' => $room->price,
                 'status' => 'active',
-                'terms' => 'Hop dong mau dung de hien thi canh bao sap het han tren dashboard.',
+                'terms' => 'Hợp đồng mẫu dùng để hiển thị cảnh báo sắp hết hạn trên dashboard.',
                 'signature' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
             ]
         );
@@ -195,7 +195,7 @@ class SmartAlertSeeder extends Seeder
 
         $equipment->update([
             'total_quantity' => max(1, (int) $equipment->allocated_quantity + 1),
-            'description' => 'Du lieu mau: thiet bi sap thieu, can nhap bo sung.',
+            'description' => 'Dữ liệu mẫu: thiết bị sắp thiếu, cần nhập bổ sung.',
             'version' => $equipment->version + 1,
         ]);
     }
@@ -205,13 +205,13 @@ class SmartAlertSeeder extends Seeder
         Ticket::updateOrCreate(
             [
                 'room_id' => $room->id,
-                'title' => 'Dieu hoa phong ' . $room->room_number . ' dang hong',
+                'title' => 'Điều hòa phòng ' . $room->room_number . ' đang hỏng',
             ],
             [
                 'tenant_id' => $tenantId,
                 'resident_id' => $resident->id,
-                'description' => 'Dieu hoa khong mat, can kiem tra va sua chua som.',
-                'category' => 'dien',
+                'description' => 'Điều hòa không mát, cần kiểm tra và sửa chữa sớm.',
+                'category' => 'điện',
                 'status' => 'pending',
                 'assigned_to' => null,
             ]
