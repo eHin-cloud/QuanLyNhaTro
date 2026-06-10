@@ -102,6 +102,12 @@
             </div>
             
             <div class="flex items-center gap-3">
+                <!-- Nút Đăng ký thiết bị bảo mật (Passkey) -->
+                <button id="btnRegisterPasskey" onclick="registerBiometricDevice()" class="inline-flex items-center gap-2 rounded-xl border border-sky-800 bg-sky-950/40 backdrop-blur px-4 py-2.5 text-xs font-bold text-sky-300 hover:text-white hover:border-sky-500 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                    <i id="passkeyIcon" class="fa-solid fa-fingerprint text-sky-400"></i>
+                    <span id="passkeyBtnText">Đăng ký Passkey</span>
+                </button>
+
                 <a href="{{ route('user.list') }}" class="inline-flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/60 backdrop-blur px-4 py-2.5 text-xs font-bold text-slate-350 hover:text-white hover:border-indigo-500/50 transition-all hover:scale-[1.02] active:scale-[0.98]">
                     <i class="fa-solid fa-users-gear text-indigo-400"></i>
                     Quản lý thành viên
@@ -275,7 +281,7 @@
                                                     {{ str_replace('_', ' ', strtoupper($document->document_type)) }}
                                                 </div>
                                                 
-                                                <form method="POST" action="{{ route('admin.verification-documents.unlock', $document) }}" target="_blank" class="mt-2.5 space-y-2">
+                                                <form method="POST" action="{{ route('admin.verification-documents.unlock', $document) }}" onsubmit="handleJitUnlockSubmit(event, this)" class="mt-2.5 space-y-2">
                                                     @csrf
                                                     <textarea name="reason" required minlength="12" rows="2" placeholder="Lý do mở khóa dữ liệu bảo mật JIT..." class="w-full rounded-lg border border-slate-800 bg-slate-950 px-2.5 py-1.5 text-[11px] text-slate-200 outline-none focus:border-amber-500/80 transition-all placeholder-slate-600 font-sans"></textarea>
                                                     <button class="w-full py-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-[10px] font-extrabold text-amber-300 hover:bg-amber-500/20 active:scale-[0.98] transition-all">
@@ -393,6 +399,221 @@
         @if($errors->any())
             showToast(@json($errors->first()), "error");
         @endif
+
+        // ================= WebAuthn FIDO2 Biometric Security =================
+        window.hasPasskey = false;
+
+        function base64UrlToUint8Array(base64Url) {
+            const padding = '='.repeat((4 - base64Url.length % 4) % 4);
+            const base64 = (base64Url + padding).replace(/\-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
+        function bufferToBase64(buffer) {
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            const len = bytes.byteLength;
+            for (let i = 0; i < len; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return window.btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+
+        function updatePasskeyButtonState() {
+            const btn = document.getElementById('btnRegisterPasskey');
+            const icon = document.getElementById('passkeyIcon');
+            const text = document.getElementById('passkeyBtnText');
+            if (window.hasPasskey) {
+                btn.className = "inline-flex items-center gap-2 rounded-xl border border-emerald-800 bg-emerald-950/40 backdrop-blur px-4 py-2.5 text-xs font-bold text-emerald-300 hover:text-white hover:border-emerald-500 transition-all hover:scale-[1.02] active:scale-[0.98]";
+                icon.className = "fa-solid fa-shield-halved text-emerald-400";
+                text.innerText = "Passkey: Đã bảo vệ";
+            } else {
+                btn.className = "inline-flex items-center gap-2 rounded-xl border border-sky-800 bg-sky-950/40 backdrop-blur px-4 py-2.5 text-xs font-bold text-sky-300 hover:text-white hover:border-sky-500 transition-all hover:scale-[1.02] active:scale-[0.98]";
+                icon.className = "fa-solid fa-fingerprint text-sky-400";
+                text.innerText = "Đăng ký Passkey";
+            }
+        }
+
+        async function checkPasskeyStatus() {
+            try {
+                const res = await fetch('{{ route("admin.verifications.has-passkey") }}');
+                const data = await res.json();
+                window.hasPasskey = data.has_passkey;
+                updatePasskeyButtonState();
+            } catch (e) {
+                console.error("Lỗi check passkey status:", e);
+            }
+        }
+
+        async function registerBiometricDevice() {
+            if (typeof PublicKeyCredential === "undefined") {
+                showToast("Trình duyệt hoặc thiết bị của bạn không hỗ trợ WebAuthn/Passkeys.", "error");
+                return;
+            }
+
+            try {
+                showToast("Đang kết nối máy chủ để khởi tạo Passkey...", "info");
+                
+                const optionsResponse = await fetch('/webauthn/register/options', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({})
+                });
+                
+                if (!optionsResponse.ok) {
+                    throw new Error("Không thể lấy cấu hình đăng ký từ máy chủ.");
+                }
+                
+                const options = await optionsResponse.json();
+                options.challenge = base64UrlToUint8Array(options.challenge);
+                options.user.id = base64UrlToUint8Array(options.user.id);
+                
+                if (options.excludeCredentials) {
+                    options.excludeCredentials = options.excludeCredentials.map(cred => ({
+                        ...cred,
+                        id: base64UrlToUint8Array(cred.id)
+                    }));
+                }
+                
+                showToast("Vui lòng hoàn tất quét vân tay/khuôn mặt trên thiết bị của bạn...", "info");
+                const credential = await navigator.credentials.create({
+                    publicKey: options
+                });
+                
+                const attestationResponse = {
+                    id: credential.id,
+                    rawId: bufferToBase64(credential.rawId),
+                    type: credential.type,
+                    response: {
+                        clientDataJSON: bufferToBase64(credential.response.clientDataJSON),
+                        attestationObject: bufferToBase64(credential.response.attestationObject)
+                    }
+                };
+                
+                const saveResponse = await fetch('/webauthn/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify(attestationResponse)
+                });
+                
+                if (saveResponse.ok) {
+                    showToast("Đăng ký thiết bị bảo mật (Passkey) thành công!", "success");
+                    window.hasPasskey = true;
+                    updatePasskeyButtonState();
+                } else {
+                    const errData = await saveResponse.json();
+                    throw new Error(errData.message || "Không thể lưu thiết bị bảo mật.");
+                }
+                
+            } catch (error) {
+                console.error(error);
+                showToast(error.message || "Đăng ký Passkey thất bại hoặc bị hủy bỏ.", "error");
+            }
+        }
+
+        async function handleJitUnlockSubmit(event, form) {
+            event.preventDefault();
+            
+            if (!window.hasPasskey) {
+                showToast("Bảo mật bắt buộc: Vui lòng click nút 'Đăng ký Passkey' ở trên đầu trang trước khi mở khóa tài liệu nhạy cảm.", "error");
+                return;
+            }
+            
+            const reasonTextarea = form.querySelector('textarea[name="reason"]');
+            const reason = reasonTextarea.value.trim();
+            if (reason.length < 12) {
+                showToast("Lý do mở khóa phải chứa ít nhất 12 ký tự.", "error");
+                return;
+            }
+            
+            try {
+                showToast("Đang chuẩn bị xác thực sinh trắc học...", "info");
+                
+                const optionsResponse = await fetch('/webauthn/login/options', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        email: '{{ Auth::user()->email }}'
+                    })
+                });
+                
+                if (!optionsResponse.ok) {
+                    throw new Error("Không thể khởi tạo cấu hình xác thực sinh trắc học.");
+                }
+                
+                const options = await optionsResponse.json();
+                options.challenge = base64UrlToUint8Array(options.challenge);
+                if (options.allowCredentials) {
+                    options.allowCredentials = options.allowCredentials.map(cred => ({
+                        ...cred,
+                        id: base64UrlToUint8Array(cred.id)
+                    }));
+                }
+                
+                showToast("Vui lòng quét vân tay hoặc khuôn mặt để mở khóa...", "info");
+                const assertion = await navigator.credentials.get({
+                    publicKey: options
+                });
+                
+                const payload = {
+                    id: assertion.id,
+                    rawId: bufferToBase64(assertion.rawId),
+                    type: assertion.type,
+                    response: {
+                        clientDataJSON: bufferToBase64(assertion.response.clientDataJSON),
+                        authenticatorData: bufferToBase64(assertion.response.authenticatorData),
+                        signature: bufferToBase64(assertion.response.signature),
+                        userHandle: assertion.response.userHandle ? bufferToBase64(assertion.response.userHandle) : null
+                    },
+                    reason: reason
+                };
+                
+                showToast("Đang gửi yêu cầu giải mã lên máy chủ...", "info");
+                const unlockResponse = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await unlockResponse.json();
+                
+                if (unlockResponse.ok && result.success) {
+                    showToast("Xác thực thành công! Đang mở tài liệu...", "success");
+                    window.open(result.url, '_blank');
+                    reasonTextarea.value = '';
+                } else {
+                    throw new Error(result.message || "Xác thực Passkey không thành công.");
+                }
+                
+            } catch (error) {
+                console.error(error);
+                showToast(error.message || "Xác thực sinh trắc học thất bại hoặc bị hủy.", "error");
+            }
+        }
+
+        // Tự động kiểm tra trạng thái Passkey khi vào trang
+        document.addEventListener('DOMContentLoaded', checkPasskeyStatus);
     </script>
 </body>
 </html>

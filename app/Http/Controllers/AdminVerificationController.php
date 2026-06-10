@@ -25,6 +25,12 @@ class AdminVerificationController extends Controller
         return view('admin.verifications.index', compact('requests', 'stats'));
     }
 
+    public function hasPasskey()
+    {
+        $hasKey = Auth::user()->webAuthnCredentials()->whereEnabled()->exists();
+        return response()->json(['has_passkey' => $hasKey]);
+    }
+
     public function approve(LandlordVerificationRequest $verification)
     {
         DB::transaction(function () use ($verification) {

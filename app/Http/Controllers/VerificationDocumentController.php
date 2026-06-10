@@ -29,11 +29,29 @@ class VerificationDocumentController extends Controller
         Request $request,
         LandlordVerificationDocument $document,
         AdminAccessLogService $accessLogService,
-        SecureDocumentService $documentService
+        SecureDocumentService $documentService,
+        \Laragear\WebAuthn\Assertion\Validator\AssertionValidator $assertionValidator
     ) {
         $validated = $request->validate([
             'reason' => ['required', 'string', 'min:12', 'max:1000'],
         ]);
+
+        $user = Auth::user();
+        if ($user && $user->webAuthnCredentials()->whereEnabled()->exists()) {
+            try {
+                $assertionValidator
+                    ->send(\Laragear\WebAuthn\Assertion\Validator\AssertionValidation::fromRequest($request))
+                    ->thenReturn();
+            } catch (\Exception $e) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Xác thực sinh trắc học (Passkey) thất bại. Vui lòng quét vân tay/khuôn mặt chính xác.',
+                    ], 422);
+                }
+                return back()->withErrors(['webauthn' => 'Xác thực sinh trắc học (Passkey) thất bại.']);
+            }
+        }
 
         $document->loadMissing('request.user');
         $this->authorizeJitDocumentAccess($document);

@@ -43,6 +43,7 @@ Route::middleware('role:admin')->group(function () {
     Route::post('users/role', [CrudUserController::class, 'updateRole'])->name('user.updateRole');
     Route::get('list', [CrudUserController::class, 'listUser'])->name('user.list');
     Route::get('admin/verifications', [AdminVerificationController::class, 'index'])->name('admin.verifications.index');
+    Route::get('admin/verifications/has-passkey', [AdminVerificationController::class, 'hasPasskey'])->name('admin.verifications.has-passkey');
     Route::post('admin/verifications/{verification}/approve', [AdminVerificationController::class, 'approve'])->name('admin.verifications.approve');
     Route::post('admin/verifications/{verification}/reject', [AdminVerificationController::class, 'reject'])->name('admin.verifications.reject');
     Route::get('admin/verification-documents/{document}', [VerificationDocumentController::class, 'show'])->name('admin.verification-documents.show');
@@ -54,6 +55,8 @@ Route::get('admin/verification-documents/{document}/stream', [VerificationDocume
     ->name('admin.verification-documents.stream');
 
 Route::get('signout', [CrudUserController::class, 'signOut'])->name('signout');
+
+\Laragear\WebAuthn\Http\Routes::register();
 
 Route::get('/', function () {
     return view('index');
