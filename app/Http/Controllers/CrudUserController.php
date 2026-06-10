@@ -37,17 +37,25 @@ class CrudUserController extends Controller
         $login = $request->input('login');
         $password = $request->input('password');
 
-        // Try logging in using phone
-        $attemptPhone = Auth::attempt(['phone' => $login, 'password' => $password]);
+        $user = null;
 
-        // If not successful, try logging in using username
-        $attemptUsername = false;
-        if (!$attemptPhone) {
-            $attemptUsername = Auth::attempt(['username' => $login, 'password' => $password]);
+        // 1. Tìm theo số điện thoại (sử dụng blind index của trường phone)
+        $phoneBlindIndex = \App\Support\SensitiveData::blindIndex($login);
+        if ($phoneBlindIndex) {
+            $user = User::where('phone_blind_index', $phoneBlindIndex)->first();
         }
 
-        if ($attemptPhone || $attemptUsername) {
-            $user = Auth::user();
+        // 2. Nếu không thấy, tìm theo username hoặc email
+        if (!$user) {
+            $user = User::where('username', $login)
+                ->orWhere('email', $login)
+                ->first();
+        }
+
+        // 3. Kiểm tra mật khẩu và đăng nhập
+        if ($user && Hash::check($password, $user->password)) {
+            Auth::login($user, $request->filled('remember'));
+            
             $defaultRoute = match (true) {
                 $user->isAdmin() => route('user.list'),
                 $user->canAccessLandlordDashboard() => route('smartroom.admin'),
@@ -84,13 +92,18 @@ class CrudUserController extends Controller
         ]);
 
         $data = $request->all();
+
+        $guestRole = Role::where('slug', 'guest')->first();
+        $guestRoleId = $guestRole ? $guestRole->id : null;
+
         $check = User::create([
             'name' => $data['name'],
             'username' => $data['username'],
             'phone' => $data['phone'],
             'email' => $data['email'] ?? null,
             'like' => $data['like'],
-            'role' => 'user',
+            'role' => 'guest',
+            'role_id' => $guestRoleId,
             'password' => Hash::make($data['password'])
         ]);
 
@@ -111,12 +124,21 @@ class CrudUserController extends Controller
     /**
      * Delete user by id
      */
-    public function deleteUser(Request $request)
+    public function deleteUser($id)
     {
-        $user_id = $request->get('id');
-        $user = User::destroy($user_id);
+        // Ngăn admin tự xóa chính mình
+        if (Auth::id() == $id) {
+            return redirect("list")->with('error', 'Không thể xóa chính tài khoản đang đăng nhập!');
+        }
 
-        return redirect("list")->withSuccess('You have signed-in');
+        $user = User::find($id);
+        if (!$user) {
+            return redirect("list")->with('error', 'Người dùng không tồn tại hoặc đã bị xóa trước đó!');
+        }
+
+        $user->delete();
+
+        return redirect("list")->with('success', 'Xóa tài khoản người dùng thành công!');
     }
 
     /**
@@ -143,7 +165,7 @@ class CrudUserController extends Controller
             'phone' => 'required|numeric|unique:users,phone,' . $input['id'],
             'email' => 'nullable|email|unique:users,email,' . $input['id'],
             'like' => 'required|max:255',
-            'password' => 'required|min:6',
+            'password' => 'nullable|min:6',
         ]);
 
         $user = User::find($input['id']);
@@ -152,7 +174,9 @@ class CrudUserController extends Controller
         $user->phone = $input['phone'];
         $user->email = $input['email'] ?? null;
         $user->like = $input['like'];
-        $user->password = Hash::make($input['password']);
+        if (!empty($input['password'])) {
+            $user->password = Hash::make($input['password']);
+        }
         $user->save();
 
         return redirect()->route('user.list')->with('success', 'Cập nhật thông tin quản trị viên thành công!');
@@ -164,7 +188,7 @@ class CrudUserController extends Controller
     public function listUser()
     {
         if (Auth::check()) {
-            $users = User::with(['roleRecord', 'tenant'])->orderByDesc('id')->get();
+            $users = User::with(['roleRecord', 'tenant'])->orderByDesc('id')->paginate(10);
             $roles = Role::whereIn('slug', ['admin', 'unverified_landlord', 'landlord', 'manager', 'resident', 'guest'])
                 ->orderByRaw("field(slug, 'admin', 'unverified_landlord', 'landlord', 'manager', 'resident', 'guest')")
                 ->get();

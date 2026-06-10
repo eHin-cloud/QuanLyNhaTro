@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>SmartRoom - Trang Cu Dan</title>
+    <title>SmartRoom - Trang Cư Dân</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/css/style.css', 'resources/js/app.js'])
@@ -48,7 +48,7 @@
             @endif
             @if($errors->any())
                 <div class="panel rounded-xl p-4 text-sm text-rose-300">
-                    <div class="font-bold mb-1">Du lieu chua hop le</div>
+                    <div class="font-bold mb-1">Dữ liệu chưa hợp lệ</div>
                     @foreach($errors->all() as $error)
                         <div>{{ $error }}</div>
                     @endforeach
@@ -58,56 +58,56 @@
             @if(!$room)
                 <section class="panel rounded-2xl p-8 text-center">
                     <i class="fa-solid fa-user-lock text-4xl text-amber-300 mb-4"></i>
-                    <h1 class="text-xl font-black">Tai khoan chua duoc gan phong</h1>
-                    <p class="text-sm text-slate-400 mt-2">Vui long lien he ban quan ly de kich hoat ho so cu dan.</p>
+                    <h1 class="text-xl font-black">Tài khoản chưa được gán phòng</h1>
+                    <p class="text-sm text-slate-400 mt-2">Vui lòng liên hệ ban quản lý để kích hoạt hồ sơ cư dân.</p>
                 </section>
             @else
                 <section class="grid grid-cols-1 lg:grid-cols-4 gap-4">
                     <div class="panel rounded-2xl p-5">
-                        <div class="text-xs font-bold uppercase text-slate-500">Cu dan</div>
+                        <div class="text-xs font-bold uppercase text-slate-500">Cư dân</div>
                         <div class="mt-2 text-xl font-black">{{ $resident->name }}</div>
                         <div class="mt-1 text-xs text-slate-400">{{ $resident->phone }}</div>
                     </div>
                     <div class="panel rounded-2xl p-5">
-                        <div class="text-xs font-bold uppercase text-slate-500">Phong</div>
+                        <div class="text-xs font-bold uppercase text-slate-500">Phòng</div>
                         <div class="mt-2 text-xl font-black text-indigo-300">P. {{ $room->room_number }}</div>
-                        <div class="mt-1 text-xs text-slate-400">{{ $room->building->name ?? 'Chua co toa nha' }}</div>
+                        <div class="mt-1 text-xs text-slate-400">{{ $room->building->name ?? 'Chưa có tòa nhà' }}</div>
                     </div>
                     <div class="panel rounded-2xl p-5">
-                        <div class="text-xs font-bold uppercase text-slate-500">No can thanh toan</div>
+                        <div class="text-xs font-bold uppercase text-slate-500">Nợ cần thanh toán</div>
                         <div class="mt-2 text-xl font-black text-amber-300">{{ number_format($unpaidTotal) }} VND</div>
-                        <div class="mt-1 text-xs text-slate-400">{{ $bills->where('status', '!=', 'paid')->count() }} hoa don</div>
+                        <div class="mt-1 text-xs text-slate-400">{{ $bills->where('status', '!=', 'paid')->count() }} hóa đơn</div>
                     </div>
                     <div class="panel rounded-2xl p-5">
-                        <div class="text-xs font-bold uppercase text-slate-500">Su co dang mo</div>
+                        <div class="text-xs font-bold uppercase text-slate-500">Sự cố đang mở</div>
                         <div class="mt-2 text-xl font-black text-cyan-300">{{ $tickets->where('status', '!=', 'resolved')->count() }}</div>
-                        <div class="mt-1 text-xs text-slate-400">Bao tri / sua chua</div>
+                        <div class="mt-1 text-xs text-slate-400">Bảo trì / sửa chữa</div>
                     </div>
                 </section>
 
                 <section class="panel rounded-2xl p-6">
                     <div class="flex flex-wrap items-center gap-2">
-                        <button type="button" onclick="switchResidentTab('bills')" class="resident-tab px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold">Hoa don</button>
-                        <button type="button" onclick="switchResidentTab('contract')" class="resident-tab px-4 py-2 rounded-xl bg-slate-900 text-slate-300 text-xs font-bold border border-slate-800">Hop dong</button>
-                        <button type="button" onclick="switchResidentTab('tickets')" class="resident-tab px-4 py-2 rounded-xl bg-slate-900 text-slate-300 text-xs font-bold border border-slate-800">Su co / Bao tri</button>
+                        <button type="button" onclick="switchResidentTab('bills')" class="resident-tab px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold">Hóa đơn</button>
+                        <button type="button" onclick="switchResidentTab('contract')" class="resident-tab px-4 py-2 rounded-xl bg-slate-900 text-slate-300 text-xs font-bold border border-slate-800">Hợp đồng</button>
+                        <button type="button" onclick="switchResidentTab('tickets')" class="resident-tab px-4 py-2 rounded-xl bg-slate-900 text-slate-300 text-xs font-bold border border-slate-800">Sự cố / Bảo trì</button>
                     </div>
                 </section>
 
                 <section id="resident-tab-bills" class="resident-section panel rounded-2xl p-6">
                     <div class="flex items-center justify-between gap-4 mb-5">
                         <div>
-                            <h2 class="text-lg font-black">Hoa don cua toi</h2>
-                            <p class="text-xs text-slate-500 mt-1">Xem chi tiet tien phong, dien, nuoc va ma QR thanh toan.</p>
+                            <h2 class="text-lg font-black">Hóa đơn của tôi</h2>
+                            <p class="text-xs text-slate-500 mt-1">Xem chi tiết tiền phòng, điện, nước và mã QR thanh toán.</p>
                         </div>
                     </div>
                     <div class="overflow-x-auto rounded-xl border border-slate-900">
                         <table class="w-full text-left text-sm">
                             <thead class="bg-slate-950 text-slate-500 uppercase text-xs">
                                 <tr>
-                                    <th class="px-4 py-3">Thang</th>
-                                    <th class="px-4 py-3">Chi tiet</th>
-                                    <th class="px-4 py-3">Tong</th>
-                                    <th class="px-4 py-3">Trang thai</th>
+                                    <th class="px-4 py-3">Tháng</th>
+                                    <th class="px-4 py-3">Chi tiết</th>
+                                    <th class="px-4 py-3">Tổng</th>
+                                    <th class="px-4 py-3">Trạng thái</th>
                                     <th class="px-4 py-3 text-right">QR</th>
                                 </tr>
                             </thead>
@@ -116,10 +116,10 @@
                                     <tr class="hover:bg-slate-900/30">
                                         <td class="px-4 py-4 font-bold text-indigo-300">{{ $bill->billing_month }}</td>
                                         <td class="px-4 py-4 text-xs text-slate-400">
-                                            <div>Phong: {{ number_format($bill->room_amount) }} VND</div>
-                                            <div>Dien: {{ number_format($bill->electricity_amount) }} VND / {{ $bill->electricity_usage }} kWh</div>
-                                            <div>Nuoc: {{ number_format($bill->water_amount) }} VND / {{ $bill->water_usage }} m3</div>
-                                            <div>Dich vu: {{ number_format($bill->service_amount) }} VND</div>
+                                            <div>Phòng: {{ number_format($bill->room_amount) }} VND</div>
+                                            <div>Điện: {{ number_format($bill->electricity_amount) }} VND / {{ $bill->electricity_usage }} kWh</div>
+                                            <div>Nước: {{ number_format($bill->water_amount) }} VND / {{ $bill->water_usage }} m3</div>
+                                            <div>Dịch vụ: {{ number_format($bill->service_amount) }} VND</div>
                                         </td>
                                         <td class="px-4 py-4 font-black">{{ number_format($bill->total_amount) }} VND</td>
                                         <td class="px-4 py-4">
@@ -135,7 +135,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="px-4 py-8 text-center text-xs text-slate-500">Chua co hoa don.</td>
+                                        <td colspan="5" class="px-4 py-8 text-center text-xs text-slate-500">Chưa có hóa đơn.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -144,31 +144,31 @@
                 </section>
 
                 <section id="resident-tab-contract" class="resident-section panel rounded-2xl p-6 hidden">
-                    <h2 class="text-lg font-black mb-5">Hop dong cua toi</h2>
+                    <h2 class="text-lg font-black mb-5">Hợp đồng của tôi</h2>
                     @if($contract)
                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                             <div class="rounded-xl bg-slate-950/40 border border-slate-800 p-4">
-                                <div class="text-xs text-slate-500 font-bold uppercase">Ma hop dong</div>
+                                <div class="text-xs text-slate-500 font-bold uppercase">Mã hợp đồng</div>
                                 <div class="mt-2 font-black">{{ $contract->contract_code }}</div>
                             </div>
                             <div class="rounded-xl bg-slate-950/40 border border-slate-800 p-4">
-                                <div class="text-xs text-slate-500 font-bold uppercase">Thoi han</div>
+                                <div class="text-xs text-slate-500 font-bold uppercase">Thời hạn</div>
                                 <div class="mt-2 font-black">{{ \Carbon\Carbon::parse($contract->start_date)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($contract->end_date)->format('d/m/Y') }}</div>
                             </div>
                             <div class="rounded-xl bg-slate-950/40 border border-slate-800 p-4">
-                                <div class="text-xs text-slate-500 font-bold uppercase">Dat coc</div>
+                                <div class="text-xs text-slate-500 font-bold uppercase">Đặt cọc</div>
                                 <div class="mt-2 font-black">{{ number_format($contract->deposit) }} VND</div>
                             </div>
                         </div>
                         <div class="mt-4 rounded-xl bg-slate-950/40 border border-slate-800 p-4">
-                            <div class="text-xs text-slate-500 font-bold uppercase mb-2">Dieu khoan</div>
+                            <div class="text-xs text-slate-500 font-bold uppercase mb-2">Điều khoản</div>
                             <div class="text-sm text-slate-300 whitespace-pre-line">{{ $contract->terms }}</div>
                         </div>
                         <a href="{{ route('smartroom.contract.sign_view', $contract->id) }}" target="_blank" class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold">
-                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Xem / ky hop dong
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Xem / ký hợp đồng
                         </a>
                     @else
-                        <div class="text-sm text-slate-500">Chua co hop dong.</div>
+                        <div class="text-sm text-slate-500">Chưa có hợp đồng.</div>
                     @endif
                 </section>
 
@@ -176,23 +176,23 @@
                     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
                         <form method="POST" action="{{ route('smartroom.resident.tickets.store') }}" enctype="multipart/form-data" class="xl:col-span-1 rounded-xl bg-slate-950/40 border border-slate-800 p-4 space-y-3" onsubmit="return disableSubmit(this)">
                             @csrf
-                            <h2 class="text-lg font-black">Gui yeu cau sua chua</h2>
-                            <input name="title" id="ticket-title" maxlength="150" required class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm focus:outline-none focus:border-indigo-500" placeholder="Tieu de">
+                            <h2 class="text-lg font-black">Gửi yêu cầu sửa chữa</h2>
+                            <input name="title" id="ticket-title" maxlength="150" required class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm focus:outline-none focus:border-indigo-500" placeholder="Tiêu đề">
                             <select name="category" id="ticket-category" required class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm focus:outline-none focus:border-indigo-500">
-                                <option value="electric">Dien</option>
-                                <option value="water">Nuoc</option>
-                                <option value="furniture">Noi that</option>
-                                <option value="maintenance">Bao tri</option>
-                                <option value="other">Khac</option>
+                                <option value="electric">Điện</option>
+                                <option value="water">Nước</option>
+                                <option value="furniture">Nội thất</option>
+                                <option value="maintenance">Bảo trì</option>
+                                <option value="other">Khác</option>
                             </select>
-                            <textarea name="description" id="ticket-description" maxlength="1000" required rows="5" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm focus:outline-none focus:border-indigo-500" placeholder="Mo ta chi tiet"></textarea>
+                            <textarea name="description" id="ticket-description" maxlength="1000" required rows="5" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm focus:outline-none focus:border-indigo-500" placeholder="Mô tả chi tiết"></textarea>
                             <button type="button" onclick="analyzeTicketWithAi(this)" class="w-full px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold">
-                                <i class="fa-solid fa-wand-magic-sparkles"></i> AI phan tich su co
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> AI phân tích sự cố
                             </button>
                             <div id="ticket-ai-result" class="hidden rounded-xl bg-slate-900/70 border border-slate-800 p-3 text-xs text-slate-300"></div>
                             <input name="image" type="file" accept="image/jpeg,image/png,image/webp" class="w-full text-xs text-slate-400 file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border-0 file:bg-indigo-600 file:text-white file:text-xs file:font-bold">
                             <button type="submit" class="submit-btn w-full px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold">
-                                <i class="fa-solid fa-paper-plane"></i> Gui yeu cau
+                                <i class="fa-solid fa-paper-plane"></i> Gửi yêu cầu
                             </button>
                         </form>
 
@@ -200,10 +200,10 @@
                             <table class="w-full text-left text-sm">
                                 <thead class="bg-slate-950 text-slate-500 uppercase text-xs">
                                     <tr>
-                                        <th class="px-4 py-3">Ngay</th>
-                                        <th class="px-4 py-3">Noi dung</th>
-                                        <th class="px-4 py-3">Trang thai</th>
-                                        <th class="px-4 py-3">Phu trach</th>
+                                        <th class="px-4 py-3">Ngày</th>
+                                        <th class="px-4 py-3">Nội dung</th>
+                                        <th class="px-4 py-3">Trạng thái</th>
+                                        <th class="px-4 py-3">Phụ trách</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-900">
@@ -214,7 +214,7 @@
                                                 <div class="font-bold text-slate-200">{{ $ticket->title }}</div>
                                                 <div class="text-xs text-slate-500 mt-1">{{ $ticket->description }}</div>
                                                 @if($ticket->image_path)
-                                                    <a href="{{ $ticket->image_path }}" target="_blank" class="text-xs text-indigo-300 mt-1 inline-block">Xem anh</a>
+                                                    <a href="{{ $ticket->image_path }}" target="_blank" class="text-xs text-indigo-300 mt-1 inline-block">Xem ảnh</a>
                                                 @endif
                                             </td>
                                             <td class="px-4 py-4">
@@ -222,11 +222,11 @@
                                                     {{ $statusLabels[$ticket->status] ?? $ticket->status }}
                                                 </span>
                                             </td>
-                                            <td class="px-4 py-4 text-xs text-slate-400">{{ $ticket->assigned_to ?? 'Chua phan cong' }}</td>
+                                            <td class="px-4 py-4 text-xs text-slate-400">{{ $ticket->assigned_to ?? 'Chưa phân công' }}</td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="4" class="px-4 py-8 text-center text-xs text-slate-500">Chua co yeu cau sua chua.</td>
+                                            <td colspan="4" class="px-4 py-8 text-center text-xs text-slate-500">Chưa có yêu cầu sửa chữa.</td>
                                         </tr>
                                     @endforelse
                                 </tbody>
@@ -255,7 +255,7 @@
             const btn = form.querySelector('.submit-btn');
             if (btn.disabled) return false;
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Dang gui...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang gửi...';
             return true;
         }
 
@@ -272,15 +272,15 @@
 
             if (description.length < 5) {
                 result.classList.remove('hidden');
-                result.textContent = 'Vui long nhap mo ta su co ro hon truoc khi dung AI.';
+                result.textContent = 'Vui lòng nhập mô tả sự cố rõ hơn trước khi dùng AI.';
                 return;
             }
 
             const original = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Dang phan tich...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang phân tích...';
             result.classList.remove('hidden');
-            result.textContent = 'AI dang phan loai su co...';
+            result.textContent = 'AI đang phân loại sự cố...';
 
             fetch("{{ route('smartroom.resident.tickets.analyze') }}", {
                 method: 'POST',
@@ -299,7 +299,7 @@
                 btn.innerHTML = original;
 
                 if (!data.success) {
-                    result.textContent = 'Khong the phan tich su co bang AI.';
+                    result.textContent = 'Không thể phân tích sự cố bằng AI.';
                     return;
                 }
 
@@ -307,12 +307,12 @@
                 titleInput.value = analysis.title || titleInput.value;
                 categoryInput.value = analysis.category || categoryInput.value;
                 descriptionInput.value = analysis.normalized_description || descriptionInput.value;
-                result.innerHTML = `Muc uu tien: <strong>${escapeHtml(analysis.priority)}</strong><br>Goi y xu ly: ${escapeHtml(analysis.suggestion || 'Chua co goi y.')}`;
+                result.innerHTML = `Mức ưu tiên: <strong>${escapeHtml(analysis.priority)}</strong><br>Gợi ý xử lý: ${escapeHtml(analysis.suggestion || 'Chưa có gợi ý.')}`;
             })
             .catch(() => {
                 btn.disabled = false;
                 btn.innerHTML = original;
-                result.textContent = 'Khong the ket noi AI.';
+                result.textContent = 'Không thể kết nối AI.';
             });
         }
 

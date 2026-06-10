@@ -19,7 +19,8 @@ class VerificationDocumentController extends Controller
         $document->loadMissing('request.tenant');
         $this->authorizeDefaultDocumentAccess($document);
 
-        $expiresAt = now()->addSeconds((int) config('security.presigned_url_ttl_seconds', 300));
+        $ttl = (int) config('security.presigned_url_ttl_seconds', 300);
+        $expiresAt = now()->addSeconds($ttl);
         $accessLogService->recordDocumentAccess($document, 'CONSENT_PENDING_REVIEW', 'Pending landlord verification review', $expiresAt);
 
         return redirect()->away($documentService->temporaryViewUrl($document, ['admin' => Auth::id()]));
@@ -29,16 +30,49 @@ class VerificationDocumentController extends Controller
         Request $request,
         LandlordVerificationDocument $document,
         AdminAccessLogService $accessLogService,
-        SecureDocumentService $documentService
+        SecureDocumentService $documentService,
+        \Laragear\WebAuthn\Assertion\Validator\AssertionValidator $assertionValidator
     ) {
         $validated = $request->validate([
             'reason' => ['required', 'string', 'min:12', 'max:1000'],
         ]);
 
+        $requirePasskey = (bool) config('security.require_passkey', true);
+
+        $user = Auth::user();
+        $hasKey = $user && $user->webAuthnCredentials()->whereEnabled()->exists();
+
+        if ($requirePasskey || $hasKey) {
+            if (!$hasKey) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Bảo mật bắt buộc: Vui lòng đăng ký thiết bị bảo mật (Passkey) để truy cập tài liệu nhạy cảm.',
+                    ], 422);
+                }
+                return back()->withErrors(['webauthn' => 'Bảo mật bắt buộc: Vui lòng đăng ký thiết bị bảo mật (Passkey).']);
+            }
+
+            try {
+                $assertionValidator
+                    ->send(\Laragear\WebAuthn\Assertion\Validator\AssertionValidation::fromRequest($request))
+                    ->thenReturn();
+            } catch (\Exception $e) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Xác thực sinh trắc học (Passkey) thất bại. Vui lòng quét vân tay/khuôn mặt chính xác.',
+                    ], 422);
+                }
+                return back()->withErrors(['webauthn' => 'Xác thực sinh trắc học (Passkey) thất bại.']);
+            }
+        }
+
         $document->loadMissing('request.user');
         $this->authorizeJitDocumentAccess($document);
 
-        $expiresAt = now()->addSeconds((int) config('security.presigned_url_ttl_seconds', 300));
+        $ttl = (int) config('security.presigned_url_ttl_seconds', 300);
+        $expiresAt = now()->addSeconds($ttl);
         $accessLogService->recordDocumentAccess($document, 'JIT_UNLOCK', $validated['reason'], $expiresAt);
 
         $url = $documentService->temporaryViewUrl($document, ['admin' => Auth::id()]);

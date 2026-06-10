@@ -56,9 +56,9 @@ class FullDemoSeeder extends Seeder
     private function seedRoles(): void
     {
         $roles = [
-            'landlord' => ['name' => 'Chu tro / Quan ly', 'description' => 'Quan ly phong, cu dan, hop dong, hoa don va thiet bi.'],
-            'resident' => ['name' => 'Cu dan thue phong', 'description' => 'Xem hoa don, hop dong va gui yeu cau bao hong.'],
-            'guest' => ['name' => 'Khach tim phong', 'description' => 'Tim kiem phong va gui yeu cau tu van.'],
+            'landlord' => ['name' => 'Chủ trọ / Quản lý', 'description' => 'Quản lý phòng, cư dân, hợp đồng, hóa đơn và thiết bị.'],
+            'resident' => ['name' => 'Cư dân thuê phòng', 'description' => 'Xem hóa đơn, hợp đồng và gửi yêu cầu báo hỏng.'],
+            'guest' => ['name' => 'Khách tìm phòng', 'description' => 'Tìm kiếm phòng và gửi yêu cầu tư vấn.'],
         ];
 
         foreach ($roles as $slug => $payload) {
@@ -92,7 +92,7 @@ class FullDemoSeeder extends Seeder
                 'email' => 'landlord' . ($tenantIndex + 1) . '@demo.smartroom.local',
                 'password' => Hash::make('password'),
                 'role' => 'admin',
-                'like' => 'Chu tro demo',
+                'like' => 'Chủ trọ demo',
             ]
         );
     }
@@ -121,7 +121,7 @@ class FullDemoSeeder extends Seeder
                         'price' => $roomData['price'],
                         'area' => $roomData['area'],
                         'amenities' => $roomData['amenities'],
-                        'description' => $buildingData['name'] . ' - phong ' . $roomData['room_number'] . ' phuc vu test day du trang thai.',
+                        'description' => $buildingData['name'] . ' - phòng ' . $roomData['room_number'] . ' phục vụ test đầy đủ trạng thái.',
                         'image' => null,
                         'images' => [],
                         'video' => null,
@@ -158,7 +158,7 @@ class FullDemoSeeder extends Seeder
                     'email' => $email,
                     'password' => Hash::make('password'),
                     'role' => 'user',
-                    'like' => 'Khach thue demo',
+                    'like' => 'Khách thuê demo',
                 ]
             );
 
@@ -172,7 +172,7 @@ class FullDemoSeeder extends Seeder
                     'dob' => Carbon::create(1992 + ($index % 10), ($index % 12) + 1, 10)->toDateString(),
                     'phone' => $user->phone,
                     'cccd' => '001' . str_pad((string) $seedNo, 9, '0', STR_PAD_LEFT),
-                    'hometown' => ['Ha Noi', 'Nam Dinh', 'Thai Binh', 'Bac Ninh', 'Da Nang'][$index % 5],
+                    'hometown' => ['Hà Nội', 'Nam Định', 'Thái Bình', 'Bắc Ninh', 'Đà Nẵng'][$index % 5],
                     'start_date' => Carbon::today()->subMonths(12 - ($index % 6))->toDateString(),
                     'status' => 'active',
                     'temporary_residence_status' => ['registered', 'none', 'absent'][$index % 3],
@@ -182,13 +182,13 @@ class FullDemoSeeder extends Seeder
 
             if ($index % 3 === 0) {
                 ResidentRelative::updateOrCreate(
-                    ['resident_id' => $resident->id, 'name' => 'Nguoi than ' . $room->room_number],
+                    ['resident_id' => $resident->id, 'name' => 'Người thân ' . $room->room_number],
                     [
                         'dob' => Carbon::create(1998, 6, 15)->toDateString(),
                         'cccd' => 'REL' . str_pad((string) $seedNo, 9, '0', STR_PAD_LEFT),
                         'phone' => '0666' . str_pad((string) $seedNo, 6, '0', STR_PAD_LEFT),
-                        'hometown' => 'Ha Noi',
-                        'relationship' => 'Anh/Chi/Em',
+                        'hometown' => 'Hà Nội',
+                        'relationship' => 'Anh/Chị/Em',
                         'temporary_residence_status' => 'registered',
                         'start_date' => Carbon::today()->subDays(20)->toDateString(),
                         'end_date' => Carbon::today()->addMonths(2)->toDateString(),
@@ -224,7 +224,7 @@ class FullDemoSeeder extends Seeder
                         : Carbon::parse($resident->start_date)->addYear()->toDateString(),
                     'deposit' => $room->price,
                     'status' => 'active',
-                    'terms' => 'Hop dong demo cho phong ' . $room->room_number . '. Thanh toan truoc ngay 10 hang thang.',
+                    'terms' => 'Hợp đồng demo cho phòng ' . $room->room_number . '. Thanh toán trước ngày 10 hằng tháng.',
                     'signature' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
                 ]
             );
@@ -310,12 +310,12 @@ class FullDemoSeeder extends Seeder
     private function seedEquipment(Tenant $tenant, array $rooms): array
     {
         $equipmentItems = [
-            ['code' => 'AC', 'name' => 'Dieu hoa 9000 BTU', 'unit' => 'cai', 'quantity' => 20],
-            ['code' => 'WM', 'name' => 'May giat mini', 'unit' => 'cai', 'quantity' => 8],
-            ['code' => 'FR', 'name' => 'Tu lanh 90L', 'unit' => 'cai', 'quantity' => 14],
-            ['code' => 'BED', 'name' => 'Giuong sat 1m2', 'unit' => 'cai', 'quantity' => 24],
-            ['code' => 'LOCK', 'name' => 'Khoa van tay', 'unit' => 'cai', 'quantity' => 18],
-            ['code' => 'CAM', 'name' => 'Camera hanh lang', 'unit' => 'cai', 'quantity' => 10],
+            ['code' => 'AC', 'name' => 'Điều hòa 9000 BTU', 'unit' => 'cái', 'quantity' => 20],
+            ['code' => 'WM', 'name' => 'Máy giặt mini', 'unit' => 'cái', 'quantity' => 8],
+            ['code' => 'FR', 'name' => 'Tủ lạnh 90L', 'unit' => 'cái', 'quantity' => 14],
+            ['code' => 'BED', 'name' => 'Giường sắt 1m2', 'unit' => 'cái', 'quantity' => 24],
+            ['code' => 'LOCK', 'name' => 'Khóa vân tay', 'unit' => 'cái', 'quantity' => 18],
+            ['code' => 'CAM', 'name' => 'Camera hành lang', 'unit' => 'cái', 'quantity' => 10],
         ];
 
         $equipment = [];
@@ -381,14 +381,14 @@ class FullDemoSeeder extends Seeder
             }
 
             Ticket::updateOrCreate(
-                ['room_id' => $room->id, 'title' => 'Bao hong phong ' . $room->room_number],
+                ['room_id' => $room->id, 'title' => 'Báo hỏng phòng ' . $room->room_number],
                 [
                     'tenant_id' => $tenant->id,
                     'resident_id' => $residents[$room->id]->id,
-                    'description' => ['Dieu hoa khong mat.', 'Voi sen bi ro nuoc.', 'Khoa cua bi ket.'][$index % 3],
-                    'category' => ['dien', 'nuoc', 'noi that'][$index % 3],
+                    'description' => ['Điều hòa không mát.', 'Vòi sen bị rò nước.', 'Khóa cửa bị kẹt.'][$index % 3],
+                    'category' => ['điện', 'nước', 'nội thất'][$index % 3],
                     'status' => ['pending', 'processing', 'resolved'][$index % 3],
-                    'assigned_to' => $index % 3 === 0 ? null : 'To bao tri',
+                    'assigned_to' => $index % 3 === 0 ? null : 'Tổ bảo trì',
                 ]
             );
         }
@@ -399,10 +399,10 @@ class FullDemoSeeder extends Seeder
         foreach (array_values($rooms) as $index => $room) {
             if ($index < 5) {
                 Review::updateOrCreate(
-                    ['room_id' => $room->id, 'author_name' => 'Khach tham quan ' . ($tenantIndex + 1) . '-' . ($index + 1)],
+                    ['room_id' => $room->id, 'author_name' => 'Khách tham quan ' . ($tenantIndex + 1) . '-' . ($index + 1)],
                     [
                         'rating' => 3 + ($index % 3),
-                        'comment' => 'Phong sach, vi tri thuan tien, phu hop de test danh gia cong khai.',
+                        'comment' => 'Phòng sạch, vị trí thuận tiện, phù hợp để test đánh giá công khai.',
                     ]
                 );
             }
@@ -411,8 +411,8 @@ class FullDemoSeeder extends Seeder
                 ContactRequest::updateOrCreate(
                     ['room_id' => $room->id, 'phone' => '0555' . str_pad((string) ($tenantIndex * 100 + $index), 6, '0', STR_PAD_LEFT)],
                     [
-                        'name' => 'Khach can tu van ' . $room->room_number,
-                        'message' => 'Toi muon xem phong va hoi ve chi phi coc.',
+                        'name' => 'Khách cần tư vấn ' . $room->room_number,
+                        'message' => 'Tôi muốn xem phòng và hỏi về chi phí cọc.',
                         'status' => $index % 2 === 0 ? 'pending' : 'processed',
                     ]
                 );
@@ -432,8 +432,8 @@ class FullDemoSeeder extends Seeder
                 'channel' => ['zalo', 'email', 'sms'][$index % 3],
                 'recipient_name' => $resident->name,
                 'recipient_contact' => $resident->phone,
-                'subject' => 'Thong bao phong ' . ($room->room_number ?? 'N/A'),
-                'message' => 'Du lieu demo thong bao cho cu dan ' . $resident->name,
+                'subject' => 'Thông báo phòng ' . ($room->room_number ?? 'N/A'),
+                'message' => 'Dữ liệu demo thông báo cho cư dân ' . $resident->name,
                 'status' => ['sent', 'failed', 'queued'][$index % 3],
                 'target_type' => Resident::class,
                 'target_id' => $resident->id,
@@ -448,12 +448,12 @@ class FullDemoSeeder extends Seeder
         AdminActivityLog::where('tenant_id', $tenant->id)->where('metadata->seeded', true)->delete();
 
         $subjects = [
-            ['create', 'rooms', 'Tao phong demo dau tien', reset($rooms)],
-            ['create', 'residents', 'Them cu dan vao phong demo', reset($residents) ?: null],
-            ['create', 'utilities', 'Chot dien nuoc thang hien tai', UtilityRecord::where('tenant_id', $tenant->id)->latest()->first()],
-            ['payment', 'payments', 'Ghi nhan thanh toan demo', UtilityRecord::where('tenant_id', $tenant->id)->where('status', 'paid')->latest()->first()],
-            ['allocate', 'equipment', 'Ban giao thiet bi demo', reset($equipment) ?: null],
-            ['notify', 'notifications', 'Gui thong bao nhac no demo', NotificationLog::where('tenant_id', $tenant->id)->latest()->first()],
+            ['create', 'rooms', 'Tạo phòng demo đầu tiên', reset($rooms)],
+            ['create', 'residents', 'Thêm cư dân vào phòng demo', reset($residents) ?: null],
+            ['create', 'utilities', 'Chốt điện nước tháng hiện tại', UtilityRecord::where('tenant_id', $tenant->id)->latest()->first()],
+            ['payment', 'payments', 'Ghi nhận thanh toán demo', UtilityRecord::where('tenant_id', $tenant->id)->where('status', 'paid')->latest()->first()],
+            ['allocate', 'equipment', 'Bàn giao thiết bị demo', reset($equipment) ?: null],
+            ['notify', 'notifications', 'Gửi thông báo nhắc nợ demo', NotificationLog::where('tenant_id', $tenant->id)->latest()->first()],
         ];
 
         foreach ($subjects as $index => [$action, $module, $description, $subject]) {
@@ -486,19 +486,19 @@ class FullDemoSeeder extends Seeder
             [
                 'tenant_id' => null,
                 'role_id' => $this->roles['guest']->id,
-                'name' => 'Demo Guest',
+                'name' => 'Khách vãng lai',
                 'phone' => '0999000001',
                 'email' => 'guest@demo.smartroom.local',
                 'password' => Hash::make('password'),
                 'role' => 'user',
-                'like' => 'Khach tim phong',
+                'like' => 'Khách tìm phòng',
             ]
         );
     }
 
     private function vietQrUrl(Tenant $tenant, Room $room, string $month, int $amount): string
     {
-        $info = 'Thanh toan phong ' . $room->room_number . ' thang ' . substr($month, 5, 2);
+        $info = 'Thanh toán phòng ' . $room->room_number . ' tháng ' . substr($month, 5, 2);
 
         return 'https://img.vietqr.io/image/' . $tenant->bank_name . '-' . $tenant->bank_account_no
             . '-compact.png?amount=' . $amount
@@ -510,34 +510,34 @@ class FullDemoSeeder extends Seeder
     {
         return [
             [
-                'name' => 'Demo SmartRoom Cau Giay',
+                'name' => 'Demo SmartRoom Cầu Giấy',
                 'email' => 'demo-caugiay@smartroom.local',
                 'phone' => '0988000001',
-                'owner_name' => 'Nguyen Chu Tro Cau Giay',
+                'owner_name' => 'Nguyễn Chủ Trọ Cầu Giấy',
                 'bank_name' => 'MB',
                 'bank_account_no' => '999988880001',
-                'bank_account_name' => 'NGUYEN CHU TRO CAU GIAY',
-                'buildings' => $this->buildingBlueprints('CG', 'Cau Giay', 3200000),
+                'bank_account_name' => 'NGUYỄN CHỦ TRỌ CẦU GIẤY',
+                'buildings' => $this->buildingBlueprints('CG', 'Cầu Giấy', 3200000),
             ],
             [
-                'name' => 'Demo Renty Thanh Xuan',
+                'name' => 'Demo Renty Thanh Xuân',
                 'email' => 'demo-thanhxuan@smartroom.local',
                 'phone' => '0988000002',
-                'owner_name' => 'Le Quan Ly Thanh Xuan',
+                'owner_name' => 'Lê Quản Lý Thanh Xuân',
                 'bank_name' => 'VCB',
                 'bank_account_no' => '999988880002',
-                'bank_account_name' => 'LE QUAN LY THANH XUAN',
-                'buildings' => $this->buildingBlueprints('TX', 'Thanh Xuan', 4000000),
+                'bank_account_name' => 'LÊ QUẢN LÝ THANH XUÂN',
+                'buildings' => $this->buildingBlueprints('TX', 'Thanh Xuân', 4000000),
             ],
             [
-                'name' => 'Demo Studio Quan 10',
+                'name' => 'Demo Studio Quận 10',
                 'email' => 'demo-quan10@smartroom.local',
                 'phone' => '0988000003',
-                'owner_name' => 'Tran Quan Ly Quan 10',
+                'owner_name' => 'Trần Quản Lý Quận 10',
                 'bank_name' => 'ACB',
                 'bank_account_no' => '999988880003',
-                'bank_account_name' => 'TRAN QUAN LY QUAN 10',
-                'buildings' => $this->buildingBlueprints('Q10', 'Quan 10', 5200000),
+                'bank_account_name' => 'TRẦN QUẢN LÝ QUẬN 10',
+                'buildings' => $this->buildingBlueprints('Q10', 'Quận 10', 5200000),
             ],
         ];
     }
@@ -548,15 +548,15 @@ class FullDemoSeeder extends Seeder
             [
                 'code' => $code . 'A',
                 'name' => 'Demo ' . $areaName . ' A',
-                'address' => 'So 12 duong demo ' . $areaName,
-                'description' => 'Toa nha demo day du phong trong, co khach, qua han va bao tri.',
+                'address' => 'Số 12 đường demo ' . $areaName,
+                'description' => 'Tòa nhà demo đầy đủ phòng trống, có khách, quá hạn và bảo trì.',
                 'rooms' => $this->roomBlueprints($basePrice),
             ],
             [
                 'code' => $code . 'B',
                 'name' => 'Demo ' . $areaName . ' B',
-                'address' => 'So 88 ngo demo ' . $areaName,
-                'description' => 'Toa nha demo thu hai de test loc theo toa nha va tenant.',
+                'address' => 'Số 88 ngõ demo ' . $areaName,
+                'description' => 'Tòa nhà demo thứ hai để test lọc theo tòa nhà và tenant.',
                 'rooms' => $this->roomBlueprints($basePrice + 450000),
             ],
         ];
@@ -575,7 +575,7 @@ class FullDemoSeeder extends Seeder
                     'room_type' => $index % 3 === 0 ? 'vip' : 'normal',
                     'price' => $basePrice + ($index * 150000),
                     'area' => 24 + ($index * 2),
-                    'amenities' => ['dieu hoa', 'nong lanh', 'wifi', $index % 2 === 0 ? 'ban cong' : 'tu lanh'],
+                    'amenities' => ['điều hòa', 'nóng lạnh', 'wifi', $index % 2 === 0 ? 'ban công' : 'tủ lạnh'],
                 ];
             })
             ->all();
@@ -584,16 +584,16 @@ class FullDemoSeeder extends Seeder
     private function residentNames(): array
     {
         return [
-            'Tran Minh Anh',
-            'Nguyen Hoang Nam',
-            'Le Thu Trang',
-            'Pham Quoc Viet',
-            'Do Khanh Linh',
-            'Bui Tien Dat',
-            'Hoang Gia Bao',
-            'Vu Phuong Thao',
-            'Dang Anh Duc',
-            'Ngo Bao Chau',
+            'Trần Minh Anh',
+            'Nguyễn Hoàng Nam',
+            'Lê Thu Trang',
+            'Phạm Quốc Việt',
+            'Đỗ Khánh Linh',
+            'Bùi Tiến Đạt',
+            'Hoàng Gia Bảo',
+            'Vũ Phương Thảo',
+            'Đặng Anh Đức',
+            'Ngô Bảo Châu',
         ];
     }
 }

@@ -179,6 +179,13 @@ class NotificationService
                 $status = 'failed';
                 $error = $exception->getMessage();
             }
+        } elseif (in_array($channel, ['sms', 'zalo']) && $contact) {
+            try {
+                \App\Jobs\SendSmsZaloNotification::dispatch($channel, $contact, $message);
+            } catch (Throwable $exception) {
+                $status = 'failed';
+                $error = $exception->getMessage();
+            }
         }
 
         Log::info('Notification dispatched', [
@@ -203,8 +210,9 @@ class NotificationService
             'target_id' => $targetId,
             'meta' => array_merge($meta, [
                 'real_email' => $channel === 'email',
-                'simulated' => $channel !== 'email',
+                'simulated' => false,
                 'error' => $error,
+                'queued' => in_array($channel, ['sms', 'zalo']),
             ]),
             'sent_at' => $status === 'sent' ? now() : null,
         ]);

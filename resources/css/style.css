@@ -968,15 +968,15 @@ body.theme-light textarea::placeholder {
 }
 
 .room-card-viewed {
-    opacity: 0.92;
+    opacity: 0.98;
 }
 
 .room-card-viewed .room-card-media::after {
-    opacity: 1;
+    opacity: 0.22;
 }
 
 .room-card-viewed .renty-card-carousel-image {
-    filter: grayscale(0.42) saturate(0.5) brightness(0.78);
+    filter: brightness(0.95);
 }
 
 .room-status-badge {
@@ -994,7 +994,7 @@ body.theme-light textarea::placeholder {
     gap: 0.55rem;
     width: fit-content;
     max-width: 100%;
-    margin: -0.15rem 0 0.85rem;
+    margin: 0 0 0.85rem 0;
     padding: 0.42rem 0.7rem;
     border-radius: 999px;
     background: linear-gradient(135deg, rgba(20, 184, 166, 0.16), rgba(15, 23, 42, 0.62));
@@ -1628,6 +1628,13 @@ table tbody tr:nth-child(4n) { animation-delay: 0.075s; }
         background var(--transition-normal);
 }
 
+.room-card-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    height: 100%;
+}
+
 .room-card:hover,
 .room-item-card:hover {
     transform: translateY(-6px) scale(1.02);
@@ -2072,4 +2079,588 @@ table tbody tr:nth-child(4n) { animation-delay: 0.075s; }
     border-color: rgba(13, 148, 136, 0.5) !important;
     box-shadow: 0 0 20px rgba(13, 148, 136, 0.35) !important;
     color: #0d9488 !important;
+}
+
+/* Interactive Map Dashboard Styles (Map View & Split Screen) */
+.view-mode-toggle {
+    display: inline-flex;
+    background: rgba(15, 23, 42, 0.76);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 3px;
+    border-radius: 14px;
+    gap: 2px;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(12px);
+}
+
+.view-mode-toggle button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 11px;
+    color: #94a3b8;
+    transition: all 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.view-mode-toggle button:hover {
+    color: #cbd5e1;
+}
+
+.view-mode-toggle button.active {
+    color: #2dd4bf;
+    background: rgba(20, 184, 166, 0.12);
+    box-shadow: 0 0 12px rgba(20, 184, 166, 0.15);
+    border: 1px solid rgba(45, 212, 191, 0.25) !important;
+}
+
+/* Split-screen layout overrides when map mode is active */
+body.renty-map-mode {
+    overflow: hidden; /* Lock viewport scrolling, only split pane list scrolls */
+    height: 100vh;
+}
+
+body.renty-map-mode #viewed-rooms-section,
+body.renty-map-mode .max-w-3xl.mx-auto.text-center.mb-8 {
+    display: none; /* Hide hero text & viewed history to focus on search and split view */
+}
+
+/* Adjust map wrapper and grid when active */
+body.renty-map-mode main {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex;
+    flex-direction: row;
+    height: calc(100vh - 80px - 140px); /* Adjust to viewport minus navbar & search bar height */
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Split-screen columns */
+.renty-split-left {
+    width: 50%;
+    height: 100%;
+    position: relative;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    display: none; /* Hidden by default in grid view */
+}
+
+.renty-split-right {
+    width: 100%;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+body.renty-map-mode .renty-split-left {
+    display: block; /* Show map column */
+}
+
+body.renty-map-mode .renty-split-right {
+    width: 50%; /* Make list column 50% width */
+    height: 100%;
+    overflow-y: auto;
+}
+
+body.renty-map-mode #rooms-grid {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important; /* Force single column list on right */
+    gap: 16px !important;
+    margin-bottom: 0 !important;
+}
+
+body.renty-map-mode .room-item-card {
+    display: flex;
+    flex-direction: row; /* Horizontal cards in split screen mode for professional look */
+    min-height: 220px;
+    height: auto;
+}
+
+body.renty-map-mode .room-item-card > .room-card-content {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    min-height: 220px;
+    height: auto;
+}
+
+body.renty-map-mode .room-card-media {
+    width: 200px;
+    height: auto;
+    min-height: 220px;
+    flex-shrink: 0;
+    border-bottom: 0 !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+body.renty-map-mode .room-item-card .p-5 {
+    padding: 16px !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex-grow: 1;
+    height: auto;
+    min-height: 188px; /* 220px - 32px padding */
+}
+
+body.renty-map-mode .room-item-card .viewed-room-strip {
+    margin-bottom: 0.5rem !important;
+}
+
+body.renty-map-mode .room-item-card .mb-4 {
+    margin-bottom: 0.5rem !important;
+}
+
+body.renty-map-mode .room-item-card > div:last-child {
+    display: none !important; /* Hide actions footer to keep horizontal cards extremely compact & clean */
+}
+
+/* Map specific styling */
+#renty-interactive-map {
+    width: 100%;
+    height: 100%;
+    background: #090e17;
+}
+
+/* Glowing Teal Map Pins with Price */
+.custom-map-pin {
+    background: transparent !important;
+    border: none !important;
+}
+
+.glowing-teal-pin {
+    background: rgba(15, 23, 42, 0.85);
+    border: 1.5px solid #2dd4bf;
+    color: #2dd4bf;
+    font-size: 11px;
+    font-weight: 850;
+    padding: 4px 10px;
+    border-radius: 999px;
+    text-align: center;
+    box-shadow: 
+        0 0 15px rgba(45, 212, 191, 0.35),
+        inset 0 0 4px rgba(45, 212, 191, 0.2);
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease-in-out;
+    white-space: nowrap;
+    position: relative;
+}
+
+.glowing-teal-pin::after {
+    content: "";
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 8px;
+    height: 8px;
+    background: #0f172a;
+    border-right: 1.5px solid #2dd4bf;
+    border-bottom: 1.5px solid #2dd4bf;
+    z-index: -1;
+}
+
+.glowing-teal-pin:hover,
+.glowing-teal-pin.active {
+    background: #2dd4bf;
+    color: #0f172a;
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(45, 212, 191, 0.7);
+    z-index: 1000;
+}
+
+.glowing-teal-pin.active::after {
+    background: #2dd4bf;
+}
+
+/* Interactive Map Popup / Floating Preview Card above clicked pin */
+.leaflet-popup-content-wrapper {
+    background: rgba(15, 23, 42, 0.92) !important;
+    border: 1px solid rgba(45, 212, 191, 0.3) !important;
+    backdrop-filter: blur(16px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(140%) !important;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5) !important;
+    border-radius: 16px !important;
+    color: #f1f5f9 !important;
+    padding: 0 !important;
+    overflow: hidden;
+}
+
+.leaflet-popup-content {
+    margin: 0 !important;
+    width: 240px !important;
+}
+
+.leaflet-popup-tip {
+    background: rgba(15, 23, 42, 0.92) !important;
+    border-left: 1.5px solid rgba(45, 212, 191, 0.3) !important;
+    border-top: 1.5px solid rgba(45, 212, 191, 0.3) !important;
+    box-shadow: none !important;
+}
+
+/* Floating Preview Card inside Map popup */
+.map-preview-card {
+    display: flex;
+    flex-direction: column;
+    width: 240px;
+}
+
+.map-preview-card-img {
+    height: 110px;
+    width: 100%;
+    object-fit: cover;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.map-preview-card-body {
+    padding: 12px;
+}
+
+.map-preview-card-title {
+    font-weight: 700;
+    font-size: 12px;
+    color: #f1f5f9;
+    margin-bottom: 4px;
+    line-clamp: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.map-preview-card-price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.map-preview-card-price {
+    color: #2dd4bf;
+    font-weight: 800;
+    font-size: 13px;
+}
+
+.map-preview-card-rating {
+    color: #fbbf24;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.map-preview-card-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background: rgba(45, 212, 191, 0.1);
+    color: #2dd4bf;
+    border: 1px solid rgba(45, 212, 191, 0.2);
+    padding: 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 700;
+    margin-top: 8px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.map-preview-card-btn:hover {
+    background: #2dd4bf;
+    color: #0f172a;
+}
+
+/* Dark mode theme overrides for interactive map */
+.theme-light .view-mode-toggle {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(0, 0, 0, 0.08);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.5), 0 4px 12px rgba(15, 23, 42, 0.05);
+}
+
+.theme-light .view-mode-toggle button {
+    color: #64748b;
+}
+
+.theme-light .view-mode-toggle button.active {
+    color: #0d9488;
+    background: rgba(13, 148, 136, 0.08);
+    border-color: rgba(13, 148, 136, 0.2) !important;
+    box-shadow: 0 0 10px rgba(13, 148, 136, 0.1);
+}
+
+.theme-light .glowing-teal-pin {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: #0d9488;
+    color: #0d9488;
+    box-shadow: 
+        0 0 12px rgba(13, 148, 136, 0.2),
+        inset 0 0 4px rgba(13, 148, 136, 0.05);
+}
+
+.theme-light .glowing-teal-pin::after {
+    background: #ffffff;
+    border-right-color: #0d9488;
+    border-bottom-color: #0d9488;
+}
+
+.theme-light .glowing-teal-pin:hover,
+.theme-light .glowing-teal-pin.active {
+    background: #0d9488;
+    color: #ffffff;
+}
+
+.theme-light .leaflet-popup-content-wrapper {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-color: rgba(13, 148, 136, 0.3) !important;
+    color: #1e293b !important;
+    box-shadow: 0 12px 36px rgba(15, 23, 42, 0.1) !important;
+}
+
+.theme-light .leaflet-popup-tip {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-left-color: rgba(13, 148, 136, 0.3) !important;
+    border-top-color: rgba(13, 148, 136, 0.3) !important;
+}
+
+.theme-light .map-preview-card-title {
+    color: #1e293b;
+}
+
+/* Leaflet dark theme styling overrides for standard elements */
+.leaflet-container {
+    font-family: inherit !important;
+}
+
+.leaflet-bar {
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3) !important;
+    border-radius: 12px !important;
+    overflow: hidden;
+}
+
+.leaflet-bar a {
+    background: rgba(15, 23, 42, 0.85) !important;
+    color: #cbd5e1 !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(8px);
+}
+
+.leaflet-bar a:hover {
+    background: rgba(45, 212, 191, 0.12) !important;
+    color: #2dd4bf !important;
+}
+
+.theme-light .leaflet-bar {
+    border-color: rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05) !important;
+}
+
+.theme-light .leaflet-bar a {
+    background: rgba(255, 255, 255, 0.9) !important;
+    color: #475569 !important;
+    border-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.theme-light .leaflet-bar a:hover {
+    background: rgba(13, 148, 136, 0.08) !important;
+    color: #0d9488 !important;
+}
+
+/* Map mode responsive media query for smaller devices */
+@media (max-width: 768px) {
+    body.renty-map-mode main {
+        flex-direction: column;
+        height: auto;
+        overflow-y: auto;
+    }
+    body.renty-map-mode .renty-split-left {
+        width: 100%;
+        height: 320px;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    body.renty-map-mode .renty-split-right {
+        width: 100%;
+        height: auto;
+        overflow-y: visible;
+    }
+    body.renty-map-mode .room-item-card {
+        height: auto;
+        min-height: initial;
+        flex-direction: column;
+    }
+    body.renty-map-mode .room-item-card > .room-card-content {
+        flex-direction: column;
+        height: auto;
+        min-height: initial;
+    }
+    body.renty-map-mode .room-card-media {
+        width: 100%;
+        height: 180px !important;
+        min-height: initial;
+    }
+    body.renty-map-mode .room-item-card .p-5 {
+        height: auto !important;
+        min-height: initial;
+    }
+}
+
+/* COMMUNITY Q&A COMPONENT */
+.qa-section {
+    contain: layout;
+}
+
+.qa-input-field:focus {
+    border-color: rgba(20, 184, 166, 0.6) !important;
+    box-shadow:
+        0 0 0 1px rgba(20, 184, 166, 0.6),
+        0 0 28px rgba(20, 184, 166, 0.08) !important;
+    background: #0a0a0d !important;
+}
+
+.qa-input-glow {
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    -webkit-mask-composite: xor;
+    padding: 1px;
+}
+
+.qa-card {
+    animation: qaCardFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.qa-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+}
+
+.qa-vote-btn.voted-up {
+    color: #34d399 !important;
+    background: rgba(52, 211, 153, 0.12);
+}
+
+.qa-vote-btn.voted-down {
+    color: #fb7185 !important;
+    background: rgba(251, 113, 133, 0.12);
+}
+
+.qa-best-reply {
+    transition: all 0.3s ease;
+}
+
+.qa-card:hover .qa-best-reply {
+    border-color: rgba(45, 212, 191, 0.15);
+    background: rgba(15, 23, 42, 0.5);
+}
+
+.qa-submit-btn:active {
+    transform: scale(0.96);
+}
+
+.qa-load-more:hover i {
+    animation: qaBounceDot 0.6s ease infinite;
+}
+
+@keyframes qaCardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes qaBounceDot {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(3px); }
+}
+
+/* Light theme overrides for Q&A */
+.theme-light .qa-section {
+    border-color: rgba(226, 232, 240, 0.6);
+}
+
+.theme-light .qa-section-header {
+    background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%) !important;
+}
+
+.theme-light .qa-input-field {
+    background: #ffffff !important;
+    border-color: rgba(203, 213, 225, 0.6) !important;
+    color: #0f172a;
+}
+
+.theme-light .qa-input-field::placeholder {
+    color: #94a3b8;
+}
+
+.theme-light .qa-input-field:focus {
+    border-color: rgba(20, 184, 166, 0.5) !important;
+    box-shadow: 0 0 0 1px rgba(20, 184, 166, 0.5), 0 0 18px rgba(20, 184, 166, 0.06) !important;
+}
+
+.theme-light .qa-card {
+    background: #ffffff !important;
+    border-color: rgba(226, 232, 240, 0.8) !important;
+}
+
+.theme-light .qa-card:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+    border-color: rgba(203, 213, 225, 1) !important;
+}
+
+.theme-light .qa-best-reply {
+    background: rgba(248, 250, 252, 0.8) !important;
+    border-color: rgba(226, 232, 240, 0.6) !important;
+}
+
+.animate-fade-in {
+    animation: qaCardFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Full-width responsive footer overrides */
+main .renty-footer-wrapper,
+.renty-split-right .renty-footer-wrapper {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    position: relative !important;
+    left: 50% !important;
+    right: 50% !important;
+    margin-left: -50vw !important;
+    margin-right: -50vw !important;
+    margin-bottom: -24px !important; /* Negate the bottom padding of the main/split container */
+    margin-top: auto !important;
+}
+
+/* Map mode overrides - hide footer entirely in map mode to keep workspace clean and focus on room cards */
+body.renty-map-mode .renty-footer-wrapper {
+    display: none !important;
+}
+
+/* Style quick-eye button in map mode to be a clean circular icon, avoiding overlap with status badge */
+body.renty-map-mode .quick-eye-button {
+    padding: 0 !important;
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 50% !important;
+    justify-content: center !important;
+}
+
+body.renty-map-mode .quick-eye-text {
+    display: none !important;
+}
+
+/* Force hidden elements to be display: none regardless of selector specificity */
+.hidden {
+    display: none !important;
 }

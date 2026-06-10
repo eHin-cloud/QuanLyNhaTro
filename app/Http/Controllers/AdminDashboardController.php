@@ -115,14 +115,26 @@ class AdminDashboardController extends Controller
                 });
             })
             ->orderBy('id', 'desc')
-            ->get();
+            ->paginate(10, ['*'], 'resident_page');
         $emptyRoomsList = Room::where('tenant_id', $tenantId)->where('status', 'empty')->orderBy('room_number')->get();
 
         // 6. Contracts Tab
-        $contracts = Contract::with(['room', 'resident'])->where('tenant_id', $tenantId)->orderBy('id', 'desc')->get();
+        $contractStats = [
+            'total' => Contract::where('tenant_id', $tenantId)->count(),
+            'active' => Contract::where('tenant_id', $tenantId)->where('status', 'active')->count(),
+            'pending' => Contract::where('tenant_id', $tenantId)->where('status', 'pending')->count(),
+        ];
+        $contracts = Contract::with(['room', 'resident'])->where('tenant_id', $tenantId)->orderBy('id', 'desc')->paginate(10, ['*'], 'contract_page');
 
         // 8. Contact Requests Tab
-        $contactRequests = \App\Models\ContactRequest::with('room')->orderBy('id', 'desc')->get();
+        $contactRequestStats = [
+            'total' => \App\Models\ContactRequest::whereHas('room', fn($q) => $q->where('tenant_id', $tenantId))->count(),
+            'pending' => \App\Models\ContactRequest::whereHas('room', fn($q) => $q->where('tenant_id', $tenantId))->where('status', 'pending')->count(),
+            'processed' => \App\Models\ContactRequest::whereHas('room', fn($q) => $q->where('tenant_id', $tenantId))->where('status', 'processed')->count(),
+        ];
+        $contactRequests = \App\Models\ContactRequest::with('room')
+            ->whereHas('room', fn($q) => $q->where('tenant_id', $tenantId))
+            ->orderBy('id', 'desc')->paginate(10, ['*'], 'contact_page');
 
         // 9. Smart alerts
         $today = Carbon::today();
@@ -130,6 +142,7 @@ class AdminDashboardController extends Controller
         $emptyRoomWarningDate = $today->copy()->subDays(30);
 
         $expiringContracts = Contract::with(['room', 'resident'])
+            ->where('tenant_id', $tenantId)
             ->where('status', 'active')
             ->whereDate('end_date', '>=', $today)
             ->whereDate('end_date', '<=', $contractWarningDate)
@@ -147,6 +160,7 @@ class AdminDashboardController extends Controller
             });
 
         $overdueBills = Bill::with('room')
+            ->whereHas('room', fn($q) => $q->where('tenant_id', $tenantId))
             ->whereIn('status', ['pending', 'overdue'])
             ->orderBy('billing_month')
             ->get()
@@ -165,6 +179,7 @@ class AdminDashboardController extends Controller
             });
 
         $overdueUtilities = UtilityRecord::with('room')
+            ->whereHas('room', fn($q) => $q->where('tenant_id', $tenantId))
             ->whereIn('status', ['sent', 'overdue'])
             ->orderBy('billing_month')
             ->get()
@@ -187,7 +202,8 @@ class AdminDashboardController extends Controller
                 ];
             });
 
-        $emptyRoomAlerts = Room::where('status', 'empty')
+        $emptyRoomAlerts = Room::where('tenant_id', $tenantId)
+            ->where('status', 'empty')
             ->where('updated_at', '<=', $emptyRoomWarningDate)
             ->orderBy('updated_at')
             ->take(6)
@@ -304,7 +320,9 @@ class AdminDashboardController extends Controller
             'emptyRoomsList',
             'recentActivities',
             'contracts',
+            'contractStats',
             'contactRequests',
+            'contactRequestStats',
             'smartAlertGroups',
             'smartAlertTotal',
             'notificationLogs',
@@ -368,6 +386,21 @@ class AdminDashboardController extends Controller
                 $this->currentTenantId(),
                 $validated['question']
             ),
+        ]);
+    }
+
+    public function aiOcrMeter(Request $request, AiManagementService $aiManagementService)
+    {
+        $validated = $request->validate([
+            'image' => 'required|string', // chuỗi base64 của hình ảnh công tơ
+            'type' => 'required|string|in:electricity,water',
+        ]);
+
+        $result = $aiManagementService->analyzeMeterImage($validated['image'], $validated['type']);
+
+        return response()->json([
+            'success' => true,
+            'result' => $result,
         ]);
     }
 
@@ -930,6 +963,16 @@ class AdminDashboardController extends Controller
         ]);
     }
 
+    public function exportCt01($id)
+    {
+        $tenantId = $this->currentTenantId();
+        $resident = Resident::where('tenant_id', $tenantId)
+            ->with(['room.building', 'relatives', 'tenant'])
+            ->findOrFail($id);
+
+        return view('admin.residents.ct01', compact('resident'));
+    }
+
     public function payUtility($id)
     {
         $record = UtilityRecord::findOrFail($id);
@@ -1314,30 +1357,83 @@ class AdminDashboardController extends Controller
         return $pdf->stream('hop_dong_' . $contract->contract_code . '.pdf');
     }
 
+    public function sendOtpForContract($id)
+    {
+        $contract = \App\Models\Contract::with('resident')->findOrFail($id);
+        
+        // Tạo mã ngẫu nhiên 6 chữ số
+        $otp = sprintf('%06d', mt_rand(100000, 999999));
+        
+        $contract->update([
+            'otp_code' => $otp,
+            'otp_expires_at' => now()->addMinutes(5),
+        ]);
+
+        // Giả lập gửi tin nhắn OTP qua dịch vụ tin nhắn
+        $phone = $contract->resident->phone ?? '0987654321';
+        $message = "Ma xac thuc OTP ky hop dong thue nha dien tu cua ban la: {$otp}. Ma co hieu luc trong 5 phut. Vui long khong chia se ma nay!";
+        
+        Log::info("SMS/Zalo OTP Sent to {$phone}: {$message}");
+        
+        \App\Models\NotificationLog::create([
+            'tenant_id' => $contract->tenant_id,
+            'type' => 'otp_verification',
+            'channel' => 'sms',
+            'recipient_name' => $contract->resident->name,
+            'recipient_contact' => $phone,
+            'subject' => 'Ma xac thuc OTP ky hop dong',
+            'message' => $message,
+            'status' => 'sent',
+            'target_type' => \App\Models\Contract::class,
+            'target_id' => $contract->id,
+            'sent_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Mã OTP đã được gửi đến số điện thoại đăng ký của cư dân thành công!',
+        ]);
+    }
+
     public function signContract(Request $request, $id)
     {
         $request->validate([
             'signature' => 'required|string', // Base64 signature image
+            'otp_code' => 'required|string|size:6',
         ]);
 
         $contract = \App\Models\Contract::findOrFail($id);
-        $before = $contract->only(['status', 'signature']);
+
+        if (empty($contract->otp_code) || $contract->otp_code !== $request->otp_code) {
+            return redirect()->back()->with('error', 'Mã OTP nhập vào không chính xác!');
+        }
+
+        if ($contract->otp_expires_at && \Carbon\Carbon::parse($contract->otp_expires_at)->isPast()) {
+            return redirect()->back()->with('error', 'Mã OTP đã hết hiệu lực! Vui lòng nhấn gửi lại mã mới.');
+        }
+
+        $before = $contract->only(['status', 'signature', 'signed_at', 'signer_ip', 'is_signed', 'otp_code']);
         $contract->update([
             'signature' => $request->signature,
             'status' => 'active',
+            'signed_at' => now(),
+            'signer_ip' => $request->ip(),
+            'is_signed' => true,
+            'otp_code' => null,
+            'otp_expires_at' => null,
         ]);
 
         AdminActivityLogger::log(
             'update',
             'contracts',
-            'Hợp đồng ' . $contract->contract_code . ' đã được ký online',
+            'Hợp đồng ' . $contract->contract_code . ' đã được ký số pháp lý qua OTP bởi cư dân',
             $contract,
             ['contract_code' => $contract->contract_code],
             $before,
-            $contract->fresh()->only(['status', 'signature'])
+            $contract->fresh()->only(['status', 'signature', 'signed_at', 'signer_ip', 'is_signed'])
         );
 
-        return redirect()->route('smartroom.contract.sign_view', $id)->with('success', 'Ký hợp đồng online thành công!');
+        return redirect()->route('smartroom.contract.sign_view', $id)->with('success', 'Ký hợp đồng số bằng OTP thành công và có hiệu lực pháp lý!');
     }
 
     public function signLessorContract(Request $request, $id)

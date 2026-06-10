@@ -46,95 +46,7 @@
     <div class="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] rounded-full bg-emerald-600/5 blur-[100px] pointer-events-none"></div>
 
     <!-- SIDEBAR -->
-    <aside id="admin-sidebar" class="fixed inset-y-0 left-0 w-64 bg-[#0d121f] border-r border-slate-900 flex flex-col justify-between h-screen z-30 transition-[width] duration-200">
-        <div>
-            <!-- Sidebar Header -->
-            <div class="p-6 border-b border-slate-900 flex items-center justify-between">
-                <a href="{{ route('smartroom.portal') }}" class="sidebar-brand flex items-center gap-3 min-w-0">
-                    <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                        <i class="fa-solid fa-hotel text-white text-sm"></i>
-                    </div>
-                    <span class="text-lg font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">SmartRoom</span>
-                </a>
-                <button type="button" id="sidebar-toggle" class="w-8 h-8 rounded-lg border border-slate-800 text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 transition-all" title="Thu gọn/mở rộng sidebar">
-                    <i class="fa-solid fa-angles-left transition-transform"></i>
-                </button>
-            </div>
-            
-            <!-- Navigation Links -->
-            <nav class="p-4 space-y-1">
-                <button onclick="switchTab('dashboard-section', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/10 transition-all duration-200">
-                    <i class="fa-solid fa-chart-pie text-lg"></i>
-                    <span>Tổng Quan</span>
-                </button>
-                <button onclick="switchTab('room-map-section', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                    <i class="fa-solid fa-cubes text-lg"></i>
-                    <span>Sơ Đồ Phòng</span>
-                </button>
-                <a href="{{ route('admin.rooms.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                    <i class="fa-solid fa-door-open text-lg"></i>
-                    <span>Cấu hình phòng</span>
-                </a>
-                <a href="{{ route('admin.equipment.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                    <i class="fa-solid fa-screwdriver-wrench text-lg"></i>
-                    <span>Thiết Bị</span>
-                </a>
-                @if($isLandlord)
-                    <a href="{{ route('admin.reports.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                        <i class="fa-solid fa-chart-column text-lg"></i>
-                        <span>Báo Cáo</span>
-                    </a>
-                @endif
-                <a href="{{ route('admin.payments.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                    <i class="fa-solid fa-money-check-dollar text-lg"></i>
-                    <span>Thanh Toán</span>
-                </a>
-                @if($isLandlord)
-                    <a href="{{ route('admin.activity_logs.index') }}" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                        <i class="fa-solid fa-clock-rotate-left text-lg"></i>
-                        <span>Lịch Sử Vận Hành</span>
-                    </a>
-                @endif
-                <button onclick="switchTab('utility-section', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                    <i class="fa-solid fa-bolt text-lg"></i>
-                    <span>Chốt Điện Nước</span>
-                </button>
-                <button onclick="switchTab('resident-section', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                    <i class="fa-solid fa-users text-lg"></i>
-                    <span>Quản Lý Cư Dân</span>
-                </button>
-                <button onclick="switchTab('contract-section', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                    <i class="fa-solid fa-file-signature text-lg"></i>
-                    <span>Hợp Đồng Online</span>
-                </button>
-                <button onclick="switchTab('contact-section', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 border border-transparent hover:border-slate-800 transition-all duration-200">
-                    <i class="fa-solid fa-phone-volume text-lg"></i>
-                    <span>Yêu Cầu Tư Vấn</span>
-                    @if($contactRequests->where('status', 'pending')->count() > 0)
-                        <span class="sidebar-badge ml-auto bg-rose-500 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full animate-pulse">
-                            {{ $contactRequests->where('status', 'pending')->count() }}
-                        </span>
-                    @endif
-                </button>
-            </nav>
-        </div>
-
-        <!-- Sidebar Footer -->
-        <div class="sidebar-footer p-4 border-t border-slate-900">
-            <div class="sidebar-user flex items-center gap-3 p-2 rounded-xl bg-slate-900/50 border border-slate-800/40">
-                <div class="w-9 h-9 rounded-lg bg-indigo-900/50 border border-indigo-500/30 flex items-center justify-center font-bold text-indigo-400 text-sm">
-                    AD
-                </div>
-                <div class="sidebar-profile overflow-hidden">
-                    <h4 class="text-xs font-bold text-slate-200 truncate">Nguyễn Thành Hiền</h4>
-                    <p class="text-[10px] text-slate-500 truncate">Chủ chung cư mini</p>
-                </div>
-            </div>
-            <a href="{{ route('signout') }}" class="sidebar-logout mt-3 w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-semibold text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 transition-all duration-200">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Đăng Xuất (Thoát Admin)</span>
-            </a>
-        </div>
-    </aside>
+    @include('admin.partials.sidebar')
 
     <!-- MAIN APP WRAPPER -->
     <div id="admin-shell" class="ml-64 min-w-0 flex flex-col h-screen overflow-y-auto relative z-10 transition-[margin-left] duration-200">
@@ -181,169 +93,178 @@
                 </div>
             @endif
 
-            @if(($tenant->verification_status ?? 'unverified') === 'kyc_verified')
-                <div class="mb-6 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-emerald-100 text-sm font-bold flex items-center gap-3">
-                    <i class="fa-solid fa-shield-halved text-emerald-300"></i>
-                    Ho so nhan tien da duoc xac minh. Ban co the dung chuyen khoan/VietQR va tiep tuc nang cap tich xanh khi san sang.
-                </div>
-            @endif
+            <!-- SECTION PROFILE: HỒ SƠ & XÁC MINH -->
+            <section id="profile-section" class="tab-content space-y-8 animate-fade-in hidden">
+                <div class="glass-card rounded-3xl p-8 border border-slate-800">
+                    <h2 class="text-xl font-bold mb-6 text-slate-100 flex items-center gap-2">
+                        <i class="fa-solid fa-address-card text-indigo-400"></i> Hồ Sơ & Xác Minh Chủ Trọ
+                    </h2>
 
-            @if(($tenant->verification_status ?? 'unverified') === 'premium_verified')
-                <div class="mb-6 rounded-2xl border border-sky-500/25 bg-sky-500/10 p-5 text-sky-50 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                    <div class="flex items-start gap-3">
-                        <div class="w-11 h-11 rounded-xl bg-sky-500/10 border border-sky-400/30 text-sky-200 flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-circle-check"></i>
+                    @if(($tenant->verification_status ?? 'unverified') === 'kyc_verified')
+                        <div class="mb-6 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-emerald-100 text-sm font-bold flex items-center gap-3">
+                            <i class="fa-solid fa-shield-halved text-emerald-300"></i>
+                            Hồ sơ nhận tiền đã được xác minh. Bạn có thể dùng chuyển khoản/VietQR và tiếp tục nâng cấp tích xanh khi sẵn sàng.
                         </div>
-                        <div>
-                            <h3 class="text-sm font-black text-sky-100">Nha tro da co Tich xanh</h3>
-                            <p class="mt-1 text-xs leading-6 text-sky-100/75">Ho so DKKD, PCCC va ANTT da duoc xac minh. Tin dang duoc gan badge Tich xanh va uu tien hien thi tren Renty.</p>
-                        </div>
-                    </div>
-                    <span class="px-3 py-1.5 rounded-lg bg-sky-400/10 border border-sky-400/25 text-sky-100 text-[10px] font-black">Boost discovery: dang bat</span>
-                </div>
-            @endif
+                    @endif
 
-            @if(($tenant->verification_status ?? 'unverified') === 'premium_pending')
-                <div class="mb-6 rounded-2xl border border-sky-500/20 bg-sky-500/10 p-5 text-sky-50">
-                    <div class="flex items-start gap-3">
-                        <div class="w-11 h-11 rounded-xl bg-sky-500/10 border border-sky-400/30 text-sky-200 flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-clock"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-black text-sky-100">Ho so Tich xanh dang duyet</h3>
-                            <p class="mt-1 text-xs leading-6 text-sky-100/75">Ma ho so: #{{ $premiumRequest->id ?? 'N/A' }}. Trong luc cho duyet, ban van giu quyen nhan tien/VietQR tu ho so KYC da xac minh.</p>
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-            @if(in_array(($tenant->verification_status ?? 'unverified'), ['unverified', 'kyc_pending'], true))
-                <div class="mb-6 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-5 text-amber-50">
-                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                        <div class="flex items-start gap-3">
-                            <div class="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 flex items-center justify-center shrink-0">
-                                <i class="fa-solid fa-seedling"></i>
+                    @if(($tenant->verification_status ?? 'unverified') === 'premium_verified')
+                        <div class="mb-6 rounded-2xl border border-sky-500/25 bg-sky-500/10 p-5 text-sky-50 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                            <div class="flex items-start gap-3">
+                                <div class="w-11 h-11 rounded-xl bg-sky-500/10 border border-sky-400/30 text-sky-200 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-black text-sky-100">Nhà trọ đã có Tích xanh</h3>
+                                    <p class="mt-1 text-xs leading-6 text-sky-100/75">Hồ sơ ĐKKD, PCCC và ANTT đã được xác minh. Tin đăng được gắn huy hiệu Tích xanh và ưu tiên hiển thị trên Renty.</p>
+                                </div>
                             </div>
-                            <div>
-                                <h3 class="text-sm font-black text-amber-100">Ho so dang o muc khoi dau</h3>
-                                <p class="mt-1 text-xs leading-6 text-amber-100/80">
-                                    Ban co the them phong va quan ly nha tro ngay. Khi muon nhan tien tu dong hoac rut tien, hay bo sung CCCD va tai khoan ngan hang de mo khoa thanh toan.
-                                </p>
+                            <span class="px-3 py-1.5 rounded-lg bg-sky-400/10 border border-sky-400/25 text-sky-100 text-[10px] font-black">Tăng tốc hiển thị: đang bật</span>
+                        </div>
+                    @endif
+
+                    @if(($tenant->verification_status ?? 'unverified') === 'premium_pending')
+                        <div class="mb-6 rounded-2xl border border-sky-500/20 bg-sky-500/10 p-5 text-sky-50">
+                            <div class="flex items-start gap-3">
+                                <div class="w-11 h-11 rounded-xl bg-sky-500/10 border border-sky-400/30 text-sky-200 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-clock"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-black text-sky-100">Hồ sơ Tích xanh đang duyệt</h3>
+                                    <p class="mt-1 text-xs leading-6 text-sky-100/75">Mã hồ sơ: #{{ $premiumRequest->id ?? 'N/A' }}. Trong lúc chờ duyệt, bạn vẫn giữ quyền nhận tiền/VietQR từ hồ sơ KYC đã xác minh.</p>
+                                </div>
                             </div>
                         </div>
-                        <div class="flex flex-wrap gap-2 text-[10px] font-bold">
-                            <span class="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-200">Tao nha tro: xong</span>
-                            <span class="px-3 py-1.5 rounded-lg bg-slate-950/40 border border-amber-500/20 text-amber-100">KYC nhan tien: {{ ($tenant->verification_status ?? 'unverified') === 'kyc_pending' ? 'dang duyet' : 'khi can' }}</span>
-                            <span class="px-3 py-1.5 rounded-lg bg-slate-950/40 border border-sky-500/20 text-sky-100">Tich xanh: tuy chon</span>
-                        </div>
-                    </div>
+                    @endif
 
-                    @if(($tenant->verification_status ?? 'unverified') === 'kyc_pending')
-                        <div class="mt-4 rounded-2xl border border-slate-800 bg-slate-950/40 p-4 text-xs text-slate-300">
-                            <div class="flex items-center gap-2 font-bold text-amber-100">
-                                <i class="fa-solid fa-clock"></i>
-                                Ho so KYC da gui, dang cho admin he thong duyet.
+                    @if(in_array(($tenant->verification_status ?? 'unverified'), ['unverified', 'kyc_pending'], true))
+                        <div class="mb-6 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-5 text-amber-50">
+                            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 flex items-center justify-center shrink-0">
+                                        <i class="fa-solid fa-seedling"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-black text-amber-100">Hồ sơ đang ở mức khởi đầu</h3>
+                                        <p class="mt-1 text-xs leading-6 text-amber-100/80">
+                                            Bạn có thể thêm phòng và quản lý nhà trọ ngay. Khi muốn nhận tiền tự động hoặc rút tiền, hãy bổ sung CCCD và tài khoản ngân hàng để mở khóa thanh toán.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-wrap gap-2 text-[10px] font-bold">
+                                    <span class="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-200">Tạo nhà trọ: xong</span>
+                                    <span class="px-3 py-1.5 rounded-lg bg-slate-950/40 border border-amber-500/20 text-amber-100">KYC nhận tiền: {{ ($tenant->verification_status ?? 'unverified') === 'kyc_pending' ? 'đang duyệt' : 'khi cần' }}</span>
+                                    <span class="px-3 py-1.5 rounded-lg bg-slate-950/40 border border-sky-500/20 text-sky-100">Tích xanh: tùy chọn</span>
+                                </div>
                             </div>
-                            <p class="mt-2 text-slate-500">Ma ho so: #{{ $kycRequest->id ?? 'N/A' }}. Ban van co the tiep tuc them phong va quan ly nha tro trong luc cho xet duyet.</p>
+
+                            @if(($tenant->verification_status ?? 'unverified') === 'kyc_pending')
+                                <div class="mt-4 rounded-2xl border border-slate-800 bg-slate-950/40 p-4 text-xs text-slate-300">
+                                    <div class="flex items-center gap-2 font-bold text-amber-100">
+                                        <i class="fa-solid fa-clock"></i>
+                                        Hồ sơ KYC đã gửi, đang chờ quản trị viên hệ thống duyệt.
+                                    </div>
+                                    <p class="mt-2 text-slate-500">Mã hồ sơ: #{{ $kycRequest->id ?? 'N/A' }}. Bạn vẫn có thể tiếp tục thêm phòng và quản lý nhà trọ trong lúc chờ xét duyệt.</p>
+                                </div>
+                            @else
+                                <form method="POST" action="{{ route('smartroom.admin.verification.kyc') }}" enctype="multipart/form-data" class="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-4 rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
+                                    @csrf
+                                    <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+                                        <label class="block">
+                                            <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Số CCCD</span>
+                                            <input name="cccd_number" required class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-400">
+                                        </label>
+                                        <label class="block">
+                                            <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Ngân hàng</span>
+                                            <input name="bank_name" required value="{{ old('bank_name', $tenant->bank_name ?? 'MB') }}" class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-400">
+                                        </label>
+                                        <label class="block">
+                                            <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Số tài khoản</span>
+                                            <input name="bank_account_no" required value="{{ old('bank_account_no', $tenant->bank_account_no ?? '') }}" class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-400">
+                                        </label>
+                                        <label class="block">
+                                            <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Tên chủ tài khoản</span>
+                                            <input name="bank_account_name" required value="{{ old('bank_account_name', $tenant->bank_account_name ?? '') }}" class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-400">
+                                        </label>
+                                    </div>
+
+                                    <label class="block">
+                                        <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">CCCD mặt trước</span>
+                                        <input type="file" name="cccd_front" accept="image/*" required class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300">
+                                    </label>
+                                    <label class="block">
+                                        <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">CCCD mặt sau</span>
+                                        <input type="file" name="cccd_back" accept="image/*" required class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300">
+                                    </label>
+                                    <label class="block">
+                                        <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Ảnh/xác nhận tài khoản NH</span>
+                                        <input type="file" name="bank_account_proof" accept="image/*" required class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300">
+                                    </label>
+
+                                    <label class="lg:col-span-3 flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-[11px] leading-5 text-amber-50">
+                                        <input type="checkbox" name="admin_review_consent" value="1" required class="mt-1 rounded border-slate-700 bg-slate-950 text-amber-400 focus:ring-amber-400">
+                                        <span>Tôi đồng ý với <a href="javascript:void(0)" onclick="openKycTermsModal()" class="text-amber-300 underline underline-offset-2 hover:text-amber-200 font-bold transition-colors">Điều khoản Bảo mật Thông tin & Xác thực Tài khoản (KYC)</a> của SmartRoom.</span>
+                                    </label>
+
+                                    <div class="lg:col-span-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                        <p class="text-[11px] leading-5 text-slate-500">Thông tin này chỉ dùng để mở khóa nhận tiền/chuyển khoản. Giấy phép PCCC và ANTT sẽ là bước tích xanh riêng, không bắt buộc lúc này.</p>
+                                        <button type="submit" class="shrink-0 rounded-xl bg-amber-500 px-4 py-2 text-xs font-black text-slate-950 hover:bg-amber-400">
+                                            Gửi KYC nhận tiền
+                                        </button>
+                                    </div>
+                                </form>
+                            @endif
                         </div>
-                    @else
-                        <form method="POST" action="{{ route('smartroom.admin.verification.kyc') }}" enctype="multipart/form-data" class="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-4 rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
-                            @csrf
-                            <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+                    @endif
+
+                    @if(($tenant->verification_status ?? 'unverified') === 'kyc_verified')
+                        <div class="mb-6 rounded-2xl border border-sky-500/20 bg-sky-500/10 p-5 text-sky-50">
+                            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-11 h-11 rounded-xl bg-sky-500/10 border border-sky-400/30 text-sky-200 flex items-center justify-center shrink-0">
+                                        <i class="fa-solid fa-award"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-black text-sky-100">Lấy Tích xanh cho nhà trọ</h3>
+                                        <p class="mt-1 text-xs leading-6 text-sky-100/75">Đây là bước tùy chọn. Hoàn tất ĐKKD, PCCC và ANTT để tin đăng có huy hiệu Tích xanh và được ưu tiên hiển thị trên Renty.</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-wrap gap-2 text-[10px] font-bold">
+                                    <span class="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-200">KYC nhận tiền: xong</span>
+                                    <span class="px-3 py-1.5 rounded-lg bg-sky-500/10 border border-sky-500/25 text-sky-100">Tích xanh: tùy chọn</span>
+                                </div>
+                            </div>
+
+                            <form method="POST" action="{{ route('smartroom.admin.verification.premium') }}" enctype="multipart/form-data" class="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-4 rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
+                                @csrf
                                 <label class="block">
-                                    <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">So CCCD</span>
-                                    <input name="cccd_number" required class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-400">
+                                    <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Giấy phép ĐKKD</span>
+                                    <input type="file" name="business_registration_certificate" accept=".pdf,image/*" required class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300">
                                 </label>
                                 <label class="block">
-                                    <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Ngan hang</span>
-                                    <input name="bank_name" required value="{{ old('bank_name', $tenant->bank_name ?? 'MB') }}" class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-400">
+                                    <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Giấy chứng nhận PCCC</span>
+                                    <input type="file" name="fire_safety_certificate" accept=".pdf,image/*" required class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300">
                                 </label>
                                 <label class="block">
-                                    <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">So tai khoan</span>
-                                    <input name="bank_account_no" required value="{{ old('bank_account_no', $tenant->bank_account_no ?? '') }}" class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-400">
+                                    <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Giấy chứng nhận ANTT</span>
+                                    <input type="file" name="security_order_certificate" accept=".pdf,image/*" required class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300">
                                 </label>
-                                <label class="block">
-                                    <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Ten chu tai khoan</span>
-                                    <input name="bank_account_name" required value="{{ old('bank_account_name', $tenant->bank_account_name ?? '') }}" class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-400">
+
+                                <label class="lg:col-span-3 flex items-start gap-3 rounded-xl border border-sky-500/20 bg-sky-500/5 p-3 text-[11px] leading-5 text-sky-50">
+                                    <input type="checkbox" name="admin_review_consent" value="1" required class="mt-1 rounded border-slate-700 bg-slate-950 text-sky-400 focus:ring-sky-400">
+                                    <span>Tôi đồng ý với <a href="javascript:void(0)" onclick="openKycTermsModal()" class="text-sky-300 underline underline-offset-2 hover:text-sky-200 font-bold transition-colors">Điều khoản Bảo mật Thông tin & Xác thực Tài khoản (KYC)</a> của SmartRoom.</span>
                                 </label>
-                            </div>
 
-                            <label class="block">
-                                <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">CCCD mat truoc</span>
-                                <input type="file" name="cccd_front" accept="image/*" required class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300">
-                            </label>
-                            <label class="block">
-                                <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">CCCD mat sau</span>
-                                <input type="file" name="cccd_back" accept="image/*" required class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300">
-                            </label>
-                            <label class="block">
-                                <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Anh/xac nhan tai khoan NH</span>
-                                <input type="file" name="bank_account_proof" accept="image/*" required class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300">
-                            </label>
-
-                            <label class="lg:col-span-3 flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-[11px] leading-5 text-amber-50">
-                                <input type="checkbox" name="admin_review_consent" value="1" required class="mt-1 rounded border-slate-700 bg-slate-950 text-amber-400 focus:ring-amber-400">
-                                <span>Toi dong y cho Admin he thong SmartRoom xem cac tai lieu CCCD va xac nhan tai khoan ngan hang chi trong thoi gian ho so dang cho duyet. Sau khi duyet hoac tu choi, quyen xem mac dinh se bi thu hoi.</span>
-                            </label>
-
-                            <div class="lg:col-span-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                <p class="text-[11px] leading-5 text-slate-500">Thong tin nay chi dung de mo khoa nhan tien/chuyen khoan. Giay phep PCCC va ANTT se la buoc tich xanh rieng, khong bat buoc luc nay.</p>
-                                <button type="submit" class="shrink-0 rounded-xl bg-amber-500 px-4 py-2 text-xs font-black text-slate-950 hover:bg-amber-400">
-                                    Gui KYC nhan tien
-                                </button>
-                            </div>
-                        </form>
+                                <div class="lg:col-span-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                    <p class="text-[11px] leading-5 text-slate-500">Nếu chưa có đủ giấy tờ, có thể bỏ qua bước này. Hệ thống chỉ dùng hồ sơ này để xét duyệt huy hiệu tin cậy và ưu tiên hiển thị.</p>
+                                    <button type="submit" class="shrink-0 rounded-xl bg-sky-400 px-4 py-2 text-xs font-black text-slate-950 hover:bg-sky-300">
+                                        Gửi hồ sơ Tích xanh
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     @endif
                 </div>
-            @endif
-
-            @if(($tenant->verification_status ?? 'unverified') === 'kyc_verified')
-                <div class="mb-6 rounded-2xl border border-sky-500/20 bg-sky-500/10 p-5 text-sky-50">
-                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                        <div class="flex items-start gap-3">
-                            <div class="w-11 h-11 rounded-xl bg-sky-500/10 border border-sky-400/30 text-sky-200 flex items-center justify-center shrink-0">
-                                <i class="fa-solid fa-award"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-sm font-black text-sky-100">Lay Tich xanh cho nha tro</h3>
-                                <p class="mt-1 text-xs leading-6 text-sky-100/75">Day la buoc tuy chon. Hoan tat DKKD, PCCC va ANTT de tin dang co badge Tich xanh va duoc uu tien hien thi tren Renty.</p>
-                            </div>
-                        </div>
-                        <div class="flex flex-wrap gap-2 text-[10px] font-bold">
-                            <span class="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-200">KYC nhan tien: xong</span>
-                            <span class="px-3 py-1.5 rounded-lg bg-sky-500/10 border border-sky-500/25 text-sky-100">Tich xanh: tuy chon</span>
-                        </div>
-                    </div>
-
-                    <form method="POST" action="{{ route('smartroom.admin.verification.premium') }}" enctype="multipart/form-data" class="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-4 rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
-                        @csrf
-                        <label class="block">
-                            <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Giay phep DKKD</span>
-                            <input type="file" name="business_registration_certificate" accept=".pdf,image/*" required class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300">
-                        </label>
-                        <label class="block">
-                            <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Giay chung nhan PCCC</span>
-                            <input type="file" name="fire_safety_certificate" accept=".pdf,image/*" required class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300">
-                        </label>
-                        <label class="block">
-                            <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Giay chung nhan ANTT</span>
-                            <input type="file" name="security_order_certificate" accept=".pdf,image/*" required class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300">
-                        </label>
-
-                        <label class="lg:col-span-3 flex items-start gap-3 rounded-xl border border-sky-500/20 bg-sky-500/5 p-3 text-[11px] leading-5 text-sky-50">
-                            <input type="checkbox" name="admin_review_consent" value="1" required class="mt-1 rounded border-slate-700 bg-slate-950 text-sky-400 focus:ring-sky-400">
-                            <span>Toi dong y cho Admin he thong SmartRoom xem cac tai lieu DKKD, PCCC va ANTT chi trong thoi gian ho so Tich xanh dang cho duyet. Sau khi duyet hoac tu choi, quyen xem mac dinh se bi thu hoi.</span>
-                        </label>
-
-                        <div class="lg:col-span-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                            <p class="text-[11px] leading-5 text-slate-500">Neu chua co du giay to, co the bo qua buoc nay. He thong chi dung ho so nay de xet badge tin cay va uu tien hien thi.</p>
-                            <button type="submit" class="shrink-0 rounded-xl bg-sky-400 px-4 py-2 text-xs font-black text-slate-950 hover:bg-sky-300">
-                                Gui ho so Tich xanh
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            @endif
+            </section>
 
             <!-- SECTION 1: DASHBOARD OVERVIEW -->
             <section id="dashboard-section" class="tab-content space-y-8 animate-fade-in">
@@ -1157,6 +1078,11 @@
                             </tbody>
                         </table>
                     </div>
+                    @if($residents->hasPages())
+                        <div class="mt-6 flex justify-center pb-2">
+                            {{ $residents->appends(array_merge(request()->query(), ['tab' => 'resident-section']))->links() }}
+                        </div>
+                    @endif
                 </div>
             </section>
 
@@ -1169,7 +1095,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Tổng số hợp đồng</p>
-                                <h3 class="text-3xl font-extrabold text-white mt-2 tracking-tight">{{ $contracts->count() }}</h3>
+                                <h3 class="text-3xl font-extrabold text-white mt-2 tracking-tight">{{ $contractStats['total'] }}</h3>
                                 <span class="text-[10px] text-indigo-400 font-semibold mt-1 block">Tất cả bản ghi</span>
                             </div>
                             <span class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-300">
@@ -1182,7 +1108,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Hợp đồng hiệu lực</p>
-                                <h3 class="text-3xl font-extrabold text-white mt-2 tracking-tight">{{ $contracts->where('status', 'active')->count() }}</h3>
+                                <h3 class="text-3xl font-extrabold text-white mt-2 tracking-tight">{{ $contractStats['active'] }}</h3>
                                 <span class="text-[10px] text-emerald-400 font-semibold mt-1 block">Đã có chữ ký</span>
                             </div>
                             <span class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300">
@@ -1195,7 +1121,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Chờ cư dân ký</p>
-                                <h3 class="text-3xl font-extrabold text-white mt-2 tracking-tight">{{ $contracts->where('status', 'pending')->count() }}</h3>
+                                <h3 class="text-3xl font-extrabold text-white mt-2 tracking-tight">{{ $contractStats['pending'] }}</h3>
                                 <span class="text-[10px] text-amber-400 font-semibold mt-1 block">Yêu cầu chữ ký</span>
                             </div>
                             <span class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 group-hover:bg-amber-500 group-hover:text-white transition-all duration-300">
@@ -1310,6 +1236,11 @@
                             </tbody>
                         </table>
                     </div>
+                    @if($contracts->hasPages())
+                        <div class="mt-6 flex justify-center pb-2">
+                            {{ $contracts->appends(array_merge(request()->query(), ['tab' => 'contract-section']))->links() }}
+                        </div>
+                    @endif
                 </div>
             </section>
 
@@ -1322,7 +1253,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Tổng số yêu cầu</p>
-                                <h3 class="text-3xl font-extrabold text-white mt-2 tracking-tight">{{ $contactRequests->count() }}</h3>
+                                <h3 class="text-3xl font-extrabold text-white mt-2 tracking-tight">{{ $contactRequestStats['total'] }}</h3>
                             </div>
                             <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
                                 <i class="fa-solid fa-phone-volume text-xl"></i>
@@ -1335,7 +1266,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Chưa xử lý</p>
-                                <h3 class="text-3xl font-extrabold text-amber-400 mt-2 tracking-tight">{{ $contactRequests->where('status', 'pending')->count() }}</h3>
+                                <h3 class="text-3xl font-extrabold text-amber-400 mt-2 tracking-tight">{{ $contactRequestStats['pending'] }}</h3>
                             </div>
                             <div class="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400">
                                 <i class="fa-solid fa-clock-rotate-left text-xl"></i>
@@ -1348,7 +1279,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Đã liên hệ</p>
-                                <h3 class="text-3xl font-extrabold text-indigo-400 mt-2 tracking-tight">{{ $contactRequests->where('status', 'processed')->count() }}</h3>
+                                <h3 class="text-3xl font-extrabold text-indigo-400 mt-2 tracking-tight">{{ $contactRequestStats['processed'] }}</h3>
                             </div>
                             <div class="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
                                 <i class="fa-solid fa-square-check text-xl"></i>
@@ -1446,6 +1377,11 @@
                             </tbody>
                         </table>
                     </div>
+                    @if($contactRequests->hasPages())
+                        <div class="mt-6 flex justify-center pb-2">
+                            {{ $contactRequests->appends(array_merge(request()->query(), ['tab' => 'contact-section']))->links() }}
+                        </div>
+                    @endif
                 </div>
             </section>
 
@@ -1906,7 +1842,7 @@
     <!-- JS Logic -->
     <script>
         const currentUserIsLandlord = @json($isLandlord);
-        const canReceiveOnlinePayments = @json(in_array(($tenant->verification_status ?? 'unverified'), ['kyc_verified', 'premium_pending', 'premium_verified'], true));
+        const canReceiveOnlinePayments = {{ in_array(($tenant->verification_status ?? 'unverified'), ['kyc_verified', 'premium_pending', 'premium_verified'], true) ? 'true' : 'false' }};
 
         function requireKycForOnlinePayments() {
             alert('Can hoan tat KYC nhan tien truoc khi hien thi VietQR/chuyen khoan. Vui long gui CCCD va tai khoan ngan hang tren the xac minh o dau trang.');
@@ -2077,34 +2013,83 @@
         })();
 
         // Tab switching
-        function switchTab(tabId, btn) {
+        function switchTab(tabId, btn = null) {
             // Hide all sections
             document.querySelectorAll('.tab-content').forEach(section => {
                 section.classList.add('hidden');
             });
             // Show active section
-            document.getElementById(tabId).classList.remove('hidden');
+            const targetSection = document.getElementById(tabId);
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+            }
             
-            // Remove active style from all nav buttons
-            document.querySelectorAll('.nav-btn').forEach(button => {
+            // Remove active style from all sidebar nav links
+            document.querySelectorAll('.sidebar-nav-link').forEach(button => {
                 button.classList.remove('text-indigo-400', 'bg-indigo-500/10', 'border-indigo-500/10');
                 button.classList.add('text-slate-400', 'hover:text-slate-100', 'hover:bg-slate-800/50', 'border-transparent', 'hover:border-slate-800');
             });
             
+            // Find active button
+            let activeBtn = btn;
+            if (!activeBtn) {
+                activeBtn = document.querySelector(`.sidebar-nav-link[data-section="${tabId}"]`);
+            }
+            
             // Add active style to current button
-            btn.classList.remove('text-slate-400', 'hover:text-slate-100', 'hover:bg-slate-800/50', 'border-transparent', 'hover:border-slate-800');
-            btn.classList.add('text-indigo-400', 'bg-indigo-500/10', 'border-indigo-500/10');
+            if (activeBtn) {
+                activeBtn.classList.remove('text-slate-400', 'hover:text-slate-100', 'hover:bg-slate-800/50', 'border-transparent', 'hover:border-slate-800');
+                activeBtn.classList.add('text-indigo-400', 'bg-indigo-500/10', 'border-indigo-500/10');
+            }
             
             // Set header title
             let title = "SmartRoom Dashboard";
             if(tabId === 'dashboard-section') title = "Tổng Quan Hệ Thống";
+            else if(tabId === 'profile-section') title = "Hồ Sơ & Xác Minh";
             else if(tabId === 'room-map-section') title = "Sơ Đồ Phòng Trực Quan";
             else if(tabId === 'utility-section') title = "Chốt Chỉ Số Điện Nước";
             else if(tabId === 'resident-section') title = "Quản Lý Cư Dân";
             else if(tabId === 'contract-section') title = "Quản Lý Hợp Đồng Online";
             else if(tabId === 'contact-section') title = "Yêu Cầu Tư Vấn & Xem Phòng";
-            document.getElementById('section-title').textContent = title;
+            
+            const titleEl = document.getElementById('section-title');
+            if (titleEl) {
+                titleEl.textContent = title;
+            }
+            
+            // Update URL without page reload
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('tab') !== tabId) {
+                urlParams.set('tab', tabId);
+                const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?' + urlParams.toString();
+                window.history.pushState({ tab: tabId }, '', newUrl);
+            }
         }
+
+        // Add event listener to sidebar-nav-link links on DOMContentLoaded to switch tabs dynamically without page reload
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.sidebar-nav-link[data-section]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const sectionId = this.getAttribute('data-section');
+                    if (sectionId) {
+                        e.preventDefault();
+                        switchTab(sectionId, this);
+                    }
+                });
+            });
+
+            // Initial switch tab based on URL query parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const tabParam = urlParams.get('tab') || 'dashboard-section';
+            switchTab(tabParam);
+
+            // Sync with browser back/forward buttons
+            window.addEventListener('popstate', function(event) {
+                const params = new URLSearchParams(window.location.search);
+                const currentTab = params.get('tab') || 'dashboard-section';
+                switchTab(currentTab);
+            });
+        });
 
         // Room filter function
         function filterRooms(status) {
@@ -3216,12 +3201,9 @@
             const urlParams = new URLSearchParams(window.location.search);
             const tabParam = urlParams.get('tab');
             if (tabParam) {
-                const targetBtn = Array.from(document.querySelectorAll('.nav-btn')).find(btn => {
-                    const onclickStr = btn.getAttribute('onclick') || '';
-                    return onclickStr.includes(tabParam);
-                });
-                if (targetBtn) {
-                    switchTab(tabParam, targetBtn);
+                const targetLink = document.querySelector(`.sidebar-nav-link[data-section="${tabParam}"]`);
+                if (targetLink) {
+                    switchTab(tabParam, targetLink);
                 }
                 // Clean the URL parameter without reloading the page
                 const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
@@ -3866,6 +3848,122 @@
             </div>
         </div>
     </div>
+    <!-- KYC TERMS MODAL -->
+    <div id="kyc-terms-modal" class="fixed inset-0 z-[9999] hidden items-center justify-center">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeKycTermsModal()"></div>
+        <!-- Modal Content -->
+        <div class="relative w-full max-w-3xl max-h-[85vh] mx-4 bg-[#0f1422] border border-slate-700/60 rounded-3xl shadow-2xl shadow-black/50 flex flex-col animate-fade-in">
+            <!-- Header -->
+            <div class="flex items-center justify-between px-8 py-5 border-b border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center">
+                        <i class="fa-solid fa-shield-halved text-indigo-400"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-extrabold text-slate-100">Điều Khoản Bảo Mật & KYC</h3>
+                        <p class="text-[10px] text-slate-500 mt-0.5">Vui lòng đọc kỹ trước khi đồng ý</p>
+                    </div>
+                </div>
+                <button onclick="closeKycTermsModal()" class="w-9 h-9 rounded-xl border border-slate-800 hover:border-slate-600 bg-slate-900/50 hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-all">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <!-- Body -->
+            <div class="overflow-y-auto flex-1 px-8 py-6 space-y-6 text-[12px] leading-relaxed text-slate-300 custom-scrollbar">
+                <div class="rounded-2xl border border-indigo-500/20 bg-indigo-500/5 p-4">
+                    <h4 class="text-base font-extrabold text-indigo-300 mb-2">ĐIỀU KHOẢN BẢO MẬT THÔNG TIN VÀ XÁC THỰC TÀI KHOẢN (KYC)</h4>
+                    <p class="text-slate-400 text-[11px] leading-6">Bằng việc tích chọn đồng ý, Quý khách (sau đây gọi là <strong class="text-slate-200">"Chủ trọ"</strong>) chấp thuận các điều khoản nghiêm ngặt dưới đây từ Ban quản trị hệ thống SmartRoom (sau đây gọi là <strong class="text-slate-200">"SmartRoom"</strong>) liên quan đến việc thu thập, xử lý và bảo vệ dữ liệu cá nhân.</p>
+                </div>
+
+                <!-- Section I -->
+                <div>
+                    <h5 class="text-sm font-extrabold text-emerald-300 mb-3 flex items-center gap-2"><i class="fa-solid fa-scale-balanced text-emerald-400/70"></i> I. Căn Cứ Pháp Lý (Luật Việt Nam Bản Địa)</h5>
+                    <p class="mb-3 text-slate-400">SmartRoom cam kết hoạt động tuân thủ nghiêm ngặt hệ thống pháp luật Việt Nam về an toàn thông tin và bảo vệ dữ liệu cá nhân, bao gồm nhưng không giới hạn ở:</p>
+                    <ul class="space-y-2 text-slate-300">
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-check-circle text-emerald-400/60 mt-0.5 shrink-0"></i><span><strong class="text-slate-200">Nghị định 13/2023/NĐ-CP</strong> về Bảo vệ dữ liệu cá nhân (Đặc biệt là quy định về Dữ liệu cá nhân cơ bản và Dữ liệu cá nhân nhạy cảm).</span></li>
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-check-circle text-emerald-400/60 mt-0.5 shrink-0"></i><span><strong class="text-slate-200">Luật An toàn thông tin mạng 2015</strong> về trách nhiệm bảo vệ thông tin cá nhân trên mạng của tổ chức, cá nhân.</span></li>
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-check-circle text-emerald-400/60 mt-0.5 shrink-0"></i><span><strong class="text-slate-200">Bộ luật Dân sự 2015 (Điều 38)</strong> về Quyền bí mật đời tư.</span></li>
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-check-circle text-emerald-400/60 mt-0.5 shrink-0"></i><span><strong class="text-slate-200">Luật An ninh mạng 2018</strong> về phòng ngừa, xử lý hành vi xâm phạm an ninh mạng.</span></li>
+                    </ul>
+                </div>
+
+                <!-- Section II -->
+                <div>
+                    <h5 class="text-sm font-extrabold text-sky-300 mb-3 flex items-center gap-2"><i class="fa-solid fa-bullseye text-sky-400/70"></i> II. Mục Đích Sử Dụng Dữ Liệu Duy Nhất</h5>
+                    <ul class="space-y-2 text-slate-300">
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-circle-dot text-sky-400/60 mt-0.5 shrink-0 text-[9px]"></i><span><strong class="text-slate-200">Phạm vi thu thập:</strong> Hình ảnh Căn cước công dân (CCCD) hai mặt, số tài khoản ngân hàng, tên chủ tài khoản và ảnh xác minh tài khoản.</span></li>
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-circle-dot text-sky-400/60 mt-0.5 shrink-0 text-[9px]"></i><span><strong class="text-slate-200">Mục đích:</strong> Chỉ sử dụng duy nhất cho việc xác thực danh tính chủ sở hữu (KYC) để kích hoạt tính năng nhận tiền tự động/rút tiền trên hệ thống và phòng chống các hành vi gian lận tài chính.</span></li>
+                        <li class="flex items-start gap-2 rounded-xl border border-rose-500/20 bg-rose-500/5 p-3"><i class="fa-solid fa-ban text-rose-400 mt-0.5 shrink-0"></i><span><strong class="text-rose-300">Tuyệt đối nghiêm cấm:</strong> SmartRoom không được phép sử dụng dữ liệu này cho mục đích quảng cáo, chia sẻ, bán hoặc chuyển giao cho bất kỳ bên thứ ba nào khác khi chưa có sự đồng ý bằng văn bản của Chủ trọ.</span></li>
+                    </ul>
+                </div>
+
+                <!-- Section III -->
+                <div>
+                    <h5 class="text-sm font-extrabold text-amber-300 mb-3 flex items-center gap-2"><i class="fa-solid fa-lock text-amber-400/70"></i> III. Quy Trình Giới Hạn Quyền Truy Cập Và Xóa Dữ Liệu</h5>
+                    <ul class="space-y-2 text-slate-300">
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-hourglass-half text-amber-400/60 mt-0.5 shrink-0"></i><span><strong class="text-slate-200">Giới hạn quyền xem tạm thời:</strong> Quyền xem hình ảnh CCCD và tài liệu ngân hàng gốc chỉ được cấp cho nhân sự kiểm duyệt được chỉ định của SmartRoom trong thời gian hồ sơ đang chờ duyệt (tối đa không quá <strong class="text-amber-200">24 giờ làm việc</strong> kể từ khi gửi).</span></li>
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-key text-amber-400/60 mt-0.5 shrink-0"></i><span><strong class="text-slate-200">Mã hóa và Thu hồi quyền:</strong> Ngay sau khi hồ sơ được "Duyệt" hoặc "Từ chối", hệ thống tự động thu hồi hoàn toàn quyền tiếp cận của nhân sự kiểm duyệt.</span></li>
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-trash-can text-amber-400/60 mt-0.5 shrink-0"></i><span><strong class="text-slate-200">Cam kết xóa dữ liệu (Hard Delete):</strong> Toàn bộ tệp ảnh gốc (CCCD, Xác nhận tài khoản) sẽ được xóa vĩnh viễn khỏi bộ nhớ đệm của nhân sự trong vòng <strong class="text-amber-200">24 giờ</strong>. Hệ thống chỉ lưu trữ chuỗi hash đã được mã hóa theo tiêu chuẩn quân đội <strong class="text-amber-200">AES-256</strong> trên máy chủ để phục vụ đối chiếu lịch sử khi có yêu cầu từ cơ quan chức năng.</span></li>
+                    </ul>
+                </div>
+
+                <!-- Section IV -->
+                <div>
+                    <h5 class="text-sm font-extrabold text-rose-300 mb-3 flex items-center gap-2"><i class="fa-solid fa-gavel text-rose-400/70"></i> IV. Cam Kết Trách Nhiệm Chi Tiết Và Chế Tài Xử Phạt Khi Lộ Thông Tin</h5>
+                    <p class="mb-3 text-slate-400"><strong class="text-slate-200">Tuyên bố chịu trách nhiệm:</strong> SmartRoom khẳng định việc bảo vệ dữ liệu của Chủ trọ là nghĩa vụ pháp lý tối cao. Nếu xảy ra bất kỳ sự cố rò rỉ, phát tán hoặc làm lộ thông tin cá nhân, thông tin tài khoản của Chủ trọ xuất phát từ lỗi hệ thống, lỗ hổng bảo mật hoặc do hành vi cố ý/vô ý của nhân viên SmartRoom, chúng tôi cam kết chịu trách nhiệm như sau:</p>
+                    <ul class="space-y-3 text-slate-300">
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-shield-halved text-rose-400/60 mt-0.5 shrink-0"></i><span><strong class="text-slate-200">Trách nhiệm hình sự và hành chính:</strong> SmartRoom hoàn toàn chịu trách nhiệm trước pháp luật Việt Nam, phối hợp với Cục An ninh mạng và phòng, chống tội phạm sử dụng công nghệ cao <strong class="text-rose-200">(A05)</strong> để điều tra và xử lý cá nhân vi phạm theo quy định của pháp luật.</span></li>
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-coins text-rose-400/60 mt-0.5 shrink-0"></i>
+                            <div>
+                                <p><strong class="text-slate-200">Trách nhiệm dân sự và bồi thường thiệt hại:</strong></p>
+                                <ul class="mt-2 space-y-2 pl-4">
+                                    <li class="flex items-start gap-2"><span class="text-rose-400 mt-0.5 shrink-0">•</span><span>SmartRoom cam kết bồi thường toàn bộ thiệt hại về vật chất và tinh thần thực tế phát sinh cho Chủ trọ nếu thông tin bị lộ dẫn đến việc Chủ trọ bị lợi dụng danh tính (Ví dụ: bị kẻ xấu dùng CCCD vay tín dụng đen, lừa đảo chiếm đoạt tài sản...).</span></li>
+                                    <li class="flex items-start gap-2"><span class="text-rose-400 mt-0.5 shrink-0">•</span><span>Mức bồi thường tối thiểu cho một sự cố lộ thông tin được ấn định sẵn là <strong class="text-rose-200 bg-rose-500/10 px-2 py-0.5 rounded-lg">50.000.000 VNĐ</strong> cho một tài khoản bị ảnh hưởng, chưa bao gồm các chi phí khắc phục thiệt hại phát sinh thực tế được chứng minh bằng hóa đơn, chứng từ hoặc phán quyết của Tòa án.</span></li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-bell text-rose-400/60 mt-0.5 shrink-0"></i><span><strong class="text-slate-200">Khắc phục sự cố:</strong> Trong vòng <strong class="text-rose-200">02 giờ</strong> kể từ khi phát hiện sự cố, SmartRoom có trách nhiệm thông báo bằng văn bản/email cho Chủ trọ, đồng thời áp dụng mọi biện pháp kỹ thuật để ngăn chặn và giảm thiểu tối đa thiệt hại.</span></li>
+                    </ul>
+                </div>
+
+                <!-- Section V -->
+                <div>
+                    <h5 class="text-sm font-extrabold text-violet-300 mb-3 flex items-center gap-2"><i class="fa-solid fa-handshake text-violet-400/70"></i> V. Phương Thức Giải Quyết Tranh Chấp</h5>
+                    <div class="rounded-xl border border-violet-500/20 bg-violet-500/5 p-4 text-slate-300">
+                        <p>Mọi tranh chấp phát sinh từ hoặc liên quan đến việc bảo mật thông tin này sẽ được ưu tiên giải quyết bằng <strong class="text-violet-200">thương lượng</strong>. Trong trường hợp không đạt được thỏa thuận, vụ việc sẽ được đưa ra giải quyết tại <strong class="text-violet-200">Tòa án nhân dân có thẩm quyền tại Việt Nam</strong> theo quy định của pháp luật.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer -->
+            <div class="px-8 py-4 border-t border-slate-800 flex items-center justify-between">
+                <p class="text-[10px] text-slate-500"><i class="fa-solid fa-info-circle mr-1"></i> Cập nhật lần cuối: Tháng 06/2026</p>
+                <button onclick="closeKycTermsModal()" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-lg shadow-indigo-600/25">
+                    <i class="fa-solid fa-check mr-1.5"></i> Đã đọc và hiểu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openKycTermsModal() {
+            const modal = document.getElementById('kyc-terms-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeKycTermsModal() {
+            const modal = document.getElementById('kyc-terms-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = '';
+        }
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeKycTermsModal();
+        });
+    </script>
+
     <script src="{{ asset('js/admin-sidebar.js') }}"></script>
 </body>
 </html>

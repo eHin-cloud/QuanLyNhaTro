@@ -13,9 +13,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+use Laragear\WebAuthn\Contracts\WebAuthnAuthenticatable;
+use Laragear\WebAuthn\WebAuthnAuthentication;
+
+class User extends Authenticatable implements WebAuthnAuthenticatable
 {
-    use HasApiTokens, HasFactory, MasksSensitiveAttributes, Notifiable;
+    use HasApiTokens, HasFactory, MasksSensitiveAttributes, Notifiable, WebAuthnAuthentication;
 
     protected array $sensitiveMaskedAttributes = [
         'phone' => 'phone',
