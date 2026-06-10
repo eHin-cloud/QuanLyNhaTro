@@ -15,7 +15,14 @@ class AdminVerificationController extends Controller
             ->latest()
             ->paginate(30);
 
-        return view('admin.verifications.index', compact('requests'));
+        $stats = [
+            'total' => LandlordVerificationRequest::count(),
+            'pending' => LandlordVerificationRequest::where('status', 'pending')->count(),
+            'approved' => LandlordVerificationRequest::where('status', 'approved')->count(),
+            'rejected' => LandlordVerificationRequest::where('status', 'rejected')->count(),
+        ];
+
+        return view('admin.verifications.index', compact('requests', 'stats'));
     }
 
     public function approve(LandlordVerificationRequest $verification)
