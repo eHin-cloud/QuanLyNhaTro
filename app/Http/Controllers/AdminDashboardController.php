@@ -389,6 +389,21 @@ class AdminDashboardController extends Controller
         ]);
     }
 
+    public function aiOcrMeter(Request $request, AiManagementService $aiManagementService)
+    {
+        $validated = $request->validate([
+            'image' => 'required|string', // chuỗi base64 của hình ảnh công tơ
+            'type' => 'required|string|in:electricity,water',
+        ]);
+
+        $result = $aiManagementService->analyzeMeterImage($validated['image'], $validated['type']);
+
+        return response()->json([
+            'success' => true,
+            'result' => $result,
+        ]);
+    }
+
     public function aiContractTerms(Request $request, AiManagementService $aiManagementService)
     {
         $tenantId = $this->currentTenantId();
@@ -948,6 +963,16 @@ class AdminDashboardController extends Controller
         ]);
     }
 
+    public function exportCt01($id)
+    {
+        $tenantId = $this->currentTenantId();
+        $resident = Resident::where('tenant_id', $tenantId)
+            ->with(['room.building', 'relatives', 'tenant'])
+            ->findOrFail($id);
+
+        return view('admin.residents.ct01', compact('resident'));
+    }
+
     public function payUtility($id)
     {
         $record = UtilityRecord::findOrFail($id);
@@ -1332,30 +1357,83 @@ class AdminDashboardController extends Controller
         return $pdf->stream('hop_dong_' . $contract->contract_code . '.pdf');
     }
 
+    public function sendOtpForContract($id)
+    {
+        $contract = \App\Models\Contract::with('resident')->findOrFail($id);
+        
+        // Tạo mã ngẫu nhiên 6 chữ số
+        $otp = sprintf('%06d', mt_rand(100000, 999999));
+        
+        $contract->update([
+            'otp_code' => $otp,
+            'otp_expires_at' => now()->addMinutes(5),
+        ]);
+
+        // Giả lập gửi tin nhắn OTP qua dịch vụ tin nhắn
+        $phone = $contract->resident->phone ?? '0987654321';
+        $message = "Ma xac thuc OTP ky hop dong thue nha dien tu cua ban la: {$otp}. Ma co hieu luc trong 5 phut. Vui long khong chia se ma nay!";
+        
+        Log::info("SMS/Zalo OTP Sent to {$phone}: {$message}");
+        
+        \App\Models\NotificationLog::create([
+            'tenant_id' => $contract->tenant_id,
+            'type' => 'otp_verification',
+            'channel' => 'sms',
+            'recipient_name' => $contract->resident->name,
+            'recipient_contact' => $phone,
+            'subject' => 'Ma xac thuc OTP ky hop dong',
+            'message' => $message,
+            'status' => 'sent',
+            'target_type' => \App\Models\Contract::class,
+            'target_id' => $contract->id,
+            'sent_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Mã OTP đã được gửi đến số điện thoại đăng ký của cư dân thành công!',
+        ]);
+    }
+
     public function signContract(Request $request, $id)
     {
         $request->validate([
             'signature' => 'required|string', // Base64 signature image
+            'otp_code' => 'required|string|size:6',
         ]);
 
         $contract = \App\Models\Contract::findOrFail($id);
-        $before = $contract->only(['status', 'signature']);
+
+        if (empty($contract->otp_code) || $contract->otp_code !== $request->otp_code) {
+            return redirect()->back()->with('error', 'Mã OTP nhập vào không chính xác!');
+        }
+
+        if ($contract->otp_expires_at && \Carbon\Carbon::parse($contract->otp_expires_at)->isPast()) {
+            return redirect()->back()->with('error', 'Mã OTP đã hết hiệu lực! Vui lòng nhấn gửi lại mã mới.');
+        }
+
+        $before = $contract->only(['status', 'signature', 'signed_at', 'signer_ip', 'is_signed', 'otp_code']);
         $contract->update([
             'signature' => $request->signature,
             'status' => 'active',
+            'signed_at' => now(),
+            'signer_ip' => $request->ip(),
+            'is_signed' => true,
+            'otp_code' => null,
+            'otp_expires_at' => null,
         ]);
 
         AdminActivityLogger::log(
             'update',
             'contracts',
-            'Hợp đồng ' . $contract->contract_code . ' đã được ký online',
+            'Hợp đồng ' . $contract->contract_code . ' đã được ký số pháp lý qua OTP bởi cư dân',
             $contract,
             ['contract_code' => $contract->contract_code],
             $before,
-            $contract->fresh()->only(['status', 'signature'])
+            $contract->fresh()->only(['status', 'signature', 'signed_at', 'signer_ip', 'is_signed'])
         );
 
-        return redirect()->route('smartroom.contract.sign_view', $id)->with('success', 'Ký hợp đồng online thành công!');
+        return redirect()->route('smartroom.contract.sign_view', $id)->with('success', 'Ký hợp đồng số bằng OTP thành công và có hiệu lực pháp lý!');
     }
 
     public function signLessorContract(Request $request, $id)

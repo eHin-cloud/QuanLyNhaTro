@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\TenantAdminController;
 use App\Http\Controllers\Api\ResidentController;
 use App\Http\Controllers\Api\SensitiveDataController;
 use App\Http\Controllers\VerificationDocumentController;
+use App\Http\Controllers\Api\PaymentWebhookController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,6 +25,7 @@ use App\Http\Controllers\VerificationDocumentController;
 // ==========================================
 Route::post('/auth/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
 Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
+Route::post('/webhooks/payments', [PaymentWebhookController::class, 'handleWebhook']);
 
 Route::get('/renty/rooms', [VisitorController::class, 'index']);
 Route::get('/renty/rooms/map', [VisitorController::class, 'map']);

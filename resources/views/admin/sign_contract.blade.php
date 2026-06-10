@@ -115,6 +115,19 @@
         </div>
         @endif
 
+        <!-- Error notification toast -->
+        @if(session('error'))
+        <div class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center gap-3 animate-pulse">
+            <div class="w-10 h-10 rounded-xl bg-rose-500/20 flex items-center justify-center text-rose-300">
+                <i class="fa-solid fa-circle-exclamation text-lg"></i>
+            </div>
+            <div>
+                <strong class="block text-sm font-bold">Lỗi ký hợp đồng!</strong>
+                <span class="text-xs text-rose-400/80">{{ session('error') }}</span>
+            </div>
+        </div>
+        @endif
+
         <!-- Main legal document container -->
         <div class="glass-card rounded-[32px] p-8 md:p-10 relative overflow-hidden">
             <div class="absolute top-0 right-0 w-80 h-80 bg-indigo-500/5 rounded-full blur-3xl -z-10"></div>
@@ -234,6 +247,25 @@
                                 </div>
                                 <canvas id="signature-pad" class="w-full h-full cursor-crosshair z-10 relative"></canvas>
                             </div>
+                        </div>
+
+                        <!-- OTP Verification Card -->
+                        <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl space-y-4">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-bold uppercase text-slate-400 tracking-wider flex items-center gap-2">
+                                    <i class="fa-solid fa-key text-indigo-400"></i> Xác thực chữ ký bằng OTP
+                                </label>
+                                <button type="button" id="btn-send-otp" onclick="sendOtp()" class="text-xs text-indigo-400 hover:text-indigo-300 font-bold flex items-center gap-1.5 transition-all bg-indigo-500/5 hover:bg-indigo-500/10 px-3 py-1.5 rounded-xl border border-indigo-500/10">
+                                    <i class="fa-solid fa-paper-plane"></i> Gửi mã OTP qua SMS/Zalo
+                                </button>
+                            </div>
+                            <div class="relative">
+                                <input type="text" name="otp_code" id="otp-input" placeholder="Nhập mã OTP 6 chữ số" required maxlength="6"
+                                    class="w-full bg-slate-950/80 border border-slate-800 rounded-xl py-3 px-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all text-center tracking-[0.5em] font-mono font-bold">
+                            </div>
+                            <p id="otp-status" class="text-[11px] text-slate-500 text-center hidden flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-circle-check text-emerald-400"></i> Mã OTP đã được gửi thành công!
+                            </p>
                         </div>
 
                         <div class="pt-4">
@@ -536,6 +568,50 @@
             const dataURL = canvas.toDataURL('image/png');
             document.getElementById('signature-input').value = dataURL;
             document.getElementById('sign-form').submit();
+        }
+
+        function sendOtp() {
+            const btn = document.getElementById('btn-send-otp');
+            const status = document.getElementById('otp-status');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang gửi...';
+
+            fetch("{{ route('smartroom.contract.send_otp', $contract->id) }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    status.classList.remove('hidden');
+                    let timeLeft = 60;
+                    const interval = setInterval(() => {
+                        timeLeft--;
+                        if (timeLeft <= 0) {
+                            clearInterval(interval);
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi lại mã OTP';
+                        } else {
+                            btn.innerHTML = `<i class="fa-solid fa-clock"></i> Gửi lại sau (${timeLeft}s)`;
+                        }
+                    }, 1000);
+                } else {
+                    alert('Lỗi: ' + (data.message || 'Không thể gửi mã OTP.'));
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi mã OTP qua SMS/Zalo';
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                alert('Có lỗi xảy ra khi gửi mã OTP!');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi mã OTP qua SMS/Zalo';
+            });
         }
     </script>
     @endif

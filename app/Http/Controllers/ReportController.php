@@ -81,13 +81,50 @@ class ReportController extends Controller
             'unpaid_total_amount' => $unpaidUtilities->sum('total_amount'),
         ];
 
+        // Truy vấn danh sách thu chi (Transactions) phục vụ Sổ Quỹ & Báo Cáo Lợi Nhuận
+        $transactionsQuery = \App\Models\Transaction::where('tenant_id', $tenantId);
+        if ($billingMonth) {
+            $transactionsQuery->where('transaction_date', 'like', $billingMonth . '%');
+        }
+        $transactions = $transactionsQuery->orderByDesc('transaction_date')->orderByDesc('id')->get();
+
+        $totalIncome = (float) $transactions->where('type', 'income')->sum('amount');
+        $totalExpense = (float) $transactions->where('type', 'expense')->sum('amount');
+        $netProfit = $totalIncome - $totalExpense;
+
+        $financialSummary = [
+            'total_income' => $totalIncome,
+            'total_expense' => $totalExpense,
+            'net_profit' => $netProfit,
+        ];
+
         return view('admin.reports.index', compact(
             'billingMonth',
             'equipmentReports',
             'allocationReports',
             'unpaidUtilities',
-            'summary'
+            'summary',
+            'transactions',
+            'financialSummary'
         ));
+    }
+
+    public function storeTransaction(Request $request)
+    {
+        $tenantId = Auth::user()->tenant_id;
+        $validated = $request->validate([
+            'type' => 'required|in:income,expense',
+            'amount' => 'required|numeric|min:0',
+            'category' => 'required|string|max:100',
+            'description' => 'nullable|string|max:255',
+            'transaction_date' => 'required|date',
+        ]);
+
+        \App\Models\Transaction::create(array_merge($validated, [
+            'tenant_id' => $tenantId
+        ]));
+
+        return redirect()->route('admin.reports.index')->with('success', 'Ghi nhận giao dịch thu/chi thành công!');
     }
 
     private function normalizeBillingMonth($value): ?string

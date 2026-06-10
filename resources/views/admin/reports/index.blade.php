@@ -79,6 +79,128 @@
                 </div>
             </section>
 
+            <!-- Financial Ledger & PnL Reports -->
+            <section class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <!-- Ledger Table & Stats -->
+                <div class="panel glass-card rounded-2xl p-6 xl:col-span-2 space-y-6">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <h2 class="text-base font-bold text-slate-200 flex items-center gap-2">
+                                <i class="fa-solid fa-calculator text-emerald-400"></i> Sổ Quỹ Thu Chi & Báo Cáo Lợi Nhuận
+                            </h2>
+                            <p class="text-xs text-slate-500 mt-1">Tổng quan về dòng tiền thực tế thu được từ tiền thuê phòng và các khoản chi phí vận hành.</p>
+                        </div>
+                    </div>
+
+                    <!-- Mini cards for Financials -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-4">
+                            <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">Tổng Thu Thực Tế</span>
+                            <strong class="text-emerald-400 text-xl font-bold mt-1 block">
+                                +{{ number_format($financialSummary['total_income']) }}đ
+                            </strong>
+                        </div>
+                        <div class="bg-rose-500/5 border border-rose-500/10 rounded-xl p-4">
+                            <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">Tổng Chi Thực Tế</span>
+                            <strong class="text-rose-400 text-xl font-bold mt-1 block">
+                                -{{ number_format($financialSummary['total_expense']) }}đ
+                            </strong>
+                        </div>
+                        <div class="bg-indigo-500/5 border border-indigo-500/10 rounded-xl p-4">
+                            <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">Lợi Nhuận Thuần</span>
+                            <strong class="text-indigo-300 text-xl font-bold mt-1 block">
+                                {{ number_format($financialSummary['net_profit']) }}đ
+                            </strong>
+                        </div>
+                    </div>
+
+                    <!-- Transaction List -->
+                    <div class="overflow-x-auto rounded-xl border border-slate-900">
+                        <table class="w-full text-left text-sm text-slate-300">
+                            <thead class="text-xs text-slate-500 uppercase bg-slate-900/80 border-b border-slate-900">
+                                <tr>
+                                    <th class="px-4 py-3 font-bold">Ngày</th>
+                                    <th class="px-4 py-3 font-bold">Danh mục</th>
+                                    <th class="px-4 py-3 font-bold">Mô tả</th>
+                                    <th class="px-4 py-3 font-bold text-right">Số tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-900 bg-slate-950/20">
+                                @forelse($transactions as $tx)
+                                    <tr class="hover:bg-slate-900/40 transition-all">
+                                        <td class="px-4 py-3 text-xs text-slate-400">
+                                            {{ $tx->transaction_date->format('d/m/Y') }}
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-300">
+                                                {{ $tx->category }}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3 text-xs text-slate-400 max-w-[180px] truncate">
+                                            {{ $tx->description ?: 'N/A' }}
+                                        </td>
+                                        <td class="px-4 py-3 text-right font-bold {{ $tx->type === 'income' ? 'text-emerald-400' : 'text-rose-400' }}">
+                                            {{ $tx->type === 'income' ? '+' : '-' }}{{ number_format($tx->amount) }}đ
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="4" class="px-4 py-8 text-center text-xs text-slate-500">Chưa có giao dịch thu chi nào được ghi nhận.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Add Transaction Form -->
+                <div class="panel glass-card rounded-2xl p-6 xl:col-span-1 space-y-4">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-plus-circle text-indigo-400"></i> Ghi Nhận Thu Chi Thủ Công
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-1">Ghi nhận các chi phí phát sinh ngoài hóa đơn (tiền sửa đồ, mua sắm đồ mới, v.v.).</p>
+                    </div>
+
+                    <form action="{{ route('admin.reports.transaction.store') }}" method="POST" class="space-y-4">
+                        @csrf
+                        <div>
+                            <label class="text-[11px] text-slate-400 uppercase font-bold tracking-wider block mb-1">Loại giao dịch</label>
+                            <select name="type" required class="w-full bg-slate-950/80 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                                <option value="income">Khoản thu (Income)</option>
+                                <option value="expense">Khoản chi (Expense)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[11px] text-slate-400 uppercase font-bold tracking-wider block mb-1">Số tiền (VNĐ)</label>
+                            <input type="number" name="amount" required min="1000" placeholder="e.g. 500000" class="w-full bg-slate-950/80 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="text-[11px] text-slate-400 uppercase font-bold tracking-wider block mb-1">Danh mục</label>
+                            <input type="text" name="category" required placeholder="e.g. Sửa thiết bị, Nước nôi" list="tx-categories" class="w-full bg-slate-950/80 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                            <datalist id="tx-categories">
+                                <option value="Tiền phòng">
+                                <option value="Sửa thiết bị">
+                                <option value="Điện nước">
+                                <option value="Mua sắm đồ">
+                                <option value="Khác">
+                            </datalist>
+                        </div>
+                        <div>
+                            <label class="text-[11px] text-slate-400 uppercase font-bold tracking-wider block mb-1">Ngày giao dịch</label>
+                            <input type="date" name="transaction_date" required value="{{ date('Y-m-d') }}" class="w-full bg-slate-950/80 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="text-[11px] text-slate-400 uppercase font-bold tracking-wider block mb-1">Mô tả chi tiết</label>
+                            <textarea name="description" rows="2" placeholder="Nhập ghi chú thêm..." class="w-full bg-slate-950/80 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"></textarea>
+                        </div>
+                        <button type="submit" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-bold text-xs text-white shadow-lg shadow-indigo-600/30 hover:shadow-indigo-500/40 transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-check"></i> Lưu Giao Dịch
+                        </button>
+                    </form>
+                </div>
+            </section>
+
             <section class="panel glass-card rounded-2xl p-6">
                 <div class="flex items-start justify-between gap-4 mb-5">
                     <div>

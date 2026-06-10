@@ -65,6 +65,13 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'sms_zalo' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/sms_zalo.log'),
+            'level' => 'debug',
+            'replace_placeholders' => true,
+        ],
+
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),

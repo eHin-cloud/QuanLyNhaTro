@@ -18,7 +18,12 @@ class Contract extends Model
         'status',
         'terms',
         'signature',
-        'lessor_signature'
+        'lessor_signature',
+        'otp_code',
+        'otp_expires_at',
+        'signed_at',
+        'signer_ip',
+        'is_signed'
     ];
 
     public function tenant(): BelongsTo

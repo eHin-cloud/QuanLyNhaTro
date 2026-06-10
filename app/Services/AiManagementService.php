@@ -648,6 +648,72 @@ class AiManagementService
         return 'AI chua duoc cau hinh. Ban co the hoi ve phong chua dong tien hoac hop dong sap het han de he thong tra loi theo quy tac co san.';
     }
 
+    /**
+     * Nhận diện chỉ số công tơ điện nước qua hình ảnh sử dụng Gemini AI.
+     */
+    public function analyzeMeterImage(string $base64Image, string $type = 'electricity'): array
+    {
+        $fallback = [
+            'value' => 120, // giá trị giả định mẫu
+            'confidence' => 0.5,
+            'used_ai' => false,
+            'fallback_reason' => 'ai_not_configured',
+        ];
+
+        if (!$this->isEnabled()) {
+            return $fallback;
+        }
+
+        try {
+            // Đảm bảo base64Image có tiền tố data:image/...;base64,
+            if (!str_starts_with($base64Image, 'data:')) {
+                $base64Image = 'data:image/jpeg;base64,' . $base64Image;
+            }
+
+            $messages = [
+                [
+                    'role' => 'system',
+                    'content' => 'Bạn là trợ lý nhận diện số công tơ điện nước qua hình ảnh chuyên nghiệp. Phân tích hình ảnh và trả về kết quả dưới dạng JSON.',
+                ],
+                [
+                    'role' => 'user',
+                    'content' => [
+                        [
+                            'type' => 'text',
+                            'text' => "Hãy đọc số chỉ số hiển thị trên mặt công tơ điện/nước ({$type}) từ bức ảnh này. Chỉ lấy phần số nguyên. Trả về JSON dạng {\"value\": 1234, \"confidence\": 0.95}."
+                        ],
+                        [
+                            'type' => 'image_url',
+                            'image_url' => [
+                                'url' => $base64Image
+                            ]
+                        ]
+                    ]
+                ]
+            ];
+
+            $content = $this->chatJson($messages);
+
+            return [
+                'value' => (int) ($content['value'] ?? 0),
+                'confidence' => (float) ($content['confidence'] ?? 1.0),
+                'used_ai' => true,
+                'fallback_reason' => null,
+            ];
+
+        } catch (Throwable $e) {
+            Log::warning('AI Meter OCR failed', [
+                'type' => $type,
+                'error' => $e->getMessage(),
+            ]);
+
+            return array_merge($fallback, [
+                'used_ai' => false,
+                'fallback_reason' => 'ai_failed',
+            ]);
+        }
+    }
+
     private function chatJson(array $messages): array
     {
         $response = Http::withToken((string) config('services.ai.api_key'))
