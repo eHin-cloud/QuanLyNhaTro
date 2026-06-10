@@ -84,30 +84,103 @@
         </div>
 
         <!-- Portals Grid -->
-        <div class="grid md:grid-cols-2 gap-8 max-w-5xl w-full mx-auto px-4">
+        <div class="grid {{ (Auth::check() && Auth::user()->isGuest()) ? 'grid-cols-1 max-w-2xl' : 'md:grid-cols-2 max-w-5xl' }} gap-8 w-full mx-auto px-4">
             
-            <!-- PORTAL 1: ADMIN (SMARTROOM) -->
-            <a href="{{ route('smartroom.admin') }}" id="portal-admin" class="group relative bg-slate-900/40 backdrop-blur-xl border border-slate-800 hover:border-indigo-500/50 rounded-3xl p-8 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(99,102,241,0.15)] flex flex-col justify-between overflow-hidden">
-                <div class="absolute -right-10 -top-10 w-40 h-40 bg-indigo-600/10 rounded-full blur-2xl group-hover:bg-indigo-600/20 transition-all duration-500"></div>
-                <div>
-                    <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300">
-                        <i class="fa-solid fa-chart-line text-2xl"></i>
+            @if(Auth::check())
+                @if(Auth::user()->isAdmin())
+                    <!-- PORTAL 1: SYSTEM ADMIN -->
+                    <a href="{{ route('user.list') }}" id="portal-system-admin" class="group relative bg-slate-900/40 backdrop-blur-xl border border-slate-800 hover:border-violet-500/50 rounded-3xl p-8 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(139,92,246,0.15)] flex flex-col justify-between overflow-hidden">
+                        <div class="absolute -right-10 -top-10 w-40 h-40 bg-violet-600/10 rounded-full blur-2xl group-hover:bg-violet-600/20 transition-all duration-500"></div>
+                        <div>
+                            <div class="w-14 h-14 rounded-2xl bg-violet-500/10 border border-violet-500/20 text-violet-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300">
+                                <i class="fa-solid fa-user-shield text-2xl"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold mb-3 group-hover:text-violet-400 transition-colors duration-300">Hệ Thống Quản Trị</h2>
+                            <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                                Dành cho Quản trị viên hệ thống. Quản lý tài khoản người dùng, phân quyền truy cập, giám sát nhật ký hệ thống và phê duyệt hồ sơ xác minh đối tác.
+                            </p>
+                            <ul class="space-y-2.5 text-xs text-slate-400 mb-8">
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-violet-400 text-[10px]"></i> Quản lý danh sách thành viên và phân quyền chi tiết</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-violet-400 text-[10px]"></i> Phê duyệt hồ sơ xác minh KYC của Chủ nhà trọ</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-violet-400 text-[10px]"></i> Kiểm tra nhật ký hoạt động (Audit Logs) toàn hệ thống</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-violet-400 text-[10px]"></i> Theo dõi số liệu thống kê hoạt động thực tế</li>
+                            </ul>
+                        </div>
+                        <div class="flex items-center gap-2 text-violet-400 font-semibold text-sm group-hover:gap-4 transition-all duration-300">
+                            Truy cập Dashboard Quản Trị <i class="fa-solid fa-arrow-right"></i>
+                        </div>
+                    </a>
+                @elseif(Auth::user()->canAccessLandlordDashboard())
+                    <!-- PORTAL 1: ADMIN (SMARTROOM) -->
+                    <a href="{{ route('smartroom.admin') }}" id="portal-admin" class="group relative bg-slate-900/40 backdrop-blur-xl border border-slate-800 hover:border-indigo-500/50 rounded-3xl p-8 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(99,102,241,0.15)] flex flex-col justify-between overflow-hidden">
+                        <div class="absolute -right-10 -top-10 w-40 h-40 bg-indigo-600/10 rounded-full blur-2xl group-hover:bg-indigo-600/20 transition-all duration-500"></div>
+                        <div>
+                            <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300">
+                                <i class="fa-solid fa-chart-line text-2xl"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold mb-3 group-hover:text-indigo-400 transition-colors duration-300">SmartRoom Admin</h2>
+                            <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                                Dành cho Chủ nhà / Quản lý tòa nhà. Quản lý sơ đồ phòng trực quan, biểu đồ doanh thu chi tiết, tự động chốt số điện nước và quản lý thông tin cư dân thông minh.
+                            </p>
+                            <ul class="space-y-2.5 text-xs text-slate-400 mb-8">
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-indigo-400 text-[10px]"></i> Sơ đồ phòng màu sắc trực quan (Trống, Đã thuê, Nợ tiền)</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-indigo-400 text-[10px]"></i> Nhập điện nước tự động tính tiền thông minh</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-indigo-400 text-[10px]"></i> Biểu đồ doanh thu trực quan, quản lý cư dân chuyên nghiệp</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-indigo-400 text-[10px]"></i> Ký hợp đồng điện tử E-Contract bằng chữ ký tay trực tuyến</li>
+                            </ul>
+                        </div>
+                        <div class="flex items-center gap-2 text-indigo-400 font-semibold text-sm group-hover:gap-4 transition-all duration-300">
+                            Truy cập Dashboard Admin <i class="fa-solid fa-arrow-right"></i>
+                        </div>
+                    </a>
+                @elseif(Auth::user()->isResident())
+                    <!-- PORTAL 1: RESIDENT (SMARTROOM RESIDENT) -->
+                    <a href="{{ route('smartroom.resident') }}" id="portal-resident" class="group relative bg-slate-900/40 backdrop-blur-xl border border-slate-800 hover:border-indigo-500/50 rounded-3xl p-8 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(99,102,241,0.15)] flex flex-col justify-between overflow-hidden">
+                        <div class="absolute -right-10 -top-10 w-40 h-40 bg-indigo-600/10 rounded-full blur-2xl group-hover:bg-indigo-600/20 transition-all duration-500"></div>
+                        <div>
+                            <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300">
+                                <i class="fa-solid fa-house-user text-2xl"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold mb-3 group-hover:text-indigo-400 transition-colors duration-300">Cổng Cư Dân SmartRoom</h2>
+                            <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                                Dành cho Cư dân đang thuê phòng. Xem thông tin hợp đồng điện tử, nhận thông báo hóa đơn hàng tháng, thanh toán QR nhanh chóng và gửi phản ánh sửa chữa sự cố thiết bị.
+                            </p>
+                            <ul class="space-y-2.5 text-xs text-slate-400 mb-8">
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-indigo-400 text-[10px]"></i> Ký hợp đồng điện tử trực tuyến bằng chữ ký tay</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-indigo-400 text-[10px]"></i> Nhận hóa đơn điện nước và quét mã QR thanh toán nhanh</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-indigo-400 text-[10px]"></i> Gửi yêu cầu phản ánh sửa chữa/bảo trì trực tiếp</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-indigo-400 text-[10px]"></i> Đề xuất gia hạn / Tái ký hợp đồng khi sắp hết hạn</li>
+                            </ul>
+                        </div>
+                        <div class="flex items-center gap-2 text-indigo-400 font-semibold text-sm group-hover:gap-4 transition-all duration-300">
+                            Truy cập Cổng Cư Dân <i class="fa-solid fa-arrow-right"></i>
+                        </div>
+                    </a>
+                @endif
+            @else
+                <!-- PORTAL 1: ADMIN (SMARTROOM) -->
+                <a href="{{ route('smartroom.admin') }}" id="portal-admin" class="group relative bg-slate-900/40 backdrop-blur-xl border border-slate-800 hover:border-indigo-500/50 rounded-3xl p-8 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(99,102,241,0.15)] flex flex-col justify-between overflow-hidden">
+                    <div class="absolute -right-10 -top-10 w-40 h-40 bg-indigo-600/10 rounded-full blur-2xl group-hover:bg-indigo-600/20 transition-all duration-500"></div>
+                    <div>
+                        <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300">
+                            <i class="fa-solid fa-chart-line text-2xl"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold mb-3 group-hover:text-indigo-400 transition-colors duration-300">SmartRoom Admin</h2>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                            Dành cho Chủ nhà / Quản lý tòa nhà. Quản lý sơ đồ phòng trực quan, biểu đồ doanh thu chi tiết, tự động chốt số điện nước và quản lý thông tin cư dân thông minh.
+                        </p>
+                        <ul class="space-y-2.5 text-xs text-slate-400 mb-8">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-indigo-400 text-[10px]"></i> Sơ đồ phòng màu sắc trực quan (Trống, Đã thuê, Nợ tiền)</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-indigo-400 text-[10px]"></i> Nhập điện nước tự động tính tiền thông minh</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-indigo-400 text-[10px]"></i> Biểu đồ doanh thu trực quan, quản lý cư dân chuyên nghiệp</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-indigo-400 text-[10px]"></i> Ký hợp đồng điện tử E-Contract bằng chữ ký tay trực tuyến</li>
+                        </ul>
                     </div>
-                    <h2 class="text-2xl font-bold mb-3 group-hover:text-indigo-400 transition-colors duration-300">SmartRoom Admin</h2>
-                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
-                        Dành cho Chủ nhà / Quản lý tòa nhà. Quản lý sơ đồ phòng trực quan, biểu đồ doanh thu chi tiết, tự động chốt số điện nước và quản lý thông tin cư dân thông minh.
-                    </p>
-                    <ul class="space-y-2.5 text-xs text-slate-400 mb-8">
-                        <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-indigo-400 text-[10px]"></i> Sơ đồ phòng màu sắc trực quan (Trống, Đã thuê, Nợ tiền)</li>
-                        <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-indigo-400 text-[10px]"></i> Nhập điện nước tự động tính tiền thông minh</li>
-                        <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-indigo-400 text-[10px]"></i> Biểu đồ doanh thu trực quan, quản lý cư dân chuyên nghiệp</li>
-                        <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-indigo-400 text-[10px]"></i> Ký hợp đồng điện tử E-Contract bằng chữ ký tay trực tuyến</li>
-                    </ul>
-                </div>
-                <div class="flex items-center gap-2 text-indigo-400 font-semibold text-sm group-hover:gap-4 transition-all duration-300">
-                    Truy cập Dashboard Admin <i class="fa-solid fa-arrow-right"></i>
-                </div>
-            </a>
+                    <div class="flex items-center gap-2 text-indigo-400 font-semibold text-sm group-hover:gap-4 transition-all duration-300">
+                        Truy cập Dashboard Admin <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </a>
+            @endif
 
             <!-- PORTAL 2: USER (RENTY REVIEW) -->
             <a href="{{ route('renty.user') }}" id="portal-user" class="group relative bg-slate-900/40 backdrop-blur-xl border border-slate-800 hover:border-emerald-500/50 rounded-3xl p-8 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(16,185,129,0.15)] flex flex-col justify-between overflow-hidden">
