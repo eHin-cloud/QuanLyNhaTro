@@ -22,3 +22,9 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Agent temporary folders
+/.agents/
+/outputs/
+/tools/
+

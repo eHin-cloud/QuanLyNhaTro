@@ -34,6 +34,25 @@ class FullDemoSeeder extends Seeder
         DB::transaction(function () {
             $this->seedRoles();
 
+            // 1. Tạo Superadmin hệ thống
+            User::updateOrCreate(
+                ['username' => 'superadmin'],
+                [
+                    'tenant_id' => null,
+                    'role_id' => $this->roles['admin']->id,
+                    'name' => 'Admin hệ thống',
+                    'phone' => '0999999999',
+                    'email' => 'superadmin@smartroom.local',
+                    'password' => Hash::make('password'),
+                    'role' => 'admin',
+                    'like' => 'Superadmin',
+                ]
+            );
+
+            // 2. Tạo Tenant & Chủ trọ chưa xác minh kèm yêu cầu KYC mẫu
+            $this->seedUnverifiedLandlordWithKyc();
+
+            // 3. Tạo các chủ trọ và phòng trọ mẫu tại 10 khu vực
             foreach ($this->tenantBlueprints() as $tenantIndex => $blueprint) {
                 $tenant = $this->seedTenant($blueprint);
                 $landlord = $this->seedLandlord($tenant, $blueprint, $tenantIndex);
@@ -47,22 +66,132 @@ class FullDemoSeeder extends Seeder
                 $this->seedReviewsAndContactRequests($rooms, $tenantIndex);
                 $this->seedNotifications($tenant, $rooms, $residents);
                 $this->seedActivityLogs($tenant, $landlord, $rooms, $residents, $equipment);
+
+                // Tạo thêm tài khoản Manager cho từng Tenant
+                $this->seedManager($tenant, $tenantIndex);
             }
 
             $this->seedGuestUsers();
         });
+
+        $this->printInstructions();
     }
 
     private function seedRoles(): void
     {
         $roles = [
+            'admin' => ['name' => 'Admin hệ thống', 'description' => 'Quản lý toàn bộ hệ thống, xác minh danh tính chủ trọ và kiểm tra báo cáo.'],
             'landlord' => ['name' => 'Chủ trọ / Quản lý', 'description' => 'Quản lý phòng, cư dân, hợp đồng, hóa đơn và thiết bị.'],
+            'unverified_landlord' => ['name' => 'Chủ trọ chưa xác minh', 'description' => 'Chủ trọ mới đăng ký, chờ admin xác minh tài khoản.'],
+            'manager' => ['name' => 'Nhân viên quản lý', 'description' => 'Nhân viên do chủ trọ bổ nhiệm để quản lý tòa nhà.'],
             'resident' => ['name' => 'Cư dân thuê phòng', 'description' => 'Xem hóa đơn, hợp đồng và gửi yêu cầu báo hỏng.'],
             'guest' => ['name' => 'Khách tìm phòng', 'description' => 'Tìm kiếm phòng và gửi yêu cầu tư vấn.'],
         ];
 
         foreach ($roles as $slug => $payload) {
             $this->roles[$slug] = Role::updateOrCreate(['slug' => $slug], $payload);
+        }
+    }
+
+    private function seedUnverifiedLandlordWithKyc(): void
+    {
+        $tenant = Tenant::updateOrCreate(
+            ['email' => 'unverified@demo.smartroom.local'],
+            [
+                'name' => 'Nhà Trọ Hoàng Gia Đống Đa',
+                'phone' => '0888999888',
+                'bank_name' => 'MB',
+                'bank_account_no' => '999900001111',
+                'bank_account_name' => 'HOANG GIA DONG DA',
+                'verification_status' => 'unverified',
+                'listing_badge' => 'unverified',
+                'boost_score' => 0,
+                'onboarding_step' => 1,
+            ]
+        );
+
+        $building = Building::updateOrCreate(
+            ['tenant_id' => $tenant->id, 'name' => 'Hoàng Gia Building Đống Đa'],
+            [
+                'address' => 'Số 10 Xã Đàn, Đống Đa, Hà Nội',
+                'description' => 'Nhà trọ cao cấp trung tâm Đống Đa, đầy đủ tiện ích hiện đại.',
+            ]
+        );
+
+        foreach (['101', '102'] as $roomNo) {
+            Room::updateOrCreate(
+                ['building_id' => $building->id, 'room_number' => $roomNo],
+                [
+                    'tenant_id' => $tenant->id,
+                    'floor' => 1,
+                    'status' => 'empty',
+                    'room_type' => 'vip',
+                    'price' => 4500000,
+                    'area' => 30,
+                    'amenities' => ['điều hòa', 'nóng lạnh', 'wifi', 'ban công', 'wc khép kín', 'cho nuôi thú cưng'],
+                    'description' => 'Phòng test cho chủ trọ chưa xác minh.',
+                    'image' => null,
+                    'images' => [],
+                    'video' => null,
+                    'version' => 1,
+                ]
+            );
+        }
+
+        $user = User::updateOrCreate(
+            ['username' => 'unverified-landlord'],
+            [
+                'tenant_id' => $tenant->id,
+                'role_id' => $this->roles['unverified_landlord']->id,
+                'name' => 'Trần Văn Chưa Xác Minh',
+                'phone' => '0888999888',
+                'email' => 'unverified@demo.smartroom.local',
+                'password' => Hash::make('password'),
+                'role' => 'unverified_landlord',
+                'like' => 'Chủ trọ chưa xác minh',
+            ]
+        );
+
+        \App\Models\LandlordProfile::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'tenant_id' => $tenant->id,
+                'full_name' => $user->name,
+                'phone' => $user->phone,
+                'property_name' => $tenant->name,
+                'property_address' => $building->address,
+                'status' => 'unverified',
+            ]
+        );
+
+        $verificationRequest = \App\Models\LandlordVerificationRequest::updateOrCreate(
+            ['tenant_id' => $tenant->id, 'user_id' => $user->id],
+            [
+                'type' => 'kyc',
+                'cccd_number' => '001095006789',
+                'admin_review_consent_given' => true,
+                'admin_review_consent_at' => Carbon::now(),
+                'admin_review_consent_ip' => '127.0.0.1',
+                'status' => 'pending',
+                'reviewed_by' => null,
+                'reviewed_at' => null,
+                'reject_reason' => null,
+            ]
+        );
+
+        foreach (['cccd_front' => 'Căn cước mặt trước.jpg', 'cccd_back' => 'Căn cước mặt sau.jpg'] as $docType => $filename) {
+            \App\Models\LandlordVerificationDocument::updateOrCreate(
+                ['verification_request_id' => $verificationRequest->id, 'document_type' => $docType],
+                [
+                    'disk' => 'local',
+                    'file_path' => 'kyc/' . $docType . '_demo.jpg',
+                    'original_filename' => $filename,
+                    'mime_type' => 'image/jpeg',
+                    'size_bytes' => 102400,
+                    'sha256_checksum' => hash('sha256', $filename),
+                    'status' => 'pending',
+                ]
+            );
         }
     }
 
@@ -76,25 +205,76 @@ class FullDemoSeeder extends Seeder
                 'bank_name' => $blueprint['bank_name'],
                 'bank_account_no' => $blueprint['bank_account_no'],
                 'bank_account_name' => $blueprint['bank_account_name'],
+                'verification_status' => 'kyc_verified',
+                'listing_badge' => 'kyc_verified',
             ]
         );
     }
 
     private function seedLandlord(Tenant $tenant, array $blueprint, int $tenantIndex): User
     {
-        $username = $blueprint['username'] ?? 'demo-landlord-' . ($tenantIndex + 1);
-        $email = $blueprint['email'] ?? 'landlord' . ($tenantIndex + 1) . '@demo.smartroom.local';
-        return User::updateOrCreate(
-            ['username' => $username],
+        // Chủ trọ chính
+        $landlord1 = User::updateOrCreate(
+            ['username' => 'demo-landlord-' . ($tenantIndex + 1)],
             [
                 'tenant_id' => $tenant->id,
                 'role_id' => $this->roles['landlord']->id,
                 'name' => $blueprint['owner_name'],
-                'phone' => $blueprint['phone'] ?? ('0888000' . str_pad((string) ($tenantIndex + 1), 3, '0', STR_PAD_LEFT)),
-                'email' => $email,
+                'phone' => '0888000' . str_pad((string) ($tenantIndex + 1), 3, '0', STR_PAD_LEFT),
+                'email' => 'landlord' . ($tenantIndex + 1) . '@demo.smartroom.local',
                 'password' => Hash::make('password'),
-                'role' => 'admin',
-                'like' => 'Chủ trọ demo',
+                'role' => 'landlord',
+                'like' => 'Chủ trọ demo chính',
+            ]
+        );
+
+        // Chủ trọ phụ (Co-owner)
+        User::updateOrCreate(
+            ['username' => 'demo-landlord-' . ($tenantIndex + 1) . '-co'],
+            [
+                'tenant_id' => $tenant->id,
+                'role_id' => $this->roles['landlord']->id,
+                'name' => $blueprint['owner_name'] . ' (Đồng sở hữu)',
+                'phone' => '0888001' . str_pad((string) ($tenantIndex + 1), 3, '0', STR_PAD_LEFT),
+                'email' => 'landlord' . ($tenantIndex + 1) . 'co@demo.smartroom.local',
+                'password' => Hash::make('password'),
+                'role' => 'landlord',
+                'like' => 'Chủ trọ đồng sở hữu',
+            ]
+        );
+
+        return $landlord1;
+    }
+
+    private function seedManager(Tenant $tenant, int $tenantIndex): void
+    {
+        // Manager 1
+        User::updateOrCreate(
+            ['username' => 'demo-manager-' . ($tenantIndex + 1) . '-1'],
+            [
+                'tenant_id' => $tenant->id,
+                'role_id' => $this->roles['manager']->id,
+                'name' => 'Quản lý ' . $tenant->name . ' 1',
+                'phone' => '0777000' . str_pad((string) (($tenantIndex + 1) * 10 + 1), 3, '0', STR_PAD_LEFT),
+                'email' => 'manager' . ($tenantIndex + 1) . '-1@demo.smartroom.local',
+                'password' => Hash::make('password'),
+                'role' => 'manager',
+                'like' => 'Nhân viên quản lý demo 1',
+            ]
+        );
+
+        // Manager 2
+        User::updateOrCreate(
+            ['username' => 'demo-manager-' . ($tenantIndex + 1) . '-2'],
+            [
+                'tenant_id' => $tenant->id,
+                'role_id' => $this->roles['manager']->id,
+                'name' => 'Quản lý ' . $tenant->name . ' 2',
+                'phone' => '0777000' . str_pad((string) (($tenantIndex + 1) * 10 + 2), 3, '0', STR_PAD_LEFT),
+                'email' => 'manager' . ($tenantIndex + 1) . '-2@demo.smartroom.local',
+                'password' => Hash::make('password'),
+                'role' => 'manager',
+                'like' => 'Nhân viên quản lý demo 2',
             ]
         );
     }
@@ -140,40 +320,42 @@ class FullDemoSeeder extends Seeder
 
     private function seedResidents(Tenant $tenant, array $rooms, int $tenantIndex): array
     {
-        $residents = [];
+        $primaryResidents = [];
         $occupiedRooms = collect($rooms)
             ->filter(fn (Room $room) => in_array($room->status, ['occupied', 'overdue'], true))
             ->values();
 
         foreach ($occupiedRooms as $index => $room) {
             $seedNo = (($tenantIndex + 1) * 100) + $index + 1;
-            $name = $this->residentNames()[$index % count($this->residentNames())];
-            $email = 'resident' . $seedNo . '@demo.smartroom.local';
 
-            $user = User::updateOrCreate(
-                ['username' => 'demo-resident-' . $seedNo],
+            // 1. Tạo cư dân chính (đứng tên hợp đồng, nhận hóa đơn)
+            $name1 = $this->residentNames()[$index % count($this->residentNames())];
+            $email1 = 'resident' . $seedNo . '-1@demo.smartroom.local';
+
+            $user1 = User::updateOrCreate(
+                ['username' => 'demo-resident-' . $seedNo . '-1'],
                 [
                     'tenant_id' => $tenant->id,
                     'role_id' => $this->roles['resident']->id,
-                    'name' => $name,
-                    'phone' => '0777' . str_pad((string) $seedNo, 6, '0', STR_PAD_LEFT),
-                    'email' => $email,
+                    'name' => $name1,
+                    'phone' => '0777' . str_pad((string) ($seedNo * 10 + 1), 6, '0', STR_PAD_LEFT),
+                    'email' => $email1,
                     'password' => Hash::make('password'),
                     'role' => 'user',
-                    'like' => 'Khách thuê demo',
+                    'like' => 'Khách thuê chính demo',
                 ]
             );
 
-            $resident = Resident::updateOrCreate(
-                ['email' => $email],
+            $resident1 = Resident::updateOrCreate(
+                ['email' => $email1],
                 [
                     'tenant_id' => $tenant->id,
                     'room_id' => $room->id,
-                    'user_id' => $user->id,
-                    'name' => $name,
+                    'user_id' => $user1->id,
+                    'name' => $name1,
                     'dob' => Carbon::create(1992 + ($index % 10), ($index % 12) + 1, 10)->toDateString(),
-                    'phone' => $user->phone,
-                    'cccd' => '001' . str_pad((string) $seedNo, 9, '0', STR_PAD_LEFT),
+                    'phone' => $user1->phone,
+                    'cccd' => '001' . str_pad((string) ($seedNo * 10 + 1), 9, '0', STR_PAD_LEFT),
                     'hometown' => ['Hà Nội', 'Nam Định', 'Thái Bình', 'Bắc Ninh', 'Đà Nẵng'][$index % 5],
                     'start_date' => Carbon::today()->subMonths(12 - ($index % 6))->toDateString(),
                     'status' => 'active',
@@ -182,9 +364,45 @@ class FullDemoSeeder extends Seeder
                 ]
             );
 
+            // 2. Tạo cư dân ở ghép (bạn chung phòng, có tài khoản đăng nhập riêng)
+            $name2 = $this->residentNames()[($index + 1) % count($this->residentNames())] . ' (Ở Ghép)';
+            $email2 = 'resident' . $seedNo . '-2@demo.smartroom.local';
+
+            $user2 = User::updateOrCreate(
+                ['username' => 'demo-resident-' . $seedNo . '-2'],
+                [
+                    'tenant_id' => $tenant->id,
+                    'role_id' => $this->roles['resident']->id,
+                    'name' => $name2,
+                    'phone' => '0777' . str_pad((string) ($seedNo * 10 + 2), 6, '0', STR_PAD_LEFT),
+                    'email' => $email2,
+                    'password' => Hash::make('password'),
+                    'role' => 'user',
+                    'like' => 'Khách ở ghép demo',
+                ]
+            );
+
+            Resident::updateOrCreate(
+                ['email' => $email2],
+                [
+                    'tenant_id' => $tenant->id,
+                    'room_id' => $room->id,
+                    'user_id' => $user2->id,
+                    'name' => $name2,
+                    'dob' => Carbon::create(1994 + ($index % 8), (($index + 4) % 12) + 1, 15)->toDateString(),
+                    'phone' => $user2->phone,
+                    'cccd' => '001' . str_pad((string) ($seedNo * 10 + 2), 9, '0', STR_PAD_LEFT),
+                    'hometown' => ['Thanh Hóa', 'Nghệ An', 'Hải Phòng', 'Quảng Ninh', 'Lạng Sơn'][$index % 5],
+                    'start_date' => Carbon::today()->subMonths(6 - ($index % 3))->toDateString(),
+                    'status' => 'active',
+                    'temporary_residence_status' => ['registered', 'none', 'absent'][($index + 1) % 3],
+                    'version' => 1,
+                ]
+            );
+
             if ($index % 3 === 0) {
                 ResidentRelative::updateOrCreate(
-                    ['resident_id' => $resident->id, 'name' => 'Người thân ' . $room->room_number],
+                    ['resident_id' => $resident1->id, 'name' => 'Người thân ' . $room->room_number],
                     [
                         'dob' => Carbon::create(1998, 6, 15)->toDateString(),
                         'cccd' => 'REL' . str_pad((string) $seedNo, 9, '0', STR_PAD_LEFT),
@@ -199,10 +417,10 @@ class FullDemoSeeder extends Seeder
                 );
             }
 
-            $residents[$room->id] = $resident;
+            $primaryResidents[$room->id] = $resident1;
         }
 
-        return $residents;
+        return $primaryResidents;
     }
 
     private function seedContracts(Tenant $tenant, array $rooms, array $residents, int $tenantIndex): void
@@ -312,12 +530,12 @@ class FullDemoSeeder extends Seeder
     private function seedEquipment(Tenant $tenant, array $rooms): array
     {
         $equipmentItems = [
-            ['code' => 'AC', 'name' => 'Dieu hoa 9000 BTU', 'unit' => 'cai', 'quantity' => 120],
-            ['code' => 'WM', 'name' => 'May giat mini', 'unit' => 'cai', 'quantity' => 50],
-            ['code' => 'FR', 'name' => 'Tu lanh 90L', 'unit' => 'cai', 'quantity' => 60],
-            ['code' => 'BED', 'name' => 'Giuong sat 1m2', 'unit' => 'cai', 'quantity' => 120],
-            ['code' => 'LOCK', 'name' => 'Khoa van tay', 'unit' => 'cai', 'quantity' => 120],
-            ['code' => 'CAM', 'name' => 'Camera hanh lang', 'unit' => 'cai', 'quantity' => 30],
+            ['code' => 'AC', 'name' => 'Điều hòa 9000 BTU', 'unit' => 'cái', 'quantity' => 40],
+            ['code' => 'WM', 'name' => 'Máy giặt mini', 'unit' => 'cái', 'quantity' => 20],
+            ['code' => 'FR', 'name' => 'Tủ lạnh 90L', 'unit' => 'cái', 'quantity' => 30],
+            ['code' => 'BED', 'name' => 'Giường sắt 1m2', 'unit' => 'cái', 'quantity' => 50],
+            ['code' => 'LOCK', 'name' => 'Khóa vân tay', 'unit' => 'cái', 'quantity' => 40],
+            ['code' => 'CAM', 'name' => 'Camera hành lang', 'unit' => 'cái', 'quantity' => 20],
         ];
 
         $equipment = [];
@@ -470,7 +688,7 @@ class FullDemoSeeder extends Seeder
                 'subject_id' => $subject?->getKey(),
                 'ip_address' => '127.0.0.1',
                 'method' => 'SEED',
-                'url' => '/demo/full-seeder',
+                'url' => '/full-seeder',
                 'user_agent' => 'FullDemoSeeder',
                 'before_values' => null,
                 'after_values' => $subject ? ['id' => $subject->getKey()] : null,
@@ -492,7 +710,7 @@ class FullDemoSeeder extends Seeder
                 'phone' => '0999000001',
                 'email' => 'guest@demo.smartroom.local',
                 'password' => Hash::make('password'),
-                'role' => 'user',
+                'role' => 'guest',
                 'like' => 'Khách tìm phòng',
             ]
         );
@@ -542,30 +760,74 @@ class FullDemoSeeder extends Seeder
                 'buildings' => $this->buildingBlueprints('Q10', 'Quận 10', 5200000),
             ],
             [
-                'name' => 'Căn hộ dịch vụ Luxury Bình Thạnh',
-                'email' => 'admin-hcm@smartroom.local',
-                'phone' => '0909123456',
-                'owner_name' => 'Trần Văn Hoàng',
-                'username' => 'admin-hcm',
+                'name' => 'Demo Nhà Trọ Xanh Đống Đa',
+                'email' => 'demo-dongda@smartroom.local',
+                'phone' => '0988000004',
+                'owner_name' => 'Phạm Văn Đống Đa',
+                'bank_name' => 'MB',
+                'bank_account_no' => '999988880004',
+                'bank_account_name' => 'PHAM VAN DONG DA',
+                'buildings' => $this->buildingBlueprints('DD', 'Đống Đa', 3500000),
+            ],
+            [
+                'name' => 'Demo Căn Hộ Hai Bà Trưng',
+                'email' => 'demo-hbt@smartroom.local',
+                'phone' => '0988000005',
+                'owner_name' => 'Vũ Thị Hai Bà Trưng',
                 'bank_name' => 'VCB',
-                'bank_account_no' => '1012345678',
-                'bank_account_name' => 'TRAN VAN HOANG',
-                'buildings' => [
-                    [
-                        'code' => 'BTA',
-                        'name' => 'Chung cư mini Luxury Điện Biên Phủ',
-                        'address' => '12 Điện Biên Phủ, Phường 15, Quận Bình Thạnh, TP. Hồ Chí Minh',
-                        'description' => 'Tòa nhà căn hộ cao cấp đầy đủ tiện nghi, thang máy, bảo vệ 24/7, gần Ngã tư Hàng Xanh.',
-                        'rooms' => $this->roomBlueprints(6000000),
-                    ],
-                    [
-                        'code' => 'BTB',
-                        'name' => 'Nhà trọ Studio Nguyễn Gia Trí',
-                        'address' => '88/12 Nguyễn Gia Trí, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh',
-                        'description' => 'Khu nhà trọ Studio sinh viên cao cấp, gần Đại học HUTECH, Ngoại Thương, Giao thông Vận tải.',
-                        'rooms' => $this->roomBlueprints(5000000),
-                    ]
-                ],
+                'bank_account_no' => '999988880005',
+                'bank_account_name' => 'VU THI HAI BA TRUNG',
+                'buildings' => $this->buildingBlueprints('HBT', 'Hai Bà Trưng', 4500000),
+            ],
+            [
+                'name' => 'Demo Homestay Tây Hồ',
+                'email' => 'demo-tayho@smartroom.local',
+                'phone' => '0988000006',
+                'owner_name' => 'Hoàng Văn Tây Hồ',
+                'bank_name' => 'Agribank',
+                'bank_account_no' => '999988880006',
+                'bank_account_name' => 'HOANG VAN TAY HO',
+                'buildings' => $this->buildingBlueprints('TH', 'Tây Hồ', 6000000),
+            ],
+            [
+                'name' => 'Demo Luxury Quận 1',
+                'email' => 'demo-quan1@smartroom.local',
+                'phone' => '0988000007',
+                'owner_name' => 'Ngô Thị Quận 1',
+                'bank_name' => 'VietinBank',
+                'bank_account_no' => '999988880007',
+                'bank_account_name' => 'NGO THI QUAN 1',
+                'buildings' => $this->buildingBlueprints('Q1', 'Quận 1', 8000000),
+            ],
+            [
+                'name' => 'Demo Căn Hộ Bình Thạnh',
+                'email' => 'demo-binhthanh@smartroom.local',
+                'phone' => '0988000008',
+                'owner_name' => 'Bùi Văn Bình Thạnh',
+                'bank_name' => 'Sacombank',
+                'bank_account_no' => '999988880008',
+                'bank_account_name' => 'BUI VAN BINH THANH',
+                'buildings' => $this->buildingBlueprints('BT', 'Bình Thạnh', 4800000),
+            ],
+            [
+                'name' => 'Demo Phòng Trọ Tân Bình',
+                'email' => 'demo-tanbinh@smartroom.local',
+                'phone' => '0988000009',
+                'owner_name' => 'Đặng Văn Tân Bình',
+                'bank_name' => 'Techcombank',
+                'bank_account_no' => '999988880009',
+                'bank_account_name' => 'DANG VAN TAN BINH',
+                'buildings' => $this->buildingBlueprints('TB', 'Tân Bình', 3800000),
+            ],
+            [
+                'name' => 'Demo Phòng Trọ Ba Đình',
+                'email' => 'demo-badinh@smartroom.local',
+                'phone' => '0988000010',
+                'owner_name' => 'Trần Văn Ba Đình',
+                'bank_name' => 'BIDV',
+                'bank_account_no' => '999988880010',
+                'bank_account_name' => 'TRAN VAN BA DINH',
+                'buildings' => $this->buildingBlueprints('BD', 'Ba Đình', 4200000),
             ],
         ];
     }
@@ -592,21 +854,26 @@ class FullDemoSeeder extends Seeder
 
     private function roomBlueprints(int $basePrice): array
     {
-        $statuses = [
-            'occupied', 'occupied', 'overdue', 'empty', 'maintenance', 'occupied',
-            'empty', 'occupied', 'empty', 'occupied', 'empty', 'occupied'
+        $statuses = ['occupied', 'occupied', 'overdue', 'empty', 'maintenance', 'occupied'];
+        $amenitiesPool = [
+            ['điều hòa', 'nóng lạnh', 'wifi', 'cho nuôi thú cưng', 'gác lửng', 'wc khép kín'],
+            ['điều hòa', 'nóng lạnh', 'ban công', 'wc khép kín', 'tủ quần áo'],
+            ['điều hòa', 'gác lửng', 'wc khép kín', 'wifi'],
+            ['điều hòa', 'nóng lạnh', 'ban công', 'cho nuôi thú cưng', 'wc khép kín'],
+            ['nóng lạnh', 'wifi', 'tủ lạnh', 'gác lửng'],
+            ['điều hòa', 'ban công', 'gác lửng', 'wc khép kín', 'cho nuôi thú cưng', 'wifi']
         ];
 
-        return collect(['101', '102', '201', '202', '301', '302', '401', '402', '501', '502', '601', '602'])
-            ->map(function (string $roomNumber, int $index) use ($basePrice, $statuses) {
+        return collect(['101', '102', '201', '202', '301', '302'])
+            ->map(function (string $roomNumber, int $index) use ($basePrice, $statuses, $amenitiesPool) {
                 return [
                     'room_number' => $roomNumber,
                     'floor' => (int) substr($roomNumber, 0, 1),
                     'status' => $statuses[$index],
                     'room_type' => $index % 3 === 0 ? 'vip' : 'normal',
-                    'price' => $basePrice + ($index * 100000),
-                    'area' => 22 + ($index * 2),
-                    'amenities' => ['dieu hoa', 'nong lanh', 'wifi', $index % 2 === 0 ? 'ban cong' : 'tu lanh'],
+                    'price' => $basePrice + ($index * 200000),
+                    'area' => 20 + ($index * 3),
+                    'amenities' => $amenitiesPool[$index % count($amenitiesPool)],
                 ];
             })
             ->all();
@@ -626,5 +893,44 @@ class FullDemoSeeder extends Seeder
             'Đặng Anh Đức',
             'Ngô Bảo Châu',
         ];
+    }
+
+    private function printInstructions(): void
+    {
+        if (isset($this->command)) {
+            $this->command->info("\n=======================================================================");
+            $this->command->info("   DỮ LIỆU SEED CHO HỆ THỐNG QUẢN LÝ NHÀ TRỌ ĐÃ SẴN SÀNG ĐỂ KIỂM THỬ");
+            $this->command->info("=======================================================================");
+            $this->command->info("1. ADMIN HỆ THỐNG (Superadmin):");
+            $this->command->info("   - Username: superadmin");
+            $this->command->info("   - Password: password");
+            $this->command->info("   - Vai trò: Quản lý toàn hệ thống, phê duyệt KYC chủ trọ.");
+            $this->command->info("-----------------------------------------------------------------------");
+            $this->command->info("2. CHỦ TRỌ CHƯA XÁC MINH (Chờ duyệt KYC):");
+            $this->command->info("   - Username: unverified-landlord");
+            $this->command->info("   - Password: password");
+            $this->command->info("   - Vai trò: Đăng ký phòng trọ mới, tải tài liệu KYC chờ admin duyệt.");
+            $this->command->info("-----------------------------------------------------------------------");
+            $this->command->info("3. CÁC CHỦ TRỌ MẪU (Đã xác minh):");
+            $this->command->info("   - Username: demo-landlord-1 & demo-landlord-1-co, demo-landlord-2 & demo-landlord-2-co, ...");
+            $this->command->info("   - Password: password");
+            $this->command->info("   - Vai trò: Chủ trọ chính và đồng sở hữu quản lý tòa nhà, phòng trọ.");
+            $this->command->info("-----------------------------------------------------------------------");
+            $this->command->info("4. NHÂN VIÊN QUẢN LÝ (Staff/Manager):");
+            $this->command->info("   - Username: demo-manager-1-1 & demo-manager-1-2, demo-manager-2-1 & demo-manager-2-2, ...");
+            $this->command->info("   - Password: password");
+            $this->command->info("   - Vai trò: Nhân viên hỗ trợ chủ trọ quản lý vận hành tòa nhà.");
+            $this->command->info("-----------------------------------------------------------------------");
+            $this->command->info("5. CÁC CƯ DÂN THUÊ PHÒNG (Resident):");
+            $this->command->info("   - Username: demo-resident-101-1 (cư dân chính) & demo-resident-101-2 (ở ghép), ...");
+            $this->command->info("   - Password: password");
+            $this->command->info("   - Vai trò: Xem hoá đơn, lịch sử thanh toán, gửi sự cố báo hỏng.");
+            $this->command->info("-----------------------------------------------------------------------");
+            $this->command->info("6. KHÁCH TÌM PHÒNG (Guest):");
+            $this->command->info("   - Username: demo-guest");
+            $this->command->info("   - Password: password");
+            $this->command->info("   - Vai trò: Xem phòng, tìm phòng, gửi bình luận đánh giá phòng trọ.");
+            $this->command->info("=======================================================================\n");
+        }
     }
 }
