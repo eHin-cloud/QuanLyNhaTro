@@ -1,5 +1,5 @@
 // Setup custom toast notification override for alert()
-(function() {
+(function () {
     const toastStyle = document.createElement('style');
     toastStyle.innerHTML = `
         .custom-toast-container {
@@ -96,48 +96,48 @@
     `;
     document.head.appendChild(toastStyle);
 
-    window.alert = function(message) {
+    window.alert = function (message) {
         let type = 'success';
         let title = 'Thông Báo';
-        
+
         const lowerMsg = message.toLowerCase();
-        if (lowerMsg.includes('lỗi') || 
-            lowerMsg.includes('không thể') || 
-            lowerMsg.includes('thất bại') || 
-            lowerMsg.includes('chưa') || 
-            lowerMsg.includes('không được') || 
-            lowerMsg.includes('chỉ được') || 
+        if (lowerMsg.includes('lỗi') ||
+            lowerMsg.includes('không thể') ||
+            lowerMsg.includes('thất bại') ||
+            lowerMsg.includes('chưa') ||
+            lowerMsg.includes('không được') ||
+            lowerMsg.includes('chỉ được') ||
             lowerMsg.includes('nhỏ hơn') ||
             lowerMsg.includes('vui lòng')) {
             type = 'warning';
             title = 'Cảnh Báo';
-        } else if (lowerMsg.includes('thành công') || 
-                   lowerMsg.includes('tuyệt vời') || 
-                   lowerMsg.includes('đã') || 
-                   lowerMsg.includes('sao chép')) {
+        } else if (lowerMsg.includes('thành công') ||
+            lowerMsg.includes('tuyệt vời') ||
+            lowerMsg.includes('đã') ||
+            lowerMsg.includes('sao chép')) {
             type = 'success';
             title = 'Thành Công';
         } else {
             type = 'info';
             title = 'Thông Tin';
         }
-        
+
         let container = document.querySelector('.custom-toast-container');
         if (!container) {
             container = document.createElement('div');
             container.className = 'custom-toast-container';
             document.body.appendChild(container);
         }
-        
+
         const toast = document.createElement('div');
         toast.className = `custom-toast custom-toast-${type}`;
-        
+
         let iconHtml = '';
         if (type === 'success') iconHtml = '<i class="fa-solid fa-check"></i>';
         else if (type === 'warning') iconHtml = '<i class="fa-solid fa-triangle-exclamation"></i>';
         else if (type === 'error') iconHtml = '<i class="fa-solid fa-circle-xmark"></i>';
         else iconHtml = '<i class="fa-solid fa-info"></i>';
-        
+
         toast.innerHTML = `
             <div class="custom-toast-icon">${iconHtml}</div>
             <div class="custom-toast-content">
@@ -146,7 +146,7 @@
             </div>
             <div class="custom-toast-close"><i class="fa-solid fa-xmark"></i></div>
         `;
-        
+
         // Inline close click handler
         toast.querySelector('.custom-toast-close').addEventListener('click', () => {
             toast.classList.add('hide');
@@ -154,9 +154,9 @@
         });
 
         container.appendChild(toast);
-        
+
         setTimeout(() => toast.classList.add('show'), 10);
-        
+
         setTimeout(() => {
             if (toast.parentNode) {
                 toast.classList.remove('show');
@@ -763,7 +763,7 @@ function initRentyMap() {
 
     // Center of Cầu Giấy area in Hà Nội
     const center = [21.036, 105.790];
-    
+
     // Create map
     rentyMap = L.map('renty-interactive-map', {
         zoomControl: true,
@@ -784,7 +784,7 @@ function initRentyMap() {
         const lat = 21.036 + offsetLat;
         const lng = 105.790 + offsetLng;
 
-        const shortPrice = (function(price) {
+        const shortPrice = (function (price) {
             if (price >= 1000000) {
                 return (price / 1000000).toFixed(1).replace('.0', '') + 'M';
             }
@@ -839,7 +839,7 @@ function initRentyMap() {
             document.querySelectorAll('.glowing-teal-pin').forEach(pin => {
                 pin.classList.remove('active');
             });
-            
+
             // Add active state to this pin
             const pinEl = document.getElementById(`map-pin-${room.id}`);
             if (pinEl) {
@@ -875,7 +875,7 @@ function initRentyMap() {
     coordBox.id = 'map-coords-indicator';
     coordBox.className = 'absolute bottom-4 left-4 z-[1000] px-3 py-1.5 rounded-xl bg-slate-950/85 border border-white/10 text-[10px] font-extrabold text-slate-300 backdrop-blur pointer-events-none transition-opacity duration-300 opacity-0 flex items-center shadow-lg';
     coordBox.innerHTML = `<i class="fa-solid fa-location-crosshairs text-teal-400 mr-1.5"></i> 0.00000, 0.00000`;
-    
+
     const mapContainer = document.getElementById('renty-interactive-map');
     if (mapContainer) {
         mapContainer.appendChild(coordBox);
@@ -1037,7 +1037,7 @@ function filterItems(options = {}) {
     const normalizedQuery = normalizeText(query);
     const filterPrice = document.getElementById('filter-price').value;
     const filterRating = document.getElementById('filter-rating').value;
-    
+
     const petChecked = document.getElementById('tag-pets').checked;
     const loftChecked = document.getElementById('tag-loft').checked;
     const balconyChecked = document.getElementById('tag-balcony').checked;
@@ -1062,7 +1062,7 @@ function filterItems(options = {}) {
             const importantTerms = parsedSearch.keywords.filter(term => !['tim', 'phong', 'tro', 'duoi', 'o', 'gan', 'dai', 'hoc', 'trieu', 'tr', 'gia'].includes(term));
             matchesQuery = importantTerms.length === 0 || importantTerms.some(term => searchableText.includes(term));
         }
-        
+
         let matchesPrice = true;
         if (filterPrice !== 'all') {
             matchesPrice = price <= parseInt(filterPrice);
@@ -1147,11 +1147,11 @@ function subscribeEmptyNotification(event, roomId, roomTitle) {
         event.preventDefault();
         event.stopPropagation();
     }
-    
+
     document.getElementById('notify-room-id').value = roomId;
     document.getElementById('notify-room-title-display').textContent = roomTitle;
     document.getElementById('notify-contact-input').value = '';
-    
+
     const modal = document.getElementById('notify-subscribe-modal');
     modal.classList.remove('hidden');
 }
@@ -1164,9 +1164,9 @@ function handleNotifySubscribeSubmit(event) {
     event.preventDefault();
     const roomTitle = document.getElementById('notify-room-title-display').textContent;
     const contactInput = document.getElementById('notify-contact-input').value.trim();
-    
+
     if (!contactInput) return;
-    
+
     closeNotifySubscribeModal();
     showCustomAlert('Đăng ký thành công!', `Đã kích hoạt chuông báo trống phòng thành công cho phòng "${roomTitle}". Chúng tôi sẽ gửi thông báo tới "${contactInput}" ngay khi phòng Sẵn sàng.`);
 }
@@ -1185,7 +1185,7 @@ function toggleVisualFilter(key) {
     const btn = document.getElementById(`vbtn-${key}`);
     const checkbox = document.getElementById(`tag-${key}`);
     if (!btn || !checkbox) return;
-    
+
     checkbox.checked = !checkbox.checked;
     btn.classList.toggle('active', checkbox.checked);
     filterItems();
@@ -1195,7 +1195,7 @@ function syncFromCheckbox(key) {
     const btn = document.getElementById(`vbtn-${key}`);
     const checkbox = document.getElementById(`tag-${key}`);
     if (!btn || !checkbox) return;
-    
+
     btn.classList.toggle('active', checkbox.checked);
     filterItems();
 }
@@ -1207,7 +1207,7 @@ function initRentyDashboard() {
     }
 
     renderViewedRooms();
-    
+
     // Set initial view mode, default to 'grid'
     const savedMode = localStorage.getItem('rentry_view_mode') || 'grid';
     setViewMode(savedMode);
@@ -1481,7 +1481,7 @@ function submitQaQuestion() {
         newCard.className = 'qa-card rounded-2xl border border-slate-800/50 flex flex-col justify-between transition-all duration-300 hover:border-slate-700/60 group/card overflow-hidden animate-fade-in';
         newCard.style.backgroundColor = '#1a1a20';
         newCard.style.animationDelay = '0s';
-        
+
         newCard.innerHTML = `
             <div class="p-5 pb-0">
                 <!-- Meta Row -->
