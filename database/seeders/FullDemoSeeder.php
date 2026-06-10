@@ -82,14 +82,16 @@ class FullDemoSeeder extends Seeder
 
     private function seedLandlord(Tenant $tenant, array $blueprint, int $tenantIndex): User
     {
+        $username = $blueprint['username'] ?? 'demo-landlord-' . ($tenantIndex + 1);
+        $email = $blueprint['email'] ?? 'landlord' . ($tenantIndex + 1) . '@demo.smartroom.local';
         return User::updateOrCreate(
-            ['username' => 'demo-landlord-' . ($tenantIndex + 1)],
+            ['username' => $username],
             [
                 'tenant_id' => $tenant->id,
                 'role_id' => $this->roles['landlord']->id,
                 'name' => $blueprint['owner_name'],
-                'phone' => '0888000' . str_pad((string) ($tenantIndex + 1), 3, '0', STR_PAD_LEFT),
-                'email' => 'landlord' . ($tenantIndex + 1) . '@demo.smartroom.local',
+                'phone' => $blueprint['phone'] ?? ('0888000' . str_pad((string) ($tenantIndex + 1), 3, '0', STR_PAD_LEFT)),
+                'email' => $email,
                 'password' => Hash::make('password'),
                 'role' => 'admin',
                 'like' => 'Chủ trọ demo',
@@ -310,12 +312,12 @@ class FullDemoSeeder extends Seeder
     private function seedEquipment(Tenant $tenant, array $rooms): array
     {
         $equipmentItems = [
-            ['code' => 'AC', 'name' => 'Điều hòa 9000 BTU', 'unit' => 'cái', 'quantity' => 20],
-            ['code' => 'WM', 'name' => 'Máy giặt mini', 'unit' => 'cái', 'quantity' => 8],
-            ['code' => 'FR', 'name' => 'Tủ lạnh 90L', 'unit' => 'cái', 'quantity' => 14],
-            ['code' => 'BED', 'name' => 'Giường sắt 1m2', 'unit' => 'cái', 'quantity' => 24],
-            ['code' => 'LOCK', 'name' => 'Khóa vân tay', 'unit' => 'cái', 'quantity' => 18],
-            ['code' => 'CAM', 'name' => 'Camera hành lang', 'unit' => 'cái', 'quantity' => 10],
+            ['code' => 'AC', 'name' => 'Dieu hoa 9000 BTU', 'unit' => 'cai', 'quantity' => 120],
+            ['code' => 'WM', 'name' => 'May giat mini', 'unit' => 'cai', 'quantity' => 50],
+            ['code' => 'FR', 'name' => 'Tu lanh 90L', 'unit' => 'cai', 'quantity' => 60],
+            ['code' => 'BED', 'name' => 'Giuong sat 1m2', 'unit' => 'cai', 'quantity' => 120],
+            ['code' => 'LOCK', 'name' => 'Khoa van tay', 'unit' => 'cai', 'quantity' => 120],
+            ['code' => 'CAM', 'name' => 'Camera hanh lang', 'unit' => 'cai', 'quantity' => 30],
         ];
 
         $equipment = [];
@@ -539,6 +541,32 @@ class FullDemoSeeder extends Seeder
                 'bank_account_name' => 'TRẦN QUẢN LÝ QUẬN 10',
                 'buildings' => $this->buildingBlueprints('Q10', 'Quận 10', 5200000),
             ],
+            [
+                'name' => 'Căn hộ dịch vụ Luxury Bình Thạnh',
+                'email' => 'admin-hcm@smartroom.local',
+                'phone' => '0909123456',
+                'owner_name' => 'Trần Văn Hoàng',
+                'username' => 'admin-hcm',
+                'bank_name' => 'VCB',
+                'bank_account_no' => '1012345678',
+                'bank_account_name' => 'TRAN VAN HOANG',
+                'buildings' => [
+                    [
+                        'code' => 'BTA',
+                        'name' => 'Chung cư mini Luxury Điện Biên Phủ',
+                        'address' => '12 Điện Biên Phủ, Phường 15, Quận Bình Thạnh, TP. Hồ Chí Minh',
+                        'description' => 'Tòa nhà căn hộ cao cấp đầy đủ tiện nghi, thang máy, bảo vệ 24/7, gần Ngã tư Hàng Xanh.',
+                        'rooms' => $this->roomBlueprints(6000000),
+                    ],
+                    [
+                        'code' => 'BTB',
+                        'name' => 'Nhà trọ Studio Nguyễn Gia Trí',
+                        'address' => '88/12 Nguyễn Gia Trí, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh',
+                        'description' => 'Khu nhà trọ Studio sinh viên cao cấp, gần Đại học HUTECH, Ngoại Thương, Giao thông Vận tải.',
+                        'rooms' => $this->roomBlueprints(5000000),
+                    ]
+                ],
+            ],
         ];
     }
 
@@ -564,18 +592,21 @@ class FullDemoSeeder extends Seeder
 
     private function roomBlueprints(int $basePrice): array
     {
-        $statuses = ['occupied', 'occupied', 'overdue', 'empty', 'maintenance', 'occupied'];
+        $statuses = [
+            'occupied', 'occupied', 'overdue', 'empty', 'maintenance', 'occupied',
+            'empty', 'occupied', 'empty', 'occupied', 'empty', 'occupied'
+        ];
 
-        return collect(['101', '102', '201', '202', '301', '302'])
+        return collect(['101', '102', '201', '202', '301', '302', '401', '402', '501', '502', '601', '602'])
             ->map(function (string $roomNumber, int $index) use ($basePrice, $statuses) {
                 return [
                     'room_number' => $roomNumber,
                     'floor' => (int) substr($roomNumber, 0, 1),
                     'status' => $statuses[$index],
                     'room_type' => $index % 3 === 0 ? 'vip' : 'normal',
-                    'price' => $basePrice + ($index * 150000),
-                    'area' => 24 + ($index * 2),
-                    'amenities' => ['điều hòa', 'nóng lạnh', 'wifi', $index % 2 === 0 ? 'ban công' : 'tủ lạnh'],
+                    'price' => $basePrice + ($index * 100000),
+                    'area' => 22 + ($index * 2),
+                    'amenities' => ['dieu hoa', 'nong lanh', 'wifi', $index % 2 === 0 ? 'ban cong' : 'tu lanh'],
                 ];
             })
             ->all();

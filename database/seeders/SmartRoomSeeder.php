@@ -89,6 +89,27 @@ class SmartRoomSeeder extends Seeder
             'password' => Hash::make('password')
         ]);
 
+        $tenant3 = Tenant::updateOrCreate([
+            'email' => 'admin-hcm@smartroom.local',
+        ], [
+            'name' => 'Căn hộ dịch vụ Luxury Bình Thạnh',
+            'phone' => '0909123456',
+            'bank_name' => 'VCB',
+            'bank_account_no' => '1012345678',
+            'bank_account_name' => 'TRAN VAN HOANG'
+        ]);
+
+        $landlord3 = User::updateOrCreate([
+            'username' => 'admin-hcm',
+        ], [
+            'tenant_id' => $tenant3->id,
+            'role_id' => $roleLandlord->id,
+            'name' => 'Trần Văn Hoàng',
+            'email' => 'admin-hcm@smartroom.local',
+            'phone' => '0909123456',
+            'password' => Hash::make('password')
+        ]);
+
         // Tạo tài khoản Demo Guest
         User::updateOrCreate([
             'username' => 'guest',
@@ -119,6 +140,22 @@ class SmartRoomSeeder extends Seeder
             'address' => 'Số 85 Vũ Tông Phan, Thanh Xuân, Hà Nội',
             'description' => 'Tòa nhà mới xây, phòng studio có ban công rộng, đầy đủ đồ cơ bản.'
         ])->save();
+
+        $building3 = Building::updateOrCreate([
+            'tenant_id' => $tenant3->id,
+            'name' => 'Chung cư mini Luxury Điện Biên Phủ',
+        ], [
+            'address' => '12 Điện Biên Phủ, Phường 15, Quận Bình Thạnh, TP. Hồ Chí Minh',
+            'description' => 'Tòa nhà căn hộ cao cấp đầy đủ tiện nghi, thang máy, bảo vệ 24/7, gần Ngã tư Hàng Xanh.'
+        ]);
+
+        $building4 = Building::updateOrCreate([
+            'tenant_id' => $tenant3->id,
+            'name' => 'Nhà trọ Studio Nguyễn Gia Trí',
+        ], [
+            'address' => '88/12 Nguyễn Gia Trí, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh',
+            'description' => 'Khu nhà trọ Studio sinh viên cao cấp, gần Đại học HUTECH, Ngoại Thương, Giao thông Vận tải.'
+        ]);
 
         // 5. Tạo các Phòng trọ (Rooms) cho Building 1 (Cầu Giấy - Tenant 1)
         $roomDataT1 = [
@@ -171,6 +208,46 @@ class SmartRoomSeeder extends Seeder
             $roomsT2[$data['room_number']] = Room::updateOrCreate(
                 [
                     'building_id' => $building2->id,
+                    'room_number' => $data['room_number'],
+                ],
+                $data
+            );
+        }
+
+        $roomDataT3 = [
+            ['room_number' => '101', 'floor' => 1, 'status' => 'occupied', 'price' => 6000000, 'area' => 30, 'amenities' => ['điều hòa', 'nóng lạnh', 'wifi', 'ban công']],
+            ['room_number' => '102', 'floor' => 1, 'status' => 'occupied', 'price' => 6150000, 'area' => 32, 'amenities' => ['điều hòa', 'nóng lạnh', 'wifi', 'tủ lạnh']],
+            ['room_number' => '201', 'floor' => 2, 'status' => 'overdue',  'price' => 6300000, 'area' => 34, 'amenities' => ['điều hòa', 'nóng lạnh', 'wifi', 'ban công']],
+            ['room_number' => '202', 'floor' => 2, 'status' => 'empty',    'price' => 6450000, 'area' => 36, 'amenities' => ['điều hòa', 'nóng lạnh', 'wifi', 'tủ lạnh']],
+        ];
+
+        $roomsT3 = [];
+        foreach ($roomDataT3 as $data) {
+            $data['building_id'] = $building3->id;
+            $data['tenant_id'] = $tenant3->id;
+            $data = array_merge($data, $this->mediaForRoom($building3->name, $data['room_number']));
+            $roomsT3[$data['room_number']] = Room::updateOrCreate(
+                [
+                    'building_id' => $building3->id,
+                    'room_number' => $data['room_number'],
+                ],
+                $data
+            );
+        }
+
+        $roomDataT4 = [
+            ['room_number' => '101', 'floor' => 1, 'status' => 'occupied', 'price' => 5000000, 'area' => 28, 'amenities' => ['điều hòa', 'nóng lạnh', 'wifi']],
+            ['room_number' => '102', 'floor' => 1, 'status' => 'empty',    'price' => 5150000, 'area' => 30, 'amenities' => ['điều hòa', 'nóng lạnh', 'wifi', 'ban công']],
+        ];
+
+        $roomsT4 = [];
+        foreach ($roomDataT4 as $data) {
+            $data['building_id'] = $building4->id;
+            $data['tenant_id'] = $tenant3->id;
+            $data = array_merge($data, $this->mediaForRoom($building4->name, $data['room_number']));
+            $roomsT4[$data['room_number']] = Room::updateOrCreate(
+                [
+                    'building_id' => $building4->id,
                     'room_number' => $data['room_number'],
                 ],
                 $data
@@ -413,6 +490,85 @@ class SmartRoomSeeder extends Seeder
                     'billing_month' => $month,
                 ], [
                     'tenant_id' => $tenant2->id,
+                    'electric_water_log_id' => $log->id,
+                    'room_price' => $room->price,
+                    'electricity_usage' => $elecUsage,
+                    'electricity_cost' => $elecCost,
+                    'water_usage' => $waterUsage,
+                    'water_cost' => $waterCost,
+                    'service_cost' => $serviceCost,
+                    'total_amount' => $total,
+                    'status' => $status,
+                    'payment_date' => $paymentDate,
+                    'vietqr_url' => $vietqrUrl
+                ]);
+            }
+        }
+
+        // Chỉ số và hoá đơn cho Tenant 3
+        $metersT3 = [
+            '101' => ['elec' => 80, 'water' => 8],
+            '102' => ['elec' => 90, 'water' => 9],
+        ];
+
+        foreach ($months as $month) {
+            foreach ($metersT3 as $roomNum => &$meter) {
+                $room = $roomsT3[$roomNum];
+                $resident = Resident::where('room_id', $room->id)->first();
+                $startDate = Carbon::parse($resident->start_date);
+                $monthDate = Carbon::parse($month . '-01');
+                
+                if ($monthDate->lt($startDate->startOfMonth())) {
+                    continue;
+                }
+
+                $oldElec = $meter['elec'];
+                $oldWater = $meter['water'];
+                $elecUsage = rand(100, 180);
+                $waterUsage = rand(6, 14);
+                
+                $newElec = $oldElec + $elecUsage;
+                $newWater = $oldWater + $waterUsage;
+                
+                $meter['elec'] = $newElec;
+                $meter['water'] = $newWater;
+
+                $log = ElectricWaterLog::updateOrCreate([
+                    'room_id' => $room->id,
+                    'billing_month' => $month,
+                ], [
+                    'tenant_id' => $tenant3->id,
+                    'old_electricity' => $oldElec,
+                    'new_electricity' => $newElec,
+                    'old_water' => $oldWater,
+                    'new_water' => $newWater,
+                    'electricity_price' => 3800,
+                    'water_price' => 18000,
+                ]);
+
+                $elecCost = $elecUsage * 3800;
+                $waterCost = $waterUsage * 18000;
+                $serviceCost = 150000;
+                $total = $room->price + $elecCost + $waterCost + $serviceCost;
+
+                $bankId = $tenant3->bank_name;
+                $accountNo = $tenant3->bank_account_no;
+                $accountName = $tenant3->bank_account_name;
+                $addInfo = "Thanh toan Phong {$room->room_number} thang " . explode('-', $month)[1];
+                $vietqrUrl = "https://img.vietqr.io/image/{$bankId}-{$accountNo}-compact.png?amount={$total}&addInfo=" . rawurlencode($addInfo) . "&accountName=" . rawurlencode($accountName);
+
+                $status = 'paid';
+                $paymentDate = Carbon::parse($month . '-10')->addDays(rand(0, 5));
+                if ($month === '2026-06') {
+                    $status = 'pending';
+                    $paymentDate = null;
+                }
+
+                Bill::updateOrCreate([
+                    'room_id' => $room->id,
+                    'billing_month' => $month,
+                ], [
+                    'tenant_id' => $tenant3->id,
                     'electric_water_log_id' => $log->id,
                     'room_price' => $room->price,
                     'electricity_usage' => $elecUsage,

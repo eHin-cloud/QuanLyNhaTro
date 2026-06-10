@@ -35,21 +35,7 @@
     @vite(['resources/css/app.css', 'resources/css/style.css', 'resources/js/app.js'])
 </head>
 <body class="bg-[#080b11] text-slate-100 min-h-screen overflow-x-hidden selection:bg-emerald-500 selection:text-white">
-    <header class="h-20 border-b border-slate-900 bg-[#080b11]/85 backdrop-blur-md sticky top-0 z-40 flex items-center">
-        <div class="container mx-auto px-6 max-w-6xl flex justify-between items-center">
-            <a href="{{ route('renty.user') }}" class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                    <i class="fa-solid fa-magnifying-glass-location text-white text-lg"></i>
-                </div>
-                <span class="renty-brand-text text-xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Renty Review</span>
-            </a>
-            <div class="flex items-center gap-2">
-                <button type="button" onclick="toggleThemeMode()" class="theme-toggle-button" aria-label="Chuyển chế độ sáng tối">
-                    <i class="fa-solid fa-moon" id="theme-toggle-icon"></i>
-                </button>
-            </div>
-        </div>
-    </header>
+    @include('header.header')
 
     <main class="container mx-auto px-6 py-8 max-w-6xl">
         <div class="mb-6">
