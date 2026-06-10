@@ -1751,3 +1751,325 @@ table tbody tr:nth-child(4n) { animation-delay: 0.075s; }
         background: rgba(15, 23, 42, 0.96);
     }
 }
+
+/* Renty Visual Filters Styling */
+.vfilter-btn {
+    background: #111827; /* Muted dark grey */
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    color: #ffffff; /* White icon & label */
+    min-width: 100px;
+    height: 90px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+    outline: none !important;
+    position: relative;
+    z-index: 1;
+}
+
+.vfilter-btn .vfilter-icon-box {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+}
+
+.vfilter-btn .vfilter-text {
+    color: #94a3b8; /* Subtle text label */
+}
+
+/* Hover State */
+.vfilter-btn:hover {
+    border-color: rgba(45, 212, 191, 0.4);
+    background: #1e293b;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.vfilter-btn:hover .vfilter-icon-box {
+    color: #2dd4bf;
+    border-color: rgba(45, 212, 191, 0.4);
+    transform: scale(1.05);
+}
+
+.vfilter-btn:hover .vfilter-text {
+    color: #e2e8f0;
+}
+
+/* Active Selected State */
+.vfilter-btn.active {
+    border-color: #2dd4bf !important; /* Vibrant teal border */
+    background: rgba(20, 184, 166, 0.15) !important; /* Soft neon background fill */
+    box-shadow: 
+        0 0 20px rgba(45, 212, 191, 0.45), 
+        inset 0 0 14px rgba(45, 212, 191, 0.2) !important;
+    transform: translateY(0);
+}
+
+.vfilter-btn.active .vfilter-icon-box {
+    background: rgba(45, 212, 191, 0.22);
+    border-color: rgba(45, 212, 191, 0.45);
+    color: #2dd4bf; /* Vibrant teal icon */
+    text-shadow: 0 0 8px rgba(45, 212, 191, 0.6);
+}
+
+.vfilter-btn.active .vfilter-text {
+    color: #2dd4bf; /* Vibrant teal text label */
+    font-weight: 800;
+}
+
+/* Light Theme overrides for Visual Filters */
+.theme-light .vfilter-btn {
+    background: #f8fafc;
+    border-color: rgba(148, 163, 184, 0.22);
+    color: #0f172a;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.theme-light .vfilter-btn .vfilter-icon-box {
+    background: rgba(15, 23, 42, 0.04);
+    border-color: rgba(148, 163, 184, 0.18);
+    color: #334155;
+}
+
+.theme-light .vfilter-btn .vfilter-text {
+    color: #64748b;
+}
+
+.theme-light .vfilter-btn:hover {
+    background: #f1f5f9;
+    border-color: rgba(20, 184, 166, 0.45);
+}
+
+.theme-light .vfilter-btn.active {
+    background: rgba(20, 184, 166, 0.08) !important;
+    border-color: #0d9488 !important;
+    box-shadow: 0 0 14px rgba(20, 184, 166, 0.22) !important;
+}
+
+.theme-light .vfilter-btn.active .vfilter-icon-box {
+    background: rgba(20, 184, 166, 0.12);
+    color: #0d9488;
+}
+
+.theme-light .vfilter-btn.active .vfilter-text {
+    color: #0d9488;
+}
+
+/* Subtle glow-ring element for background active transition */
+.vfilter-glow-element {
+    background: radial-gradient(circle at center, rgba(45, 212, 191, 0.08) 0%, transparent 70%);
+}
+
+/* Rating Popover Tooltip Styling */
+.rating-popover {
+    transition: 
+        opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+        visibility 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    backdrop-filter: blur(14px) saturate(130%);
+    -webkit-backdrop-filter: blur(14px) saturate(130%);
+}
+
+/* Light Theme overrides for Rating Popover */
+.theme-light .rating-popover {
+    background: rgba(255, 255, 255, 0.98) !important;
+    border-color: rgba(226, 232, 240, 0.9) !important;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12) !important;
+}
+
+.theme-light .rating-popover h4 {
+    color: #1e293b !important;
+}
+
+.theme-light .rating-popover .border-b {
+    border-color: rgba(226, 232, 240, 0.7) !important;
+}
+
+.theme-light .rating-popover .text-slate-300 {
+    color: #334155 !important;
+}
+
+.theme-light .rating-popover .text-slate-400 {
+    color: #475569 !important;
+}
+
+.theme-light .rating-popover .text-slate-500 {
+    color: #64748b !important;
+}
+
+.theme-light .rating-popover .bg-slate-800 {
+    background-color: #f1f5f9 !important;
+}
+
+.theme-light .rating-popover .absolute.top-full {
+    background: #ffffff !important;
+    border-color: rgba(226, 232, 240, 0.9) !important;
+}
+
+/* Sleek dark glassmorphism Floating Compare Bar overrides */
+.compare-floating-bar {
+    background: rgba(11, 15, 25, 0.76) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 
+        0 20px 50px rgba(0, 0, 0, 0.5), 
+        0 0 1px 1px rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
+    bottom: 24px !important;
+    border-radius: 20px !important;
+}
+
+.compare-submit-btn {
+    border: 0 !important;
+    background: #0d9488 !important; /* Vibrant teal */
+    color: #ffffff !important;
+    box-shadow: 0 4px 16px rgba(13, 148, 136, 0.4) !important;
+    transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+    cursor: pointer;
+}
+
+.compare-submit-btn:hover {
+    background: #0f766e !important;
+    box-shadow: 0 0 24px rgba(13, 148, 136, 0.65) !important;
+    transform: translateY(-1px);
+}
+
+.compare-clear-btn {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: #94a3b8 !important;
+    transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+    cursor: pointer;
+}
+
+.compare-clear-btn:hover {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    color: #cbd5e1 !important;
+}
+
+/* Light Theme overrides for Floating Compare Bar */
+.theme-light .compare-floating-bar {
+    background: rgba(255, 255, 255, 0.82) !important;
+    border-color: rgba(226, 232, 240, 0.8) !important;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08) !important;
+}
+
+.theme-light .compare-clear-btn {
+    background: rgba(15, 23, 42, 0.03) !important;
+    border-color: rgba(15, 23, 42, 0.08) !important;
+    color: #475569 !important;
+}
+
+.theme-light .compare-clear-btn:hover {
+    background: rgba(15, 23, 42, 0.06) !important;
+    border-color: rgba(15, 23, 42, 0.15) !important;
+    color: #1e293b !important;
+}
+
+/* Modern iOS-style Toggle Switch */
+.ios-switch {
+    position: relative;
+    display: inline-block;
+    width: 38px;
+    height: 22px;
+}
+
+.ios-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.ios-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #1e293b;
+    transition: .24s cubic-bezier(0.2, 0.8, 0.2, 1);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ios-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: #94a3b8;
+    transition: .24s cubic-bezier(0.2, 0.8, 0.2, 1);
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ios-switch input:checked + .ios-slider {
+    background-color: #0d9488;
+    box-shadow: 0 0 12px rgba(13, 148, 136, 0.45);
+    border-color: rgba(13, 148, 136, 0.2);
+}
+
+.ios-switch input:checked + .ios-slider:before {
+    transform: translateX(16px);
+    background-color: #ffffff;
+}
+
+/* Light Theme overrides for iOS Switch */
+.theme-light .ios-slider {
+    background-color: #cbd5e1;
+    border-color: rgba(0, 0, 0, 0.05);
+}
+
+.theme-light .ios-slider:before {
+    background-color: #ffffff;
+}
+
+.theme-light .ios-switch input:checked + .ios-slider {
+    background-color: #0d9488;
+    box-shadow: 0 0 12px rgba(13, 148, 136, 0.25);
+}
+
+/* Renty Notification Bell Button & Wiggle Animation */
+@keyframes bell-wiggle {
+    0%, 100% { transform: rotate(0); }
+    15% { transform: rotate(-12deg); }
+    30% { transform: rotate(10deg); }
+    45% { transform: rotate(-8deg); }
+    60% { transform: rotate(6deg); }
+    75% { transform: rotate(-4deg); }
+}
+
+.group\/bell-btn:hover .fa-bell {
+    animation: bell-wiggle 0.65s ease-in-out infinite;
+}
+
+.renty-notify-btn {
+    transition: all 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+}
+
+.renty-notify-btn:hover {
+    box-shadow: 0 0 22px rgba(13, 148, 136, 0.6) !important;
+    border-color: rgba(13, 148, 136, 0.65) !important;
+    transform: scale(1.04) !important;
+    background: #0f172a !important;
+    color: #ffffff !important;
+}
+
+/* Light Theme overrides for Notification Button */
+.theme-light .renty-notify-btn {
+    background: rgba(255, 255, 255, 0.98) !important;
+    border-color: rgba(226, 232, 240, 0.9) !important;
+    color: #334155 !important;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08) !important;
+}
+
+.theme-light .renty-notify-btn:hover {
+    background: #ffffff !important;
+    border-color: rgba(13, 148, 136, 0.5) !important;
+    box-shadow: 0 0 20px rgba(13, 148, 136, 0.35) !important;
+    color: #0d9488 !important;
+}

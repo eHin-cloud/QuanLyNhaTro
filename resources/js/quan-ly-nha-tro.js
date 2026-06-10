@@ -43,11 +43,36 @@ function normalizeCompareRoom(room) {
     };
 }
 
+function removeCompareRoom(roomId, event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    const normalizedId = String(roomId);
+    
+    // Find checkbox and uncheck it
+    const checkboxes = document.querySelectorAll('.compare-checkbox');
+    checkboxes.forEach((cb) => {
+        // Match string ID parameters from dynamic attributes/onchange calls
+        if (cb.outerHTML.includes(normalizedId) || cb.getAttribute('onchange')?.includes(normalizedId)) {
+            cb.checked = false;
+        }
+    });
+
+    const index = selectedCompareRoomIds.indexOf(normalizedId);
+    if (index !== -1) {
+        selectedCompareRoomIds.splice(index, 1);
+    }
+    updateCompareDock();
+}
+window.removeCompareRoom = removeCompareRoom;
+
 function updateCompareDock() {
     const dock = document.getElementById('compare-dock');
-    const label = document.getElementById('compare-count-label');
+    const container = document.getElementById('compare-thumbnails');
+    const submitBtn = document.getElementById('compare-btn-submit');
 
-    if (!dock || !label) return;
+    if (!dock) return;
 
     if (selectedCompareRoomIds.length === 0) {
         dock.classList.add('hidden');
@@ -55,7 +80,31 @@ function updateCompareDock() {
     }
 
     dock.classList.remove('hidden');
-    label.textContent = `Đang chọn ${selectedCompareRoomIds.length} phòng trọ`;
+
+    if (container) {
+        const selectedRooms = getSelectedCompareRooms();
+        container.innerHTML = selectedRooms
+            .map((room) => {
+                const coverImage = room.cover_image || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';
+                const displayName = room.room_number ? `P.${room.room_number}` : 'Phòng';
+                return `
+                    <div class="relative w-10 h-10 rounded-xl overflow-hidden border border-slate-700/60 shrink-0 group/thumb">
+                        <img src="${coverImage}" alt="${displayName}" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-slate-950/40 flex items-center justify-center">
+                            <span class="text-[8px] font-extrabold text-white uppercase tracking-wider drop-shadow-sm">${displayName}</span>
+                        </div>
+                        <button type="button" onclick="removeCompareRoom('${room.id}', event)" class="absolute -top-1 -right-1 w-3.5 h-3.5 bg-rose-500 hover:bg-rose-600 text-white rounded-full flex items-center justify-center text-[7px] border border-slate-900 shadow transition-all z-10">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                `;
+            })
+            .join('');
+    }
+
+    if (submitBtn) {
+        submitBtn.innerHTML = `<i class="fa-solid fa-code-compare mr-1"></i> So sánh ngay (${selectedCompareRoomIds.length})`;
+    }
 }
 
 function toggleCompare(roomId, checkbox) {

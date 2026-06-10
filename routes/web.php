@@ -183,6 +183,7 @@ $rentyRooms = function () {
         $pets = $amenities->contains(fn ($item) => str_contains($item, 'thú cưng')) || ($num % 2 == 1);
         $loft = $amenities->contains(fn ($item) => str_contains($item, 'gác') || str_contains($item, 'gac')) || (($num % 3) != 2);
         $balcony = $amenities->contains(fn ($item) => str_contains($item, 'ban công') || str_contains($item, 'ban cong')) || (($num % 4) != 0);
+        $wc = $amenities->contains(fn ($item) => str_contains($item, 'khép kín') || str_contains($item, 'wc') || str_contains($item, 'vệ sinh')) || (($num % 5) != 3);
         
         $ownerStars = intval(round($rating));
         $ownerRating = str_repeat('⭐', $ownerStars) . str_repeat('☆', 5 - $ownerStars) . " ($ownerStars/5)";
@@ -273,6 +274,7 @@ $rentyRooms = function () {
             'pets' => $pets ? 'true' : 'false',
             'loft' => $loft ? 'true' : 'false',
             'balcony' => $balcony ? 'true' : 'false',
+            'wc' => $wc ? 'true' : 'false',
             'owner' => $ownerRating,
             'sec' => $secRating,
             'title' => $title,
@@ -286,6 +288,7 @@ $rentyRooms = function () {
             'pets_txt' => $pets ? 'Có' : 'Không',
             'loft_txt' => $loft ? 'Có' : 'Không',
             'balcony_txt' => $balcony ? 'Có' : 'Không',
+            'wc_txt' => $wc ? 'Có' : 'Không',
             'cover_image' => $imageUrls[0],
             'image_urls' => $imageUrls,
             'image_angles' => $imageAngles,

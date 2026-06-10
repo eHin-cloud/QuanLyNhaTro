@@ -151,6 +151,48 @@
                 </div>
             </div>
 
+            <!-- Visual Filters Bar -->
+            <div class="mt-5 pt-4 border-t border-slate-800/60">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="text-left w-full md:w-auto">
+                        <span class="block text-xs font-bold text-slate-350 uppercase tracking-widest flex items-center gap-1.5">
+                            <i class="fa-solid fa-wand-magic-sparkles text-teal-400"></i>
+                            Bộ lọc nhanh trực quan
+                        </span>
+                        <span class="block text-[10px] text-slate-500 mt-0.5">Click nhanh để lọc phòng theo các tiêu chí phổ biến</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-3 w-full md:w-auto md:flex md:flex-row">
+                        <!-- Nuôi thú cưng -->
+                        <button type="button" id="vbtn-pets" onclick="toggleVisualFilter('pets')" class="vfilter-btn flex flex-col items-center justify-center p-3 rounded-2xl transition-all duration-300 relative group overflow-hidden">
+                            <div class="vfilter-glow-element absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+                            <span class="vfilter-icon-box flex items-center justify-center w-9 h-9 rounded-xl mb-1.5 transition-all duration-300">
+                                <i class="fa-solid fa-cat text-sm"></i>
+                            </span>
+                            <span class="vfilter-text text-[10px] font-bold tracking-wide">Nuôi thú cưng</span>
+                        </button>
+                        
+                        <!-- WC khép kín -->
+                        <button type="button" id="vbtn-wc" onclick="toggleVisualFilter('wc')" class="vfilter-btn flex flex-col items-center justify-center p-3 rounded-2xl transition-all duration-300 relative group overflow-hidden">
+                            <div class="vfilter-glow-element absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+                            <span class="vfilter-icon-box flex items-center justify-center w-9 h-9 rounded-xl mb-1.5 transition-all duration-300">
+                                <i class="fa-solid fa-door-closed text-sm"></i>
+                            </span>
+                            <span class="vfilter-text text-[10px] font-bold tracking-wide">WC khép kín</span>
+                        </button>
+                        
+                        <!-- Có ban công -->
+                        <button type="button" id="vbtn-balcony" onclick="toggleVisualFilter('balcony')" class="vfilter-btn flex flex-col items-center justify-center p-3 rounded-2xl transition-all duration-300 relative group overflow-hidden">
+                            <div class="vfilter-glow-element absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+                            <span class="vfilter-icon-box flex items-center justify-center w-9 h-9 rounded-xl mb-1.5 transition-all duration-300">
+                                <i class="fa-solid fa-cloud-sun text-sm"></i>
+                            </span>
+                            <span class="vfilter-text text-[10px] font-bold tracking-wide">Có ban công</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Expandable Filters -->
             <div id="filter-drawer" class="hidden mt-4 pt-4 border-t border-slate-800/80 grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
                 <!-- Price Range -->
@@ -180,13 +222,16 @@
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Tiện ích đặc biệt</label>
                     <div class="flex flex-wrap gap-2">
                         <label class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0a0e17] border border-slate-800 text-[10px] font-bold text-slate-400 cursor-pointer hover:border-slate-700">
-                            <input type="checkbox" id="tag-pets" onchange="filterItems()" class="rounded border-slate-800 text-emerald-600 focus:ring-0"> Nuôi thú cưng
+                            <input type="checkbox" id="tag-pets" onchange="syncFromCheckbox('pets')" class="rounded border-slate-800 text-emerald-600 focus:ring-0"> Nuôi thú cưng
                         </label>
                         <label class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0a0e17] border border-slate-800 text-[10px] font-bold text-slate-400 cursor-pointer hover:border-slate-700">
                             <input type="checkbox" id="tag-loft" onchange="filterItems()" class="rounded border-slate-800 text-emerald-600 focus:ring-0"> Có gác lửng
                         </label>
                         <label class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0a0e17] border border-slate-800 text-[10px] font-bold text-slate-400 cursor-pointer hover:border-slate-700">
-                            <input type="checkbox" id="tag-balcony" onchange="filterItems()" class="rounded border-slate-800 text-emerald-600 focus:ring-0"> Ban công
+                            <input type="checkbox" id="tag-balcony" onchange="syncFromCheckbox('balcony')" class="rounded border-slate-800 text-emerald-600 focus:ring-0"> Ban công
+                        </label>
+                        <label class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0a0e17] border border-slate-800 text-[10px] font-bold text-slate-400 cursor-pointer hover:border-slate-700">
+                            <input type="checkbox" id="tag-wc" onchange="syncFromCheckbox('wc')" class="rounded border-slate-800 text-emerald-600 focus:ring-0"> WC khép kín
                         </label>
                     </div>
                 </div>
@@ -196,9 +241,16 @@
 
     <!-- LIST OF ROOMS -->
     <main class="container mx-auto px-6 py-6 max-w-6xl flex-grow relative z-10">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-lg font-bold text-slate-200" id="results-count">Danh sách phòng trọ ({{ count($rooms) }} kết quả)</h2>
-            <p class="text-xs text-slate-500">Tích chọn tối đa 3 phòng để so sánh</p>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 border-b border-slate-900 pb-4">
+            <h2 class="text-lg font-bold text-slate-200" id="results-count">Tìm thấy {{ count($rooms) }} phòng</h2>
+            
+            <div class="flex items-center gap-3 bg-slate-950/45 px-4 py-2 rounded-2xl border border-slate-900/60 backdrop-blur-sm self-start sm:self-auto">
+                <span class="text-xs text-slate-400 font-bold select-none">Ẩn các phòng đã được thuê</span>
+                <label class="ios-switch">
+                    <input type="checkbox" id="hide-rented-toggle" onchange="filterItems()">
+                    <span class="ios-slider"></span>
+                </label>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16" id="rooms-grid">
@@ -210,8 +262,10 @@
                  data-pets="{{ $room['pets'] }}" 
                  data-loft="{{ $room['loft'] }}" 
                  data-balcony="{{ $room['balcony'] }}" 
+                 data-wc="{{ $room['wc'] }}"
                  data-distance="{{ $room['distance'] }}" 
                  data-area-name="{{ $room['area_name'] }}"
+                 data-status="{{ $room['status'] }}"
                  data-viewed="false"
                  data-title="{{ $room['title'] }}">
                 <div class="room-card-skeleton" aria-hidden="true">
@@ -260,6 +314,13 @@
                                 <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
                                 Đã thuê
                             </span>
+                            <div class="absolute inset-0 bg-slate-950/65 backdrop-blur-[0.5px] z-10"></div>
+                            <div class="absolute inset-0 flex items-center justify-center z-20">
+                                <button type="button" onclick="subscribeEmptyNotification(event, '{{ $room['id'] }}', '{{ $room['title'] }}')" class="py-2 px-3.5 rounded-xl bg-slate-900/95 hover:bg-slate-900 border border-slate-800 text-slate-200 hover:text-white flex items-center gap-2 text-[10px] font-extrabold shadow-lg transition-all renty-notify-btn group/bell-btn">
+                                    <i class="fa-solid fa-bell text-teal-400 text-xs"></i>
+                                    Chuông báo khi trống phòng
+                                </button>
+                            </div>
                         @endif
 
                         @if($room['price_warning'])
@@ -303,8 +364,75 @@
                                 <h3 class="font-bold text-slate-200 text-sm group-hover:text-emerald-400 transition-all line-clamp-1">
                                     <a href="{{ route('renty.room.show', $room['id']) }}">{{ $room['title'] }}</a>
                                 </h3>
-                                <div class="flex items-center gap-1 text-xs text-amber-400 font-bold shrink-0">
+                                <div class="relative group/rating flex items-center gap-1 text-xs text-amber-400 font-bold shrink-0 cursor-pointer py-1 px-1.5 rounded-lg hover:bg-amber-500/10 transition-colors">
                                     <i class="fa-solid fa-star text-[10px]"></i> <span>{{ $room['rating'] }}</span>
+                                    
+                                    <!-- Popover Rating Breakdown -->
+                                    <div class="rating-popover absolute bottom-full right-0 mb-3 w-64 bg-[#0b0f19]/95 border border-slate-800 p-4 rounded-2xl shadow-2xl opacity-0 invisible group-hover/rating:opacity-100 group-hover/rating:visible transition-all duration-300 transform translate-y-2 group-hover/rating:translate-y-0 z-30 pointer-events-none text-left">
+                                        <div class="flex items-center justify-between border-b border-slate-800/60 pb-2 mb-3">
+                                            <h4 class="text-[10px] font-extrabold text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
+                                                <i class="fa-solid fa-chart-simple text-teal-400"></i>
+                                                Điểm đánh giá thực tế
+                                            </h4>
+                                            <span class="text-[10px] text-slate-500 font-bold">{{ $room['rating'] }}/5</span>
+                                        </div>
+                                        
+                                        <div class="space-y-3">
+                                            <!-- An ninh -->
+                                            <div>
+                                                <div class="flex justify-between items-center mb-1">
+                                                    <span class="text-[10px] text-slate-400 font-bold">An ninh & Trật tự</span>
+                                                    <div class="flex items-center gap-0.5 text-[8px] text-teal-400">
+                                                        <i class="fa-solid fa-star"></i>
+                                                        <i class="fa-solid fa-star"></i>
+                                                        <i class="fa-solid fa-star"></i>
+                                                        <i class="fa-solid fa-star"></i>
+                                                        <i class="fa-regular fa-star text-slate-700"></i>
+                                                    </div>
+                                                </div>
+                                                <div class="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
+                                                    <div class="h-full bg-teal-500 rounded-full" style="width: 80%"></div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Chủ nhà -->
+                                            <div>
+                                                <div class="flex justify-between items-center mb-1">
+                                                    <span class="text-[10px] text-slate-400 font-bold">Chủ nhà & Hỗ trợ</span>
+                                                    <div class="flex items-center gap-0.5 text-[8px] text-teal-400">
+                                                        <i class="fa-solid fa-star"></i>
+                                                        <i class="fa-solid fa-star"></i>
+                                                        <i class="fa-solid fa-star"></i>
+                                                        <i class="fa-solid fa-star"></i>
+                                                        <i class="fa-solid fa-star"></i>
+                                                    </div>
+                                                </div>
+                                                <div class="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
+                                                    <div class="h-full bg-teal-500 rounded-full" style="width: 100%"></div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Giá cả & Điện nước -->
+                                            <div>
+                                                <div class="flex justify-between items-center mb-1">
+                                                    <span class="text-[10px] text-slate-400 font-bold">Giá cả & Điện nước</span>
+                                                    <div class="flex items-center gap-0.5 text-[8px] text-teal-400">
+                                                        <i class="fa-solid fa-star"></i>
+                                                        <i class="fa-solid fa-star"></i>
+                                                        <i class="fa-solid fa-star"></i>
+                                                        <i class="fa-solid fa-star"></i>
+                                                        <i class="fa-solid fa-star-half-stroke"></i>
+                                                    </div>
+                                                </div>
+                                                <div class="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
+                                                    <div class="h-full bg-teal-500 rounded-full" style="width: 90%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Arrow Pointing Down -->
+                                        <div class="absolute top-full right-4 -mt-1.5 w-3 h-3 bg-[#0b0f19] border-r border-b border-slate-800 transform rotate-45"></div>
+                                    </div>
                                 </div>
                             </div>
                             <p class="text-xs text-slate-500 mb-4 flex items-center gap-1"><i class="fa-solid fa-map-marker-alt text-[10px] text-slate-650"></i> {{ $room['address'] }}</p>
@@ -330,7 +458,11 @@
                             @if($room['balcony'] === 'true')
                                 <span class="px-2.5 py-0.5 rounded-md bg-sky-500/10 text-sky-400 text-[9px] font-bold border border-sky-500/20">Ban công</span>
                             @endif
-                            <span class="px-2.5 py-0.5 rounded-md bg-slate-900 text-slate-500 text-[9px] font-bold border border-slate-800/40">WC khép kín</span>
+                            @if($room['wc'] === 'true')
+                                <span class="px-2.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 text-[9px] font-bold border border-emerald-500/20">WC khép kín</span>
+                            @else
+                                <span class="px-2.5 py-0.5 rounded-md bg-slate-900/60 text-slate-500 text-[9px] font-bold border border-slate-800/40">WC chung</span>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -376,18 +508,21 @@
             <div class="compare-floating-icon">
                 <i class="fa-solid fa-code-compare"></i>
             </div>
-            <div>
-                <strong id="compare-count-label">Đang chọn 1 phòng trọ</strong>
-                <span>Tối đa 3 phòng để so sánh</span>
+            <div class="hidden sm:block">
+                <strong class="text-xs font-bold text-slate-200">So sánh phòng</strong>
+                <span class="text-[10px] text-slate-400">Chọn tối đa 3 phòng</span>
             </div>
         </div>
 
-        <div class="compare-floating-actions">
-            <button type="button" onclick="clearCompare()">
+        <!-- Dynamic Room Thumbnails List -->
+        <div id="compare-thumbnails" class="compare-floating-thumbnails flex items-center gap-2"></div>
+
+        <div class="compare-floating-actions flex items-center gap-2">
+            <button type="button" onclick="clearCompare()" class="compare-clear-btn px-3 py-1.5 rounded-xl text-[11px] font-bold">
                 Hủy
             </button>
-            <button type="button" onclick="openCompareModal()">
-                So sánh ngay
+            <button type="button" onclick="openCompareModal()" id="compare-btn-submit" class="compare-submit-btn px-4 py-2 rounded-xl text-xs font-extrabold flex items-center gap-1">
+                So sánh ngay (0)
             </button>
         </div>
     </div>
@@ -1402,7 +1537,8 @@
                 amenities: {
                     pets: normalized.includes('thu cung') || normalized.includes('pet'),
                     loft: normalized.includes('gac') || normalized.includes('gac lung'),
-                    balcony: normalized.includes('ban cong')
+                    balcony: normalized.includes('ban cong'),
+                    wc: normalized.includes('khep kin') || normalized.includes('wc') || normalized.includes('ve sinh')
                 },
                 near: []
             };
@@ -1681,6 +1817,8 @@
             const petChecked = document.getElementById('tag-pets').checked;
             const loftChecked = document.getElementById('tag-loft').checked;
             const balconyChecked = document.getElementById('tag-balcony').checked;
+            const wcChecked = document.getElementById('tag-wc') ? document.getElementById('tag-wc').checked : false;
+            const hideRented = document.getElementById('hide-rented-toggle') ? document.getElementById('hide-rented-toggle').checked : false;
 
             let matchesCount = 0;
 
@@ -1691,6 +1829,8 @@
                 const pets = card.getAttribute('data-pets') === 'true';
                 const loft = card.getAttribute('data-loft') === 'true';
                 const balcony = card.getAttribute('data-balcony') === 'true';
+                const wc = card.getAttribute('data-wc') === 'true';
+                const status = card.getAttribute('data-status');
                 const searchableText = normalizeText(`${card.getAttribute('data-title')} ${card.getAttribute('data-area-name')} ${card.textContent}`);
 
                 let matchesQuery = true;
@@ -1716,16 +1856,23 @@
                 if (petChecked && !pets) matchesTags = false;
                 if (loftChecked && !loft) matchesTags = false;
                 if (balconyChecked && !balcony) matchesTags = false;
+                if (wcChecked && !wc) matchesTags = false;
                 if (parsedSearch.amenities.pets && !pets) matchesTags = false;
                 if (parsedSearch.amenities.loft && !loft) matchesTags = false;
                 if (parsedSearch.amenities.balcony && !balcony) matchesTags = false;
+                if (parsedSearch.amenities.wc && !wc) matchesTags = false;
 
                 let matchesLocation = true;
                 if (parsedSearch.locations.length > 0) {
                     matchesLocation = parsedSearch.locations.some(location => searchableText.includes(location));
                 }
 
-                if (matchesQuery && matchesPrice && matchesRating && matchesTags && matchesLocation) {
+                let matchesStatus = true;
+                if (hideRented && status !== 'empty') {
+                    matchesStatus = false;
+                }
+
+                if (matchesQuery && matchesPrice && matchesRating && matchesTags && matchesLocation && matchesStatus) {
                     card.classList.remove('hidden');
                     matchesCount++;
                 } else {
@@ -1733,7 +1880,7 @@
                 }
             });
 
-            document.getElementById('results-count').textContent = `Danh sách phòng trọ (${matchesCount} kết quả)`;
+            document.getElementById('results-count').textContent = `Tìm thấy ${matchesCount} phòng`;
         }
 
         function openRentySearchSuggestions() {
@@ -1762,7 +1909,73 @@
             }
         });
 
-        window.addEventListener('DOMContentLoaded', renderViewedRooms);
+        function subscribeEmptyNotification(event, roomId, roomTitle) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
+            document.getElementById('notify-room-id').value = roomId;
+            document.getElementById('notify-room-title-display').textContent = roomTitle;
+            document.getElementById('notify-contact-input').value = '';
+            
+            const modal = document.getElementById('notify-subscribe-modal');
+            modal.classList.remove('hidden');
+        }
+        window.subscribeEmptyNotification = subscribeEmptyNotification;
+
+        function closeNotifySubscribeModal() {
+            document.getElementById('notify-subscribe-modal').classList.add('hidden');
+        }
+        window.closeNotifySubscribeModal = closeNotifySubscribeModal;
+
+        function handleNotifySubscribeSubmit(event) {
+            event.preventDefault();
+            const roomTitle = document.getElementById('notify-room-title-display').textContent;
+            const contactInput = document.getElementById('notify-contact-input').value.trim();
+            
+            if (!contactInput) return;
+            
+            closeNotifySubscribeModal();
+            showCustomAlert('Đăng ký thành công!', `Đã kích hoạt chuông báo trống phòng thành công cho phòng "${roomTitle}". Chúng tôi sẽ gửi thông báo tới "${contactInput}" ngay khi phòng Sẵn sàng.`);
+        }
+        window.handleNotifySubscribeSubmit = handleNotifySubscribeSubmit;
+
+        function showCustomAlert(title, message) {
+            document.getElementById('custom-alert-title').textContent = title;
+            document.getElementById('custom-alert-message').textContent = message;
+            document.getElementById('custom-alert-modal').classList.remove('hidden');
+        }
+        window.showCustomAlert = showCustomAlert;
+
+        function closeCustomAlert() {
+            document.getElementById('custom-alert-modal').classList.add('hidden');
+        }
+        window.closeCustomAlert = closeCustomAlert;
+
+        function toggleVisualFilter(key) {
+            const btn = document.getElementById(`vbtn-${key}`);
+            const checkbox = document.getElementById(`tag-${key}`);
+            if (!btn || !checkbox) return;
+            
+            checkbox.checked = !checkbox.checked;
+            btn.classList.toggle('active', checkbox.checked);
+            filterItems();
+        }
+
+        function syncFromCheckbox(key) {
+            const btn = document.getElementById(`vbtn-${key}`);
+            const checkbox = document.getElementById(`tag-${key}`);
+            if (!btn || !checkbox) return;
+            
+            btn.classList.toggle('active', checkbox.checked);
+            filterItems();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderViewedRooms();
+            filterItems(); // Run initial filter to apply checked state of pets & balcony
+        });
 
         function openHotAreasModal() {
             document.getElementById('hot-areas-modal').classList.remove('hidden');
@@ -1886,6 +2099,68 @@
                 </div>
                 @endforelse
             </div>
+        </div>
+    </div>
+
+    <!-- NOTIFY SUBSCRIBE MODAL -->
+    <div id="notify-subscribe-modal" class="fixed inset-0 z-50 bg-[#04060b]/90 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-md bg-[#0a0f1d] border border-slate-800 rounded-3xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeNotifySubscribeModal()" class="absolute top-4 right-4 w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-all">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400">
+                    <i class="fa-solid fa-bell text-lg"></i>
+                </div>
+                <div>
+                    <h2 class="text-base font-bold text-slate-100">Đăng ký chuông báo</h2>
+                    <p class="text-[10px] text-slate-400 font-semibold mt-0.5">Nhận thông báo ngay khi phòng trống</p>
+                </div>
+            </div>
+            
+            <form id="notify-subscribe-form" onsubmit="handleNotifySubscribeSubmit(event)">
+                <input type="hidden" id="notify-room-id">
+                
+                <div class="space-y-4">
+                    <div>
+                        <span class="block text-[10px] text-slate-500 font-bold uppercase mb-1.5">Tên phòng trọ</span>
+                        <div class="p-3 rounded-xl bg-slate-950/60 border border-slate-900 text-xs font-bold text-slate-300" id="notify-room-title-display"></div>
+                    </div>
+                    
+                    <div>
+                        <label for="notify-contact-input" class="block text-[10px] text-slate-500 font-bold uppercase mb-1.5">Email hoặc Số điện thoại</label>
+                        <input type="text" id="notify-contact-input" required placeholder="nhap-email@example.com hoặc 09xxxxxx" class="w-full px-3 py-2 text-xs rounded-xl bg-slate-950/80 border border-slate-800 text-slate-200 focus:border-teal-500 focus:ring-0 focus:outline-none placeholder-slate-600 transition-colors">
+                    </div>
+                    
+                    <div class="flex items-start gap-2.5 p-3 rounded-xl bg-teal-500/5 border border-teal-500/10">
+                        <i class="fa-solid fa-circle-info text-teal-400 text-xs mt-0.5 shrink-0"></i>
+                        <p class="text-[10px] text-teal-300/85 leading-normal font-semibold">Chúng tôi sẽ tự động gửi thông báo qua Email hoặc SMS ngay khi phòng trọ này được cập nhật trạng thái "SẴN SÀNG".</p>
+                    </div>
+                    
+                    <div class="flex items-center gap-2 pt-2">
+                        <button type="button" onclick="closeNotifySubscribeModal()" class="w-1/2 py-2 px-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-bold text-slate-400 hover:text-slate-200 transition-colors">
+                            Hủy
+                        </button>
+                        <button type="submit" class="w-1/2 py-2 px-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-xs font-extrabold text-white shadow-lg shadow-teal-600/15 transition-all">
+                            Đăng ký ngay
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CUSTOM ALERT MODAL -->
+    <div id="custom-alert-modal" class="fixed inset-0 z-[60] bg-[#04060b]/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-sm bg-[#0a0f1d] border border-slate-800 rounded-3xl p-5 shadow-2xl relative text-center">
+            <div class="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mx-auto mb-3">
+                <i class="fa-solid fa-circle-check text-xl"></i>
+            </div>
+            <h3 class="text-sm font-bold text-slate-100 mb-1.5" id="custom-alert-title">Thành công!</h3>
+            <p class="text-[11px] text-slate-400 leading-normal mb-4" id="custom-alert-message"></p>
+            <button onclick="closeCustomAlert()" class="w-full py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-extrabold text-white transition-colors">
+                Xác nhận
+            </button>
         </div>
     </div>
 </body>

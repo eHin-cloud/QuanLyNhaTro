@@ -4,6 +4,37 @@
 - Implemented Step 3 of the progressive verification flow: Premium Trust Badge / Verified Status.
 - Landlords with KYC verified can submit optional "Tich xanh" documents from `/smartroom/admin`.
 - Platform admin can review KYC and Premium verification requests from `/admin/verifications`, approve/reject them, and trigger the correct tenant status/badge/boost transitions.
+- Designed and implemented the high-fidelity Renty Visual Filter UI:
+  - Added a horizontal row of rounded icon buttons (Visual Filters) for 'Nuôi thú cưng' (cat icon), 'WC khép kín' (door icon), and 'Có ban công' (cloud-sun icon) inside the search panel of `rentry.blade.php`.
+  - Map and return the `wc` property in `routes/web.php` to dynamically reflect "WC khép kín" status per room.
+  - Set visual filters and checkboxes to start in an inactive/unchecked state by default so that all room listings display on initial load, allowing visitors to filter criteria dynamically.
+- Designed and implemented the Renty Rating Popover breakdown:
+  - Created a smooth, floating dark-themed popover (tooltip) above the card rating score.
+  - Triggered popover visible on hover, with a smooth float-up animation transition.
+  - Rendered a category breakdown in the popover: "An ninh & Trật tự" (4/5 teal stars, 80% progress bar), "Chủ nhà & Hỗ trợ" (5/5 teal stars, 100% progress bar), and "Giá cả & Điện nước" (4.5/5 teal stars, 90% progress bar).
+  - Configured custom glassmorphism styling, drop shadows, a bottom pointing pointer arrow, and full light theme overrides.
+- Designed and implemented the Floating Compare Bar UI/UX utility:
+  - Built a bottom-center floating widgets bar with sleek dark glassmorphism styling (`rgba(11, 15, 25, 0.76)` background, blur filter of `20px`, thin border, and heavy drop shadow).
+  - Configured custom CSS for responsive positioning and transitions.
+  - Displayed square preview room thumbnails inside the compare bar dynamically. Each preview shows the room number (e.g. `P.101`, `P.102`) as a dark overlay over the room cover image, with rounded corners and an absolute-positioned red Close (`X`) button in the corner to remove it.
+  - Exposed a global `removeCompareRoom(roomId)` handler to deselect the card checkbox and update the bar state live.
+  - Styled a prominent, glowing teal action CTA button ("So sánh ngay (3)") with neon shadow glow and hover transforms.
+  - Added clean light-mode theme overrides mapping values to modern styling systems.
+- Designed and implemented the iOS-style "Ẩn các phòng đã được thuê" filter toggle:
+  - Positioned the toggle control bar immediately above the rooms grid to ensure prominence and ease of access.
+  - Formatted the results display to show `Tìm thấy X phòng` dynamically updated on filter changes.
+  - Built an iOS-style toggle switch component using custom CSS animations (`.ios-switch` and `.ios-slider`) with a smooth transition easing curves, glowing teal active background fills, and silver knobs.
+  - Injected `data-status` attribute on card layouts (`empty` for available, `rented` for leased) and wired the switch `onchange` events to `filterItems()`.
+  - Filtered out rooms lacking the `empty` status on switch activation, maintaining responsive layout updates.
+  - Included full light theme support.
+- Designed and implemented the "Chuông báo khi trống phòng" notification utility for rented room cards:
+  - Applied a semi-transparent dark overlay (`rgba(2, 6, 23, 0.65)`) over the main room images of cards marked as 'ĐÃ THUÊ' to visually differentiate status.
+  - Placed a prominent, styled absolute-centered call-to-action button featuring a bell icon ("Chuông báo khi trống phòng") on top of the overlay.
+  - Built custom CSS keyframes (`@keyframes bell-wiggle`) that trigger on button hover, causing the bell icon to tilt back and forth dynamically.
+  - Programmed button hover interactions to trigger a subtle teal border expansion and a soft neon radial shadow glow (`box-shadow: 0 0 22px rgba(13, 148, 136, 0.6)`).
+  - Wired `subscribeEmptyNotification(event, roomId, roomTitle)` to prevent card details navigate, launching a custom styled subscription overlay modal instead of native browser prompts.
+  - Built a matching custom success confirmation dialog modal to replace native browser alerts.
+  - Supported dark mode and light theme layouts.
 
 ## Proposed Database Logic
 - Add landlord onboarding/verification status fields to tenants/users:
