@@ -149,11 +149,13 @@ class PaymentManagementTest extends TestCase
         $tenant = Tenant::create([
             'name' => 'SmartRoom Test',
             'email' => 'tenant-payment@example.com',
+            'verification_status' => 'kyc_verified',
         ]);
 
-        $role = Role::create([
-            'name' => 'Chu tro',
+        $role = Role::firstOrCreate([
             'slug' => 'landlord',
+        ], [
+            'name' => 'Chu tro',
         ]);
 
         $user = User::create([

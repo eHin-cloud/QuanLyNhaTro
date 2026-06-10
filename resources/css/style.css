@@ -11,23 +11,51 @@
 
 /* Animations */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(14px) scale(0.985); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.985);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes slideInLeft {
-    from { opacity: 0; transform: translateX(-24px); }
-    to { opacity: 1; transform: translateX(0); }
+    from {
+        opacity: 0;
+        transform: translateX(-24px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 @keyframes slideInRight {
-    from { opacity: 0; transform: translateX(28px); }
-    to { opacity: 1; transform: translateX(0); }
+    from {
+        opacity: 0;
+        transform: translateX(28px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 @keyframes pulseGlow {
-    0%, 100% { box-shadow: 0 0 0 rgba(99, 102, 241, 0); }
-    50% { box-shadow: 0 0 32px rgba(99, 102, 241, 0.22); }
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 rgba(99, 102, 241, 0);
+    }
+
+    50% {
+        box-shadow: 0 0 32px rgba(99, 102, 241, 0.22);
+    }
 }
 
 @keyframes rentySearchPulse {
@@ -36,6 +64,7 @@
         transform: scaleX(0.18) scaleY(0.82);
         box-shadow: 0 0 0 rgba(20, 184, 166, 0);
     }
+
     55% {
         opacity: 1;
         transform: scaleX(1.01) scaleY(1);
@@ -44,6 +73,7 @@
             0 0 28px rgba(20, 184, 166, 0.38),
             0 0 72px rgba(16, 185, 129, 0.18);
     }
+
     100% {
         opacity: 1;
         transform: scaleX(1) scaleY(1);
@@ -59,6 +89,7 @@
         opacity: 0;
         transform: translateY(-10px) scale(0.98);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -66,13 +97,29 @@
 }
 
 @keyframes rentyCardCrossfade {
-    0%, 24%, 100% { opacity: 1; transform: scale(1.07); }
-    34%, 92% { opacity: 0; transform: scale(1.08); }
+
+    0%,
+    24%,
+    100% {
+        opacity: 1;
+        transform: scale(1.07);
+    }
+
+    34%,
+    92% {
+        opacity: 0;
+        transform: scale(1.08);
+    }
 }
 
 @keyframes rentySkeletonShimmer {
-    from { background-position: -180% 0; }
-    to { background-position: 180% 0; }
+    from {
+        background-position: -180% 0;
+    }
+
+    to {
+        background-position: 180% 0;
+    }
 }
 
 @keyframes themeFlipWash {
@@ -80,12 +127,15 @@
         opacity: 0;
         transform: translateX(-115%) skewX(-14deg);
     }
+
     18% {
         opacity: 0.86;
     }
+
     72% {
         opacity: 0.5;
     }
+
     100% {
         opacity: 0;
         transform: translateX(115%) skewX(-14deg);
@@ -93,22 +143,34 @@
 }
 
 @keyframes themeIconPlay {
-    0% { transform: rotate(-110deg) scale(0.72); }
-    58% { transform: rotate(16deg) scale(1.12); }
-    100% { transform: rotate(0) scale(1); }
+    0% {
+        transform: rotate(-110deg) scale(0.72);
+    }
+
+    58% {
+        transform: rotate(16deg) scale(1.12);
+    }
+
+    100% {
+        transform: rotate(0) scale(1);
+    }
 }
 
 @keyframes rentedBadgeBorderVibe {
-    0%, 100% {
+
+    0%,
+    100% {
         border-color: rgba(244, 63, 94, 0.32);
         box-shadow: 0 0 0 rgba(244, 63, 94, 0), 0 10px 22px rgba(2, 6, 23, 0.24);
         transform: translate3d(0, 0, 0);
     }
+
     35% {
         border-color: rgba(251, 113, 133, 0.82);
         box-shadow: 0 0 0 1px rgba(251, 113, 133, 0.28), 0 0 18px rgba(244, 63, 94, 0.32);
         transform: translate3d(0.5px, -0.5px, 0);
     }
+
     68% {
         border-color: rgba(225, 29, 72, 0.62);
         box-shadow: 0 0 0 1px rgba(244, 63, 94, 0.16), 0 0 12px rgba(244, 63, 94, 0.2);
@@ -117,44 +179,102 @@
 }
 
 @keyframes softSheen {
-    0% { transform: translateX(-130%) skewX(-18deg); opacity: 0; }
-    18% { opacity: 0.6; }
-    45%, 100% { transform: translateX(180%) skewX(-18deg); opacity: 0; }
+    0% {
+        transform: translateX(-130%) skewX(-18deg);
+        opacity: 0;
+    }
+
+    18% {
+        opacity: 0.6;
+    }
+
+    45%,
+    100% {
+        transform: translateX(180%) skewX(-18deg);
+        opacity: 0;
+    }
 }
 
 @keyframes ambientGrid {
-    0% { background-position: 0 0, 0 0; }
-    100% { background-position: 40px 40px, -40px 24px; }
+    0% {
+        background-position: 0 0, 0 0;
+    }
+
+    100% {
+        background-position: 40px 40px, -40px 24px;
+    }
 }
 
 @keyframes floatInPlace {
-    0%, 100% { transform: translate3d(0, 0, 0); }
-    50% { transform: translate3d(0, -5px, 0); }
+
+    0%,
+    100% {
+        transform: translate3d(0, 0, 0);
+    }
+
+    50% {
+        transform: translate3d(0, -5px, 0);
+    }
 }
 
 @keyframes rowReveal {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes quickOverlayIn {
-    from { opacity: 0; backdrop-filter: blur(0); }
-    to { opacity: 1; backdrop-filter: blur(16px); }
+    from {
+        opacity: 0;
+        backdrop-filter: blur(0);
+    }
+
+    to {
+        opacity: 1;
+        backdrop-filter: blur(16px);
+    }
 }
 
 @keyframes quickPanelIn {
-    from { opacity: 0; transform: translateY(24px) scale(0.96); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
+    from {
+        opacity: 0;
+        transform: translateY(24px) scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 @keyframes quickMediaIn {
-    from { opacity: 0; transform: translateX(-18px) scale(0.98); }
-    to { opacity: 1; transform: translateX(0) scale(1); }
+    from {
+        opacity: 0;
+        transform: translateX(-18px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
 }
 
 @keyframes quickContentIn {
-    from { opacity: 0; transform: translateX(18px); }
-    to { opacity: 1; transform: translateX(0); }
+    from {
+        opacity: 0;
+        transform: translateX(18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 .animate-fade-in {
@@ -278,9 +398,17 @@ body::after {
     animation: softSheen 1.25s ease-out;
 }
 
-.glass-card:nth-of-type(2n) { animation-delay: 0.04s; }
-.glass-card:nth-of-type(3n) { animation-delay: 0.08s; }
-.glass-card:nth-of-type(4n) { animation-delay: 0.12s; }
+.glass-card:nth-of-type(2n) {
+    animation-delay: 0.04s;
+}
+
+.glass-card:nth-of-type(3n) {
+    animation-delay: 0.08s;
+}
+
+.glass-card:nth-of-type(4n) {
+    animation-delay: 0.12s;
+}
 
 header,
 aside {
@@ -1065,7 +1193,7 @@ body.theme-light .viewed-room-strip {
     pointer-events: none;
 }
 
-.room-item-card.is-search-loading > :not(.room-card-skeleton) {
+.room-item-card.is-search-loading> :not(.room-card-skeleton) {
     opacity: 0;
     visibility: hidden;
 }
@@ -1615,9 +1743,17 @@ body.theme-light .compare-close {
     }
 }
 
-table tbody tr:nth-child(2n) { animation-delay: 0.025s; }
-table tbody tr:nth-child(3n) { animation-delay: 0.05s; }
-table tbody tr:nth-child(4n) { animation-delay: 0.075s; }
+table tbody tr:nth-child(2n) {
+    animation-delay: 0.025s;
+}
+
+table tbody tr:nth-child(3n) {
+    animation-delay: 0.05s;
+}
+
+table tbody tr:nth-child(4n) {
+    animation-delay: 0.075s;
+}
 
 .room-card,
 .room-item-card {
@@ -1652,13 +1788,13 @@ table tbody tr:nth-child(4n) { animation-delay: 0.075s; }
 
 #portal-admin .fa-solid,
 #portal-user .fa-solid,
-.glass-card > div [class*="fa-"] {
+.glass-card>div [class*="fa-"] {
     transition: transform var(--transition-normal), color var(--transition-normal);
 }
 
 #portal-admin:hover .fa-solid,
 #portal-user:hover .fa-solid,
-.glass-card:hover > div [class*="fa-"] {
+.glass-card:hover>div [class*="fa-"] {
     transform: translateY(-1px) scale(1.06);
 }
 
@@ -1690,10 +1826,12 @@ table tbody tr:nth-child(4n) { animation-delay: 0.075s; }
     border-top: 4px solid #10b981;
     background: linear-gradient(180deg, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0) 100%);
 }
+
 .room-occupied {
     border-top: 4px solid #ef4444;
     background: linear-gradient(180deg, rgba(239, 68, 68, 0.05) 0%, rgba(239, 68, 68, 0) 100%);
 }
+
 .room-overdue {
     border-top: 4px solid #f59e0b;
     background: linear-gradient(180deg, rgba(245, 158, 11) 0%, rgba(245, 158, 11, 0) 100%);
@@ -1730,12 +1868,13 @@ table tbody tr:nth-child(4n) { animation-delay: 0.075s; }
 }
 
 /* Compare comparison check */
-.checkbox-custom:checked + label .checkbox-icon {
+.checkbox-custom:checked+label .checkbox-icon {
     opacity: 1;
     transform: scale(1);
 }
 
 @media (prefers-reduced-motion: reduce) {
+
     *,
     *::before,
     *::after {
@@ -1753,6 +1892,7 @@ table tbody tr:nth-child(4n) { animation-delay: 0.075s; }
 }
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+
     .glass-panel,
     .glass-card {
         background: rgba(15, 23, 42, 0.96);
@@ -1761,9 +1901,11 @@ table tbody tr:nth-child(4n) { animation-delay: 0.075s; }
 
 /* Renty Visual Filters Styling */
 .vfilter-btn {
-    background: #111827; /* Muted dark grey */
+    background: #111827;
+    /* Muted dark grey */
     border: 1px solid rgba(255, 255, 255, 0.06);
-    color: #ffffff; /* White icon & label */
+    color: #ffffff;
+    /* White icon & label */
     min-width: 100px;
     height: 90px;
     cursor: pointer;
@@ -1780,7 +1922,8 @@ table tbody tr:nth-child(4n) { animation-delay: 0.075s; }
 }
 
 .vfilter-btn .vfilter-text {
-    color: #94a3b8; /* Subtle text label */
+    color: #94a3b8;
+    /* Subtle text label */
 }
 
 /* Hover State */
@@ -1803,10 +1946,12 @@ table tbody tr:nth-child(4n) { animation-delay: 0.075s; }
 
 /* Active Selected State */
 .vfilter-btn.active {
-    border-color: #2dd4bf !important; /* Vibrant teal border */
-    background: rgba(20, 184, 166, 0.15) !important; /* Soft neon background fill */
-    box-shadow: 
-        0 0 20px rgba(45, 212, 191, 0.45), 
+    border-color: #2dd4bf !important;
+    /* Vibrant teal border */
+    background: rgba(20, 184, 166, 0.15) !important;
+    /* Soft neon background fill */
+    box-shadow:
+        0 0 20px rgba(45, 212, 191, 0.45),
         inset 0 0 14px rgba(45, 212, 191, 0.2) !important;
     transform: translateY(0);
 }
@@ -1814,12 +1959,14 @@ table tbody tr:nth-child(4n) { animation-delay: 0.075s; }
 .vfilter-btn.active .vfilter-icon-box {
     background: rgba(45, 212, 191, 0.22);
     border-color: rgba(45, 212, 191, 0.45);
-    color: #2dd4bf; /* Vibrant teal icon */
+    color: #2dd4bf;
+    /* Vibrant teal icon */
     text-shadow: 0 0 8px rgba(45, 212, 191, 0.6);
 }
 
 .vfilter-btn.active .vfilter-text {
-    color: #2dd4bf; /* Vibrant teal text label */
+    color: #2dd4bf;
+    /* Vibrant teal text label */
     font-weight: 800;
 }
 
@@ -1868,7 +2015,7 @@ table tbody tr:nth-child(4n) { animation-delay: 0.075s; }
 
 /* Rating Popover Tooltip Styling */
 .rating-popover {
-    transition: 
+    transition:
         opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1),
         visibility 0.28s cubic-bezier(0.22, 1, 0.36, 1),
         transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
@@ -1916,8 +2063,8 @@ table tbody tr:nth-child(4n) { animation-delay: 0.075s; }
 .compare-floating-bar {
     background: rgba(11, 15, 25, 0.76) !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    box-shadow: 
-        0 20px 50px rgba(0, 0, 0, 0.5), 
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.5),
         0 0 1px 1px rgba(255, 255, 255, 0.05) !important;
     backdrop-filter: blur(20px) saturate(140%) !important;
     -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
@@ -1927,7 +2074,8 @@ table tbody tr:nth-child(4n) { animation-delay: 0.075s; }
 
 .compare-submit-btn {
     border: 0 !important;
-    background: #0d9488 !important; /* Vibrant teal */
+    background: #0d9488 !important;
+    /* Vibrant teal */
     color: #ffffff !important;
     box-shadow: 0 4px 16px rgba(13, 148, 136, 0.4) !important;
     transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
@@ -2013,13 +2161,13 @@ table tbody tr:nth-child(4n) { animation-delay: 0.075s; }
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.ios-switch input:checked + .ios-slider {
+.ios-switch input:checked+.ios-slider {
     background-color: #0d9488;
     box-shadow: 0 0 12px rgba(13, 148, 136, 0.45);
     border-color: rgba(13, 148, 136, 0.2);
 }
 
-.ios-switch input:checked + .ios-slider:before {
+.ios-switch input:checked+.ios-slider:before {
     transform: translateX(16px);
     background-color: #ffffff;
 }
@@ -2034,19 +2182,38 @@ table tbody tr:nth-child(4n) { animation-delay: 0.075s; }
     background-color: #ffffff;
 }
 
-.theme-light .ios-switch input:checked + .ios-slider {
+.theme-light .ios-switch input:checked+.ios-slider {
     background-color: #0d9488;
     box-shadow: 0 0 12px rgba(13, 148, 136, 0.25);
 }
 
 /* Renty Notification Bell Button & Wiggle Animation */
 @keyframes bell-wiggle {
-    0%, 100% { transform: rotate(0); }
-    15% { transform: rotate(-12deg); }
-    30% { transform: rotate(10deg); }
-    45% { transform: rotate(-8deg); }
-    60% { transform: rotate(6deg); }
-    75% { transform: rotate(-4deg); }
+
+    0%,
+    100% {
+        transform: rotate(0);
+    }
+
+    15% {
+        transform: rotate(-12deg);
+    }
+
+    30% {
+        transform: rotate(10deg);
+    }
+
+    45% {
+        transform: rotate(-8deg);
+    }
+
+    60% {
+        transform: rotate(6deg);
+    }
+
+    75% {
+        transform: rotate(-4deg);
+    }
 }
 
 .group\/bell-btn:hover .fa-bell {
@@ -2120,14 +2287,40 @@ table tbody tr:nth-child(4n) { animation-delay: 0.075s; }
 }
 
 /* Split-screen layout overrides when map mode is active */
+#renty-hero-section {
+    opacity: 1;
+    max-height: 1200px;
+    transform: translateY(0);
+    transition: 
+        opacity 0.45s cubic-bezier(0.25, 1, 0.5, 1),
+        max-height 0.45s cubic-bezier(0.25, 1, 0.5, 1),
+        padding 0.45s cubic-bezier(0.25, 1, 0.5, 1),
+        margin 0.45s cubic-bezier(0.25, 1, 0.5, 1),
+        transform 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
 body.renty-map-mode {
-    overflow: hidden; /* Lock viewport scrolling, only split pane list scrolls */
+    overflow: hidden;
+    /* Lock viewport scrolling, only split pane list scrolls */
     height: 100vh;
+}
+
+body.renty-map-mode #renty-hero-section {
+    opacity: 0 !important;
+    max-height: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+    transform: translateY(-30px) !important;
 }
 
 body.renty-map-mode #viewed-rooms-section,
 body.renty-map-mode .max-w-3xl.mx-auto.text-center.mb-8 {
-    display: none; /* Hide hero text & viewed history to focus on search and split view */
+    display: none !important;
+    /* Hide bento hero and history sections to maximize map area */
 }
 
 /* Adjust map wrapper and grid when active */
@@ -2138,17 +2331,22 @@ body.renty-map-mode main {
     margin: 0 !important;
     display: flex;
     flex-direction: row;
-    height: calc(100vh - 80px - 140px); /* Adjust to viewport minus navbar & search bar height */
+    height: calc(100vh - 80px);
+    /* Set height precisely to viewport minus the 80px navbar */
     border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Split-screen columns */
+/* Split-screen columns with smooth transition */
 .renty-split-left {
-    width: 50%;
+    width: 0;
+    opacity: 0;
     height: 100%;
     position: relative;
     border-right: 1px solid rgba(255, 255, 255, 0.05);
-    display: none; /* Hidden by default in grid view */
+    overflow: hidden;
+    transition: 
+        width 0.45s cubic-bezier(0.25, 1, 0.5, 1),
+        opacity 0.45s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .renty-split-right {
@@ -2157,32 +2355,88 @@ body.renty-map-mode main {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+    transition: width 0.45s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 body.renty-map-mode .renty-split-left {
-    display: block; /* Show map column */
+    display: block;
+    width: 50%;
+    opacity: 1;
 }
 
 body.renty-map-mode .renty-split-right {
-    width: 50%; /* Make list column 50% width */
+    width: 50%;
+    /* Make list column 50% width */
     height: 100%;
     overflow-y: auto;
 }
 
+/* Staggered card fade-in keyframes for premium transitions */
+@keyframes rentyCardFadeInHorizontal {
+    from {
+        opacity: 0;
+        transform: translateX(18px) scale(0.99);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes rentyCardFadeInVertical {
+    from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.99);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+body.renty-map-mode .room-item-card {
+    animation: rentyCardFadeInHorizontal 0.38s cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+
+body:not(.renty-map-mode) .room-item-card {
+    animation: rentyCardFadeInVertical 0.38s cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+
+/* Premium sticky header for search toolbar inside right list view */
+body.renty-map-mode .renty-split-header {
+    position: sticky;
+    top: -24px; /* Offset the 24px padding of the right container */
+    background: #080b11;
+    padding-top: 24px;
+    padding-bottom: 16px;
+    margin-top: -24px;
+    z-index: 30;
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Light theme overrides for the sticky header */
+.theme-light .renty-split-header {
+    background: #ffffff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
 body.renty-map-mode #rooms-grid {
-    grid-template-columns: repeat(1, minmax(0, 1fr)) !important; /* Force single column list on right */
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+    /* Force single column list on right */
     gap: 16px !important;
     margin-bottom: 0 !important;
 }
 
 body.renty-map-mode .room-item-card {
     display: flex;
-    flex-direction: row; /* Horizontal cards in split screen mode for professional look */
+    flex-direction: row;
+    /* Horizontal cards in split screen mode for professional look */
     min-height: 220px;
     height: auto;
 }
 
-body.renty-map-mode .room-item-card > .room-card-content {
+body.renty-map-mode .room-item-card>.room-card-content {
     display: flex;
     flex-direction: row;
     width: 100%;
@@ -2206,7 +2460,8 @@ body.renty-map-mode .room-item-card .p-5 {
     justify-content: space-between;
     flex-grow: 1;
     height: auto;
-    min-height: 188px; /* 220px - 32px padding */
+    min-height: 188px;
+    /* 220px - 32px padding */
 }
 
 body.renty-map-mode .room-item-card .viewed-room-strip {
@@ -2217,8 +2472,9 @@ body.renty-map-mode .room-item-card .mb-4 {
     margin-bottom: 0.5rem !important;
 }
 
-body.renty-map-mode .room-item-card > div:last-child {
-    display: none !important; /* Hide actions footer to keep horizontal cards extremely compact & clean */
+body.renty-map-mode .room-item-card>div:last-child {
+    display: none !important;
+    /* Hide actions footer to keep horizontal cards extremely compact & clean */
 }
 
 /* Map specific styling */
@@ -2243,7 +2499,7 @@ body.renty-map-mode .room-item-card > div:last-child {
     padding: 4px 10px;
     border-radius: 999px;
     text-align: center;
-    box-shadow: 
+    box-shadow:
         0 0 15px rgba(45, 212, 191, 0.35),
         inset 0 0 4px rgba(45, 212, 191, 0.2);
     backdrop-filter: blur(8px);
@@ -2399,7 +2655,7 @@ body.renty-map-mode .room-item-card > div:last-child {
     background: rgba(255, 255, 255, 0.9);
     border-color: #0d9488;
     color: #0d9488;
-    box-shadow: 
+    box-shadow:
         0 0 12px rgba(13, 148, 136, 0.2),
         inset 0 0 4px rgba(13, 148, 136, 0.05);
 }
@@ -2480,32 +2736,38 @@ body.renty-map-mode .room-item-card > div:last-child {
         height: auto;
         overflow-y: auto;
     }
+
     body.renty-map-mode .renty-split-left {
         width: 100%;
         height: 320px;
         border-right: none;
         border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
+
     body.renty-map-mode .renty-split-right {
         width: 100%;
         height: auto;
         overflow-y: visible;
     }
+
     body.renty-map-mode .room-item-card {
         height: auto;
         min-height: initial;
         flex-direction: column;
     }
-    body.renty-map-mode .room-item-card > .room-card-content {
+
+    body.renty-map-mode .room-item-card>.room-card-content {
         flex-direction: column;
         height: auto;
         min-height: initial;
     }
+
     body.renty-map-mode .room-card-media {
         width: 100%;
         height: 180px !important;
         min-height: initial;
     }
+
     body.renty-map-mode .room-item-card .p-5 {
         height: auto !important;
         min-height: initial;
@@ -2574,6 +2836,7 @@ body.renty-map-mode .room-item-card > div:last-child {
         opacity: 0;
         transform: translateY(16px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -2581,8 +2844,15 @@ body.renty-map-mode .room-item-card > div:last-child {
 }
 
 @keyframes qaBounceDot {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(3px); }
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(3px);
+    }
 }
 
 /* Light theme overrides for Q&A */
@@ -2638,7 +2908,8 @@ main .renty-footer-wrapper,
     right: 50% !important;
     margin-left: -50vw !important;
     margin-right: -50vw !important;
-    margin-bottom: -24px !important; /* Negate the bottom padding of the main/split container */
+    margin-bottom: -24px !important;
+    /* Negate the bottom padding of the main/split container */
     margin-top: auto !important;
 }
 
@@ -2692,7 +2963,8 @@ body.theme-light .text-emerald-300,
 body.theme-light .text-emerald-250,
 body.theme-light .text-emerald-200,
 body.theme-light .text-emerald-100 {
-    color: #0d9488 !important; /* Premium Teal-600 */
+    color: #0d9488 !important;
+    /* Premium Teal-600 */
 }
 
 html.theme-light .text-amber-500,
@@ -2705,12 +2977,14 @@ body.theme-light .text-amber-400,
 body.theme-light .text-amber-300,
 body.theme-light .text-amber-200,
 body.theme-light .text-amber-100 {
-    color: #d97706 !important; /* Amber-600 */
+    color: #d97706 !important;
+    /* Amber-600 */
 }
 
 html.theme-light .text-orange-400,
 body.theme-light .text-orange-400 {
-    color: #ea580c !important; /* Orange-600 */
+    color: #ea580c !important;
+    /* Orange-600 */
 }
 
 html.theme-light .text-rose-450,
@@ -2721,19 +2995,22 @@ body.theme-light .text-rose-450,
 body.theme-light .text-rose-400,
 body.theme-light .text-rose-300,
 body.theme-light .text-rose-200 {
-    color: #e11d48 !important; /* Rose-600 */
+    color: #e11d48 !important;
+    /* Rose-600 */
 }
 
 html.theme-light .text-indigo-400,
 html.theme-light .text-violet-400,
 body.theme-light .text-indigo-400,
 body.theme-light .text-violet-400 {
-    color: #4f46e5 !important; /* Indigo-600 */
+    color: #4f46e5 !important;
+    /* Indigo-600 */
 }
 
 html.theme-light .text-blue-200,
 body.theme-light .text-blue-200 {
-    color: #2563eb !important; /* Blue-600 */
+    color: #2563eb !important;
+    /* Blue-600 */
 }
 
 html.theme-light .text-teal-500,
@@ -2742,7 +3019,8 @@ html.theme-light .text-teal-300,
 body.theme-light .text-teal-500,
 body.theme-light .text-teal-400,
 body.theme-light .text-teal-300 {
-    color: #0d9488 !important; /* Teal-600 */
+    color: #0d9488 !important;
+    /* Teal-600 */
 }
 
 html.theme-light .text-sky-400,
@@ -2751,7 +3029,8 @@ html.theme-light .text-cyan-300,
 body.theme-light .text-sky-400,
 body.theme-light .text-sky-300,
 body.theme-light .text-cyan-300 {
-    color: #0284c7 !important; /* Sky-600 */
+    color: #0284c7 !important;
+    /* Sky-600 */
 }
 
 /* Hover specific overrides for buttons in light mode */
@@ -2759,14 +3038,16 @@ html.theme-light .hover\:text-rose-300:hover,
 body.theme-light .hover\:text-rose-300:hover,
 html.theme-light .hover\:text-rose-200:hover,
 body.theme-light .hover\:text-rose-200:hover {
-    color: #be123c !important; /* Rose-700 */
+    color: #be123c !important;
+    /* Rose-700 */
 }
 
 html.theme-light .hover\:text-emerald-300:hover,
 body.theme-light .hover\:text-emerald-300:hover,
 html.theme-light .hover\:text-emerald-200:hover,
 body.theme-light .hover\:text-emerald-200:hover {
-    color: #0f766e !important; /* Teal-700 */
+    color: #0f766e !important;
+    /* Teal-700 */
 }
 
 /* Light theme overrides for Q&A grid and footer bars */
@@ -2812,5 +3093,128 @@ html.theme-light .app-brand-text,
 body.theme-light .renty-brand-text,
 body.theme-light .app-brand-text {
     -webkit-text-fill-color: #0f172a !important;
+}
+
+/* Custom Range Slider Styles */
+.custom-range-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 5px;
+    background: transparent;
+    outline: none;
+    cursor: pointer;
+    margin: 10px 0;
+    display: block;
+}
+
+/* Webkit Track */
+.custom-range-slider::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 5px;
+    border-radius: 99px;
+    background: linear-gradient(
+        to right, 
+        #0d9488 0%, 
+        #14b8a6 var(--range-progress, 0%), 
+        #334155 var(--range-progress, 0%), 
+        #334155 100%
+    );
+    border: none;
+    transition: background 0.1s ease;
+}
+
+/* Webkit Thumb */
+.custom-range-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid #14b8a6;
+    margin-top: -5.5px;
+    box-shadow: 0 0 10px rgba(20, 184, 166, 0.75);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.custom-range-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 0 14px rgba(20, 184, 166, 1);
+}
+
+/* Firefox Track */
+.custom-range-slider::-moz-range-track {
+    width: 100%;
+    height: 5px;
+    border-radius: 99px;
+    background: #334155;
+    border: none;
+}
+
+/* Firefox Progress Fill */
+.custom-range-slider::-moz-range-progress {
+    height: 5px;
+    border-radius: 99px;
+    background: #14b8a6;
+}
+
+/* Firefox Thumb */
+.custom-range-slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid #14b8a6;
+    box-shadow: 0 0 10px rgba(20, 184, 166, 0.75);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.custom-range-slider::-moz-range-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 0 14px rgba(20, 184, 166, 1);
+}
+
+/* Light theme overrides for range slider */
+.theme-light .custom-range-slider::-webkit-slider-runnable-track {
+    background: linear-gradient(
+        to right, 
+        #0d9488 0%, 
+        #14b8a6 var(--range-progress, 0%), 
+        #e2e8f0 var(--range-progress, 0%), 
+        #e2e8f0 100%
+    );
+}
+
+.theme-light .custom-range-slider::-moz-range-track {
+    background: #e2e8f0;
+}
+
+.theme-light .feedback-box {
+    background: rgba(241, 245, 249, 0.6) !important;
+    border-color: rgba(226, 232, 240, 0.8) !important;
+}
+
+.theme-light #distance-feedback {
+    color: #475569 !important;
+}
+
+/* Ensure status badges (ĐÃ THUÊ / SẴN SÀNG) keep high-contrast, light colors on the dark image overlay */
+.room-status-badge {
+    z-index: 25 !important;
+}
+
+html.theme-light .room-status-rented,
+body.theme-light .room-status-rented {
+    color: #f43f5e !important; /* light rose-500 */
+    background-color: rgba(244, 63, 94, 0.15) !important;
+    border-color: rgba(244, 63, 94, 0.3) !important;
+}
+
+html.theme-light .room-status-empty,
+body.theme-light .room-status-empty {
+    color: #10b981 !important; /* light emerald-500 */
+    background-color: rgba(16, 185, 129, 0.15) !important;
+    border-color: rgba(16, 185, 129, 0.3) !important;
 }
 

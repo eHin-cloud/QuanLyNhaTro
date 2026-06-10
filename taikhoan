@@ -1,10 +1,17 @@
 Cập nhật Tài khoản mẫu:
 
-Tài khoản Admin (Chủ trọ):
+Tài khoản Admin (Chủ trọ - Hà Nội):
 Tên đăng nhập (username): admin
 Số điện thoại (phone): 0987654321
 Email (không bắt buộc): admin@smartroom.com
 Mật khẩu: admin123
+Phân quyền: admin
+
+Tài khoản Admin (Chủ trọ - TP. Hồ Chí Minh):
+Tên đăng nhập (username): admin-hcm
+Số điện thoại (phone): 0909123456
+Email: admin-hcm@smartroom.local
+Mật khẩu: password
 Phân quyền: admin
 Tài khoản Tenant (Khách thuê):
 Tên đăng nhập (username): tenant

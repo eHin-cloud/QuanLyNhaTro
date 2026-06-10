@@ -116,9 +116,10 @@ class AiPaymentReminderTest extends TestCase
             'email' => 'tenant-ai@example.com',
         ]);
 
-        $role = Role::create([
-            'name' => 'Chu tro',
+        $role = Role::firstOrCreate([
             'slug' => 'landlord',
+        ], [
+            'name' => 'Chu tro',
         ]);
 
         User::create([

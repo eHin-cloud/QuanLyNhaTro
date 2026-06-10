@@ -213,15 +213,18 @@ class FullDemoSeeder extends Seeder
 
     private function seedLandlord(Tenant $tenant, array $blueprint, int $tenantIndex): User
     {
+        $username = $blueprint['username'] ?? 'demo-landlord-' . ($tenantIndex + 1);
+        $email = $blueprint['email'] ?? 'landlord' . ($tenantIndex + 1) . '@demo.smartroom.local';
+
         // Chủ trọ chính
         $landlord1 = User::updateOrCreate(
-            ['username' => 'demo-landlord-' . ($tenantIndex + 1)],
+            ['username' => $username],
             [
                 'tenant_id' => $tenant->id,
                 'role_id' => $this->roles['landlord']->id,
                 'name' => $blueprint['owner_name'],
-                'phone' => '0888000' . str_pad((string) ($tenantIndex + 1), 3, '0', STR_PAD_LEFT),
-                'email' => 'landlord' . ($tenantIndex + 1) . '@demo.smartroom.local',
+                'phone' => $blueprint['phone'] ?? ('0888000' . str_pad((string) ($tenantIndex + 1), 3, '0', STR_PAD_LEFT)),
+                'email' => $email,
                 'password' => Hash::make('password'),
                 'role' => 'landlord',
                 'like' => 'Chủ trọ demo chính',
@@ -829,6 +832,32 @@ class FullDemoSeeder extends Seeder
                 'bank_account_name' => 'TRAN VAN BA DINH',
                 'buildings' => $this->buildingBlueprints('BD', 'Ba Đình', 4200000),
             ],
+            [
+                'name' => 'Căn hộ dịch vụ Luxury Bình Thạnh',
+                'email' => 'admin-hcm@smartroom.local',
+                'phone' => '0909123456',
+                'owner_name' => 'Trần Văn Hoàng',
+                'username' => 'admin-hcm',
+                'bank_name' => 'VCB',
+                'bank_account_no' => '1012345678',
+                'bank_account_name' => 'TRAN VAN HOANG',
+                'buildings' => [
+                    [
+                        'code' => 'BTA',
+                        'name' => 'Chung cư mini Luxury Điện Biên Phủ',
+                        'address' => '12 Điện Biên Phủ, Phường 15, Quận Bình Thạnh, TP. Hồ Chí Minh',
+                        'description' => 'Tòa nhà căn hộ cao cấp đầy đủ tiện nghi, thang máy, bảo vệ 24/7, gần Ngã tư Hàng Xanh.',
+                        'rooms' => $this->roomBlueprints(6000000),
+                    ],
+                    [
+                        'code' => 'BTB',
+                        'name' => 'Nhà trọ Studio Nguyễn Gia Trí',
+                        'address' => '88/12 Nguyễn Gia Trí, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh',
+                        'description' => 'Khu nhà trọ Studio sinh viên cao cấp, gần Đại học HUTECH, Ngoại Thương, Giao thông Vận tải.',
+                        'rooms' => $this->roomBlueprints(5000000),
+                    ]
+                ],
+            ],
         ];
     }
 
@@ -854,25 +883,34 @@ class FullDemoSeeder extends Seeder
 
     private function roomBlueprints(int $basePrice): array
     {
-        $statuses = ['occupied', 'occupied', 'overdue', 'empty', 'maintenance', 'occupied'];
+        $statuses = [
+            'occupied', 'occupied', 'overdue', 'empty', 'maintenance', 'occupied',
+            'empty', 'occupied', 'empty', 'occupied', 'empty', 'occupied'
+        ];
         $amenitiesPool = [
             ['điều hòa', 'nóng lạnh', 'wifi', 'cho nuôi thú cưng', 'gác lửng', 'wc khép kín'],
             ['điều hòa', 'nóng lạnh', 'ban công', 'wc khép kín', 'tủ quần áo'],
             ['điều hòa', 'gác lửng', 'wc khép kín', 'wifi'],
             ['điều hòa', 'nóng lạnh', 'ban công', 'cho nuôi thú cưng', 'wc khép kín'],
             ['nóng lạnh', 'wifi', 'tủ lạnh', 'gác lửng'],
-            ['điều hòa', 'ban công', 'gác lửng', 'wc khép kín', 'cho nuôi thú cưng', 'wifi']
+            ['điều hòa', 'ban công', 'gác lửng', 'wc khép kín', 'cho nuôi thú cưng', 'wifi'],
+            ['điều hòa', 'nóng lạnh', 'wifi', 'ban công'],
+            ['nóng lạnh', 'wifi', 'tủ lạnh'],
+            ['điều hòa', 'gác lửng', 'wc khép kín'],
+            ['điều hòa', 'nóng lạnh', 'cho nuôi thú cưng'],
+            ['nóng lạnh', 'wifi', 'gác lửng'],
+            ['điều hòa', 'ban công', 'wc khép kín']
         ];
 
-        return collect(['101', '102', '201', '202', '301', '302'])
+        return collect(['101', '102', '201', '202', '301', '302', '401', '402', '501', '502', '601', '602'])
             ->map(function (string $roomNumber, int $index) use ($basePrice, $statuses, $amenitiesPool) {
                 return [
                     'room_number' => $roomNumber,
                     'floor' => (int) substr($roomNumber, 0, 1),
                     'status' => $statuses[$index],
                     'room_type' => $index % 3 === 0 ? 'vip' : 'normal',
-                    'price' => $basePrice + ($index * 200000),
-                    'area' => 20 + ($index * 3),
+                    'price' => $basePrice + ($index * 150000),
+                    'area' => 20 + ($index * 2),
                     'amenities' => $amenitiesPool[$index % count($amenitiesPool)],
                 ];
             })

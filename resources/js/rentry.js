@@ -1,5 +1,5 @@
 // Setup custom toast notification override for alert()
-(function() {
+(function () {
     const toastStyle = document.createElement('style');
     toastStyle.innerHTML = `
         .custom-toast-container {
@@ -96,48 +96,48 @@
     `;
     document.head.appendChild(toastStyle);
 
-    window.alert = function(message) {
+    window.alert = function (message) {
         let type = 'success';
         let title = 'Thông Báo';
-        
+
         const lowerMsg = message.toLowerCase();
-        if (lowerMsg.includes('lỗi') || 
-            lowerMsg.includes('không thể') || 
-            lowerMsg.includes('thất bại') || 
-            lowerMsg.includes('chưa') || 
-            lowerMsg.includes('không được') || 
-            lowerMsg.includes('chỉ được') || 
+        if (lowerMsg.includes('lỗi') ||
+            lowerMsg.includes('không thể') ||
+            lowerMsg.includes('thất bại') ||
+            lowerMsg.includes('chưa') ||
+            lowerMsg.includes('không được') ||
+            lowerMsg.includes('chỉ được') ||
             lowerMsg.includes('nhỏ hơn') ||
             lowerMsg.includes('vui lòng')) {
             type = 'warning';
             title = 'Cảnh Báo';
-        } else if (lowerMsg.includes('thành công') || 
-                   lowerMsg.includes('tuyệt vời') || 
-                   lowerMsg.includes('đã') || 
-                   lowerMsg.includes('sao chép')) {
+        } else if (lowerMsg.includes('thành công') ||
+            lowerMsg.includes('tuyệt vời') ||
+            lowerMsg.includes('đã') ||
+            lowerMsg.includes('sao chép')) {
             type = 'success';
             title = 'Thành Công';
         } else {
             type = 'info';
             title = 'Thông Tin';
         }
-        
+
         let container = document.querySelector('.custom-toast-container');
         if (!container) {
             container = document.createElement('div');
             container.className = 'custom-toast-container';
             document.body.appendChild(container);
         }
-        
+
         const toast = document.createElement('div');
         toast.className = `custom-toast custom-toast-${type}`;
-        
+
         let iconHtml = '';
         if (type === 'success') iconHtml = '<i class="fa-solid fa-check"></i>';
         else if (type === 'warning') iconHtml = '<i class="fa-solid fa-triangle-exclamation"></i>';
         else if (type === 'error') iconHtml = '<i class="fa-solid fa-circle-xmark"></i>';
         else iconHtml = '<i class="fa-solid fa-info"></i>';
-        
+
         toast.innerHTML = `
             <div class="custom-toast-icon">${iconHtml}</div>
             <div class="custom-toast-content">
@@ -146,7 +146,7 @@
             </div>
             <div class="custom-toast-close"><i class="fa-solid fa-xmark"></i></div>
         `;
-        
+
         // Inline close click handler
         toast.querySelector('.custom-toast-close').addEventListener('click', () => {
             toast.classList.add('hide');
@@ -154,9 +154,9 @@
         });
 
         container.appendChild(toast);
-        
+
         setTimeout(() => toast.classList.add('show'), 10);
-        
+
         setTimeout(() => {
             if (toast.parentNode) {
                 toast.classList.remove('show');
@@ -543,6 +543,56 @@ function renderViewedRooms() {
     `).join('');
 }
 
+function getDynamicLocations() {
+    const locations = new Set();
+    
+    // 1. Một số địa điểm mặc định phổ biến
+    const defaults = [
+        'cau giay', 'cầu giấy',
+        'thanh xuan', 'thanh xuân',
+        'quan 10', 'quận 10',
+        'bach khoa', 'bách khoa',
+        'dai hoc bach khoa', 'đại học bách khoa',
+        'su pham', 'sư phạm',
+        'quoc gia', 'quốc gia',
+        'xuan thuy', 'xuân thủy',
+        'thu duc', 'thủ đức',
+        'quan 1', 'quận 1',
+        'quan 3', 'quận 3',
+        'quan 5', 'quận 5',
+        'go vap', 'gò vấp',
+        'binh thanh', 'bình thạnh'
+    ];
+    defaults.forEach(loc => locations.add(loc));
+
+    // 2. Tự động quét từ các card phòng trọ trong trang
+    document.querySelectorAll('.room-item-card').forEach(card => {
+        const areaName = card.getAttribute('data-area-name');
+        if (areaName) {
+            const trimmed = areaName.trim().toLowerCase();
+            locations.add(trimmed);
+            locations.add(normalizeText(trimmed));
+        }
+
+        const title = card.getAttribute('data-title');
+        if (title) {
+            const schoolMatches = title.match(/(?:dai hoc|cao dang|truong)\s+[a-zA-Z0-9\sÀ-ỹ]+/gi);
+            if (schoolMatches) {
+                schoolMatches.forEach(match => {
+                    const cleaned = match.replace(/[\,\.\-\;]/g, '').trim().toLowerCase();
+                    if (cleaned.length > 5) {
+                        locations.add(cleaned);
+                        locations.add(normalizeText(cleaned));
+                    }
+                });
+            }
+        }
+    });
+
+    // Sắp xếp theo chiều dài giảm dần để ưu tiên so khớp các cụm từ dài nhất trước
+    return Array.from(locations).sort((a, b) => b.length - a.length);
+}
+
 function parseNaturalSearch(query) {
     const normalized = query
         .toLowerCase()
@@ -556,34 +606,34 @@ function parseNaturalSearch(query) {
         locations: [],
         amenities: {
             pets: normalized.includes('thu cung') || normalized.includes('pet'),
-            loft: normalized.includes('gac') || normalized.includes('gac lung'),
+            loft: normalized.includes('gac') || normalized.includes('gac lung') || normalized.includes('gac xep'),
             balcony: normalized.includes('ban cong'),
-            wc: normalized.includes('khep kin') || normalized.includes('wc') || normalized.includes('ve sinh')
+            wc: normalized.includes('khep kin') || normalized.includes('wc') || normalized.includes('ve sinh') || normalized.includes('nha ve sinh')
         },
         near: []
     };
 
-    const priceMatch = normalized.match(/(?:duoi|nho hon|toi da|<=?)\s*(\d+(?:[.,]\d+)?)\s*(trieu|tr|m|000000)?/);
+    const priceMatch = normalized.match(/(?:duoi|nho hon|toi da|<=?|tam|khoang)\s*(\d+(?:[.,]\d+)?)\s*(trieu|tr|m|000000)?/);
     if (priceMatch) {
         const amount = parseFloat(priceMatch[1].replace(',', '.'));
         parsed.maxPrice = amount < 100000 ? amount * 1000000 : amount;
     }
 
-    const locationAliases = [
-        ['cau giay', 'cầu giấy'],
-        ['thanh xuan', 'thanh xuân'],
-        ['quan 10', 'quận 10'],
-        ['bach khoa', 'bách khoa'],
-        ['dai hoc bach khoa', 'đại học bách khoa'],
-        ['su pham', 'sư phạm'],
-        ['quoc gia', 'quốc gia'],
-        ['xuan thuy', 'xuân thủy']
-    ];
+    const dynamicLocs = getDynamicLocations();
+    let tempQuery = normalized;
 
-    locationAliases.forEach(([plain, label]) => {
-        if (normalized.includes(plain)) {
-            parsed.locations.push(plain);
-            parsed.near.push(label);
+    dynamicLocs.forEach(loc => {
+        const index = tempQuery.indexOf(loc);
+        if (index !== -1) {
+            // Kiểm tra xem đây có phải là một từ độc lập hay không (tránh 'quan 1' khớp trong 'quan 10')
+            const isWord = (index === 0 || /\s/.test(tempQuery[index - 1])) && 
+                           (index + loc.length === tempQuery.length || /\s/.test(tempQuery[index + loc.length]));
+            
+            if (isWord) {
+                parsed.locations.push(loc);
+                parsed.near.push(loc);
+                tempQuery = tempQuery.substring(0, index) + ' ' + tempQuery.substring(index + loc.length);
+            }
         }
     });
 
@@ -761,9 +811,19 @@ function initRentyMap() {
 
     const mockRooms = window.rentyRoomsData || {};
 
-    // Center of Cầu Giấy area in Hà Nội
-    const center = [21.036, 105.790];
+    // Center of Cầu Giấy area in Hà Nội by default
+    let center = [21.036, 105.790];
     
+    // Check if the first room is in HCMC to center the map on HCMC initially
+    const roomsArray = Object.values(mockRooms);
+    if (roomsArray.length > 0) {
+        const firstRoom = roomsArray[0];
+        const firstRoomIsHcm = (firstRoom.address && (firstRoom.address.includes('Hồ Chí Minh') || firstRoom.address.includes('Bình Thạnh') || firstRoom.address.includes('Quận 10') || firstRoom.address.includes('HCM'))) || (firstRoom.area_name && (firstRoom.area_name.includes('Quan 10') || firstRoom.area_name.includes('Bình Thạnh') || firstRoom.area_name.includes('Hồ Chí Minh')));
+        if (firstRoomIsHcm) {
+            center = [10.798, 106.705];
+        }
+    }
+
     // Create map
     rentyMap = L.map('renty-interactive-map', {
         zoomControl: true,
@@ -778,13 +838,14 @@ function initRentyMap() {
 
     // Add markers
     Object.values(mockRooms).forEach(room => {
-        // Generate a deterministic coordinate in Cầu Giấy based on room ID
+        // Generate a deterministic coordinate based on room address/region
+        const isHcm = (room.address && (room.address.includes('Hồ Chí Minh') || room.address.includes('Bình Thạnh') || room.address.includes('Quận 10') || room.address.includes('HCM'))) || (room.area_name && (room.area_name.includes('Quan 10') || room.area_name.includes('Bình Thạnh') || room.area_name.includes('Hồ Chí Minh')));
         const offsetLat = Math.sin(room.id * 1.7) * 0.006;
         const offsetLng = Math.cos(room.id * 2.3) * 0.006;
-        const lat = 21.036 + offsetLat;
-        const lng = 105.790 + offsetLng;
+        const lat = isHcm ? (10.798 + offsetLat) : (21.036 + offsetLat);
+        const lng = isHcm ? (106.705 + offsetLng) : (105.790 + offsetLng);
 
-        const shortPrice = (function(price) {
+        const shortPrice = (function (price) {
             if (price >= 1000000) {
                 return (price / 1000000).toFixed(1).replace('.0', '') + 'M';
             }
@@ -839,7 +900,7 @@ function initRentyMap() {
             document.querySelectorAll('.glowing-teal-pin').forEach(pin => {
                 pin.classList.remove('active');
             });
-            
+
             // Add active state to this pin
             const pinEl = document.getElementById(`map-pin-${room.id}`);
             if (pinEl) {
@@ -875,7 +936,7 @@ function initRentyMap() {
     coordBox.id = 'map-coords-indicator';
     coordBox.className = 'absolute bottom-4 left-4 z-[1000] px-3 py-1.5 rounded-xl bg-slate-950/85 border border-white/10 text-[10px] font-extrabold text-slate-300 backdrop-blur pointer-events-none transition-opacity duration-300 opacity-0 flex items-center shadow-lg';
     coordBox.innerHTML = `<i class="fa-solid fa-location-crosshairs text-teal-400 mr-1.5"></i> 0.00000, 0.00000`;
-    
+
     const mapContainer = document.getElementById('renty-interactive-map');
     if (mapContainer) {
         mapContainer.appendChild(coordBox);
@@ -952,7 +1013,7 @@ function setViewMode(mode) {
             if (rentyMap) {
                 rentyMap.invalidateSize();
             }
-        }, 100);
+        }, 450);
     } else {
         document.body.classList.remove('renty-map-mode');
         if (mapBtn) mapBtn.classList.remove('active');
@@ -1026,43 +1087,286 @@ function runSearchWithSkeleton() {
     }, 680);
 }
 
+let rentyCurrentPage = 1;
+const rentyItemsPerPage = 9;
+
+// Dynamically render premium glassmorphism pagination controls
+function renderPageButton(page, isActive) {
+    return `
+        <button type="button" 
+                onclick="changeRentyPage(${page})" 
+                class="w-9 h-9 rounded-xl font-extrabold text-xs transition-all border ${isActive ? 'bg-gradient-to-tr from-emerald-600 to-teal-500 text-white border-transparent shadow-lg shadow-emerald-500/20' : 'bg-slate-900/40 border-slate-800/80 text-slate-400 hover:border-emerald-500/30 hover:text-slate-200'}">
+            ${page}
+        </button>
+    `;
+}
+
+function renderEllipsisButton(totalPages) {
+    return `
+        <div class="relative inline-block pagination-ellipsis-container">
+            <button type="button" 
+                    onclick="makePaginationInput(this, ${totalPages})" 
+                    class="w-9 h-9 rounded-xl font-extrabold text-xs transition-all border bg-slate-900/40 border-slate-800/80 text-slate-400 hover:border-emerald-500/30 hover:text-slate-200 flex items-center justify-center cursor-pointer"
+                    title="Click để nhập số trang nhanh">
+                ...
+            </button>
+        </div>
+    `;
+}
+
+function makePaginationInput(button, totalPages) {
+    const container = button.parentElement;
+    if (!container) return;
+
+    container.innerHTML = `
+        <input type="number" 
+               min="1" 
+               max="${totalPages}" 
+               placeholder="..." 
+               class="w-12 h-9 text-center rounded-xl bg-slate-950/90 border border-emerald-500/80 text-emerald-400 font-extrabold text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all shadow-lg shadow-emerald-500/10 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+               onkeydown="handlePaginationInputKey(event, this, ${totalPages})" 
+               onblur="restorePaginationEllipsis(this, ${totalPages})">
+    `;
+
+    const input = container.querySelector('input');
+    if (input) {
+        input.focus();
+        input.select();
+    }
+}
+
+function handlePaginationInputKey(event, input, totalPages) {
+    if (event.key === 'Enter') {
+        const val = parseInt(input.value);
+        if (!isNaN(val) && val >= 1 && val <= totalPages) {
+            changeRentyPage(val);
+        } else {
+            input.classList.add('border-rose-500', 'text-rose-450');
+            setTimeout(() => {
+                input.classList.remove('border-rose-500', 'text-rose-455');
+            }, 500);
+        }
+    } else if (event.key === 'Escape') {
+        restorePaginationEllipsis(input, totalPages);
+    }
+}
+
+function restorePaginationEllipsis(input, totalPages) {
+    const container = input.parentElement;
+    if (!container) return;
+
+    setTimeout(() => {
+        if (container.contains(input)) {
+            container.innerHTML = `
+                <button type="button" 
+                        onclick="makePaginationInput(this, ${totalPages})" 
+                        class="w-9 h-9 rounded-xl font-extrabold text-xs transition-all border bg-slate-900/40 border-slate-800/80 text-slate-400 hover:border-emerald-500/30 hover:text-slate-200 flex items-center justify-center cursor-pointer"
+                        title="Click để nhập số trang nhanh">
+                    ...
+                </button>
+            `;
+        }
+    }, 120);
+}
+
+// Make functions global
+window.makePaginationInput = makePaginationInput;
+window.handlePaginationInputKey = handlePaginationInputKey;
+window.restorePaginationEllipsis = restorePaginationEllipsis;
+
+function renderPaginationControls(totalPages) {
+    const container = document.getElementById('renty-pagination');
+    if (!container) return;
+
+    if (totalPages <= 1) {
+        container.innerHTML = '';
+        return;
+    }
+
+    let html = '';
+
+    // Previous Button
+    html += `
+        <button type="button" 
+                onclick="changeRentyPage(${rentyCurrentPage - 1})" 
+                class="px-4 py-2 rounded-xl bg-slate-900/40 border border-slate-800/85 hover:border-emerald-500/40 hover:text-emerald-400 transition-all font-bold text-xs flex items-center justify-center gap-1.5 ${rentyCurrentPage === 1 ? 'opacity-40 cursor-not-allowed' : ''}" 
+                ${rentyCurrentPage === 1 ? 'disabled' : ''}>
+            <i class="fa-solid fa-chevron-left text-[10px]"></i> Trước
+        </button>
+    `;
+
+    // Page numbers algorithm
+    const maxVisiblePages = 7;
+    if (totalPages <= maxVisiblePages) {
+        for (let i = 1; i <= totalPages; i++) {
+            html += renderPageButton(i, i === rentyCurrentPage);
+        }
+    } else {
+        // We have more than 7 pages, use ellipsis
+        if (rentyCurrentPage <= 4) {
+            // Near the start: 1 2 3 4 5 ... totalPages
+            for (let i = 1; i <= 5; i++) {
+                html += renderPageButton(i, i === rentyCurrentPage);
+            }
+            html += renderEllipsisButton(totalPages);
+            html += renderPageButton(totalPages, false);
+        } else if (rentyCurrentPage >= totalPages - 3) {
+            // Near the end: 1 ... totalPages-4 totalPages-3 totalPages-2 totalPages-1 totalPages
+            html += renderPageButton(1, false);
+            html += renderEllipsisButton(totalPages);
+            for (let i = totalPages - 4; i <= totalPages; i++) {
+                html += renderPageButton(i, i === rentyCurrentPage);
+            }
+        } else {
+            // In the middle: 1 ... current-1 current current+1 ... totalPages
+            html += renderPageButton(1, false);
+            html += renderEllipsisButton(totalPages);
+            
+            html += renderPageButton(rentyCurrentPage - 1, false);
+            html += renderPageButton(rentyCurrentPage, true);
+            html += renderPageButton(rentyCurrentPage + 1, false);
+            
+            html += renderEllipsisButton(totalPages);
+            html += renderPageButton(totalPages, false);
+        }
+    }
+
+    // Next Button
+    html += `
+        <button type="button" 
+                onclick="changeRentyPage(${rentyCurrentPage + 1})" 
+                class="px-4 py-2 rounded-xl bg-slate-900/40 border border-slate-800/85 hover:border-emerald-500/40 hover:text-emerald-400 transition-all font-bold text-xs flex items-center justify-center gap-1.5 ${rentyCurrentPage === totalPages ? 'opacity-40 cursor-not-allowed' : ''}" 
+                ${rentyCurrentPage === totalPages ? 'disabled' : ''}>
+            Sau <i class="fa-solid fa-chevron-right text-[10px]"></i>
+        </button>
+    `;
+
+    container.innerHTML = html;
+}
+
+function changeRentyPage(page) {
+    rentyCurrentPage = page;
+    filterItems({ resetPage: false });
+    
+    // Smooth scroll to top of main workspace
+    const resultsCount = document.getElementById('results-count');
+    if (resultsCount) {
+        resultsCount.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+// Make changeRentyPage global so inline event handler onclick works
+window.changeRentyPage = changeRentyPage;
+
 // Search and filter function
 function filterItems(options = {}) {
     clearTimeout(rentySearchSkeletonTimer);
     if (!options.keepSkeleton) {
         setSearchSkeletonLoading(false);
     }
+    
+    // Reset page to 1 unless explicitly requested to keep page
+    if (options.resetPage !== false) {
+        rentyCurrentPage = 1;
+    }
+    
     const query = document.getElementById('search-input').value;
     const parsedSearch = parseNaturalSearch(query);
     const normalizedQuery = normalizeText(query);
     const filterPrice = document.getElementById('filter-price').value;
     const filterRating = document.getElementById('filter-rating').value;
-    
-    const petChecked = document.getElementById('tag-pets').checked;
-    const loftChecked = document.getElementById('tag-loft').checked;
-    const balconyChecked = document.getElementById('tag-balcony').checked;
+    const distanceSlider = document.getElementById('distance-slider');
+    const filterDistance = distanceSlider ? parseFloat(distanceSlider.value) : 3.0;
+
+    const petEl = document.getElementById('tag-pets');
+    const petChecked = petEl ? petEl.checked : false;
+    const loftEl = document.getElementById('tag-loft');
+    const loftChecked = loftEl ? loftEl.checked : false;
+    const balconyEl = document.getElementById('tag-balcony');
+    const balconyChecked = balconyEl ? balconyEl.checked : false;
     const wcChecked = document.getElementById('tag-wc') ? document.getElementById('tag-wc').checked : false;
     const hideRented = document.getElementById('hide-rented-toggle') ? document.getElementById('hide-rented-toggle').checked : false;
 
-    let matchesCount = 0;
+    let matches = [];
 
     document.querySelectorAll('.room-item-card').forEach(card => {
         const title = card.getAttribute('data-title').toLowerCase();
         const price = parseInt(card.getAttribute('data-price'));
         const rating = parseFloat(card.getAttribute('data-rating'));
+        const distance = parseFloat(card.getAttribute('data-distance') || 0);
         const pets = card.getAttribute('data-pets') === 'true';
         const loft = card.getAttribute('data-loft') === 'true';
         const balcony = card.getAttribute('data-balcony') === 'true';
         const wc = card.getAttribute('data-wc') === 'true';
         const status = card.getAttribute('data-status');
-        const searchableText = normalizeText(`${card.getAttribute('data-title')} ${card.getAttribute('data-area-name')} ${card.textContent}`);
+        const searchableText = normalizeText(
+            `${card.getAttribute('data-title')} ` +
+            `${card.getAttribute('data-area-name')} ` +
+            `${card.getAttribute('data-address') || ''} ` +
+            `${card.getAttribute('data-location-desc') || ''} ` +
+            `${card.getAttribute('data-space-desc') || ''} ` +
+            `${card.getAttribute('data-scenery-desc') || ''} ` +
+            `${card.textContent}`
+        );
 
         let matchesQuery = true;
         if (normalizedQuery.trim() !== '') {
-            const importantTerms = parsedSearch.keywords.filter(term => !['tim', 'phong', 'tro', 'duoi', 'o', 'gan', 'dai', 'hoc', 'trieu', 'tr', 'gia'].includes(term));
-            matchesQuery = importantTerms.length === 0 || importantTerms.some(term => searchableText.includes(term));
+            // 1. Loại bỏ các từ quan hệ thừa ở đầu hoặc trong query để tìm kiếm cụm từ sạch
+            const cleanQuery = normalizedQuery
+                .replace(/^(gan|o|tim|cho thue|khu vuc|xung quanh)\s+/g, '')
+                .replace(/\b(gan|o|tim|cho thue|khu vuc|xung quanh)\b/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+
+            const containsFullQuery = searchableText.includes(cleanQuery);
+
+            // 2. Thử so khớp các từ khóa quan trọng với độ phủ cao (Ratio Matching)
+            const stopWords = [
+                'tim', 'phong', 'tro', 'duoi', 'o', 'gan', 'dai', 'hoc', 'trieu', 'tr', 'gia',
+                'co', 'khong', 'cho', 'thue', 'can', 'ho', 'va', 'voi', 'trong', 'ngoai',
+                'dep', 're', 'nha', 'chinh', 'chu', 'thang'
+            ];
+
+            // Loại bỏ từ khóa tiện ích đã được bóc tách
+            const amenityWords = [];
+            if (parsedSearch.amenities.pets) amenityWords.push('thu', 'cung', 'pet', 'pets');
+            if (parsedSearch.amenities.loft) amenityWords.push('gac', 'lung', 'xep');
+            if (parsedSearch.amenities.balcony) amenityWords.push('ban', 'cong');
+            if (parsedSearch.amenities.wc) amenityWords.push('khep', 'kin', 'wc', 've', 'sinh', 'toilet');
+
+            // Loại bỏ từ khóa địa danh đã được bóc tách
+            const locationWords = [];
+            parsedSearch.locations.forEach(loc => {
+                locationWords.push(...loc.split(/\s+/));
+            });
+
+            const importantTerms = parsedSearch.keywords.filter(term => {
+                return !stopWords.includes(term) && 
+                       !amenityWords.includes(term) && 
+                       !locationWords.includes(term);
+            });
+
+            // So khớp thông minh:
+            let matchesAllTerms = false;
+            if (importantTerms.length === 0) {
+                matchesAllTerms = true;
+            } else {
+                const matchCount = importantTerms.filter(term => searchableText.includes(term)).length;
+                const matchRatio = matchCount / importantTerms.length;
+                
+                if (importantTerms.length <= 2) {
+                    // Nếu từ khóa ngắn (1-2 từ), yêu cầu khớp 100% (ví dụ: "metro", "thu duc")
+                    matchesAllTerms = (matchRatio === 1);
+                } else {
+                    // Nếu từ khóa dài (từ 3 từ trở lên), cho phép khớp tối thiểu 70% số từ để hỗ trợ tìm tự do 
+                    // (ví dụ: "truong cao dang thu duc" vẫn khớp nếu phòng chỉ có "cao dang thu duc")
+                    matchesAllTerms = (matchRatio >= 0.7);
+                }
+            }
+
+            matchesQuery = containsFullQuery || matchesAllTerms;
         }
-        
+
         let matchesPrice = true;
         if (filterPrice !== 'all') {
             matchesPrice = price <= parseInt(filterPrice);
@@ -1074,6 +1378,11 @@ function filterItems(options = {}) {
         let matchesRating = true;
         if (filterRating !== 'all') {
             matchesRating = rating >= parseFloat(filterRating);
+        }
+
+        let matchesDistance = true;
+        if (distanceSlider) {
+            matchesDistance = distance <= filterDistance;
         }
 
         let matchesTags = true;
@@ -1096,9 +1405,8 @@ function filterItems(options = {}) {
             matchesStatus = false;
         }
 
-        if (matchesQuery && matchesPrice && matchesRating && matchesTags && matchesLocation && matchesStatus) {
-            card.classList.remove('hidden');
-            matchesCount++;
+        if (matchesQuery && matchesPrice && matchesRating && matchesDistance && matchesTags && matchesLocation && matchesStatus) {
+            matches.push(card);
             showMarker(card.getAttribute('data-room-id'));
         } else {
             card.classList.add('hidden');
@@ -1106,7 +1414,44 @@ function filterItems(options = {}) {
         }
     });
 
+    const matchesCount = matches.length;
     document.getElementById('results-count').textContent = `Tìm thấy ${matchesCount} phòng`;
+
+    // Calculate total pages
+    const totalPages = Math.ceil(matchesCount / rentyItemsPerPage);
+    if (rentyCurrentPage > totalPages) {
+        rentyCurrentPage = totalPages || 1;
+    }
+    if (rentyCurrentPage < 1) {
+        rentyCurrentPage = 1;
+    }
+
+    const startIndex = (rentyCurrentPage - 1) * rentyItemsPerPage;
+    const endIndex = startIndex + rentyItemsPerPage;
+
+    matches.forEach((card, index) => {
+        if (index >= startIndex && index < endIndex) {
+            card.classList.remove('hidden');
+        } else {
+            card.classList.add('hidden');
+        }
+    });
+
+    renderPaginationControls(totalPages);
+
+    // Fit map bounds to visible markers
+    if (rentyMap && typeof L !== 'undefined') {
+        const visibleLatLngs = [];
+        Object.values(rentyMarkers).forEach(marker => {
+            if (rentyMap.hasLayer(marker)) {
+                visibleLatLngs.push(marker.getLatLng());
+            }
+        });
+        if (visibleLatLngs.length > 0) {
+            const bounds = L.latLngBounds(visibleLatLngs);
+            rentyMap.fitBounds(bounds, { maxZoom: 14, padding: [30, 30] });
+        }
+    }
 }
 
 function openRentySearchSuggestions() {
@@ -1122,10 +1467,42 @@ function blurRentySearch() {
 
 function applySearchSuggestion(query) {
     const input = document.getElementById('search-input');
-    input.value = query;
-    input.focus();
-    openRentySearchSuggestions();
-    filterItems();
+    if (input) {
+        input.value = query;
+        if (!document.getElementById('rooms-grid')) {
+            window.location.href = '/renty?search=' + encodeURIComponent(query);
+        } else {
+            input.focus();
+            openRentySearchSuggestions();
+            filterItems();
+        }
+    }
+}
+
+function triggerRentySearch() {
+    const input = document.getElementById('search-input');
+    if (!input) return;
+    const value = input.value;
+    if (!document.getElementById('rooms-grid')) {
+        window.location.href = '/renty?search=' + encodeURIComponent(value);
+    } else {
+        filterItems();
+        blurRentySearch();
+    }
+}
+window.triggerRentySearch = triggerRentySearch;
+
+function handleSearchInput(e) {
+    if (!document.getElementById('rooms-grid')) {
+        if (e.key === 'Enter') {
+            window.location.href = '/renty?search=' + encodeURIComponent(e.target.value);
+        }
+    } else {
+        filterItems();
+        if (e.key === 'Enter') {
+            blurRentySearch();
+        }
+    }
 }
 
 function initSearchListeners() {
@@ -1147,11 +1524,11 @@ function subscribeEmptyNotification(event, roomId, roomTitle) {
         event.preventDefault();
         event.stopPropagation();
     }
-    
+
     document.getElementById('notify-room-id').value = roomId;
     document.getElementById('notify-room-title-display').textContent = roomTitle;
     document.getElementById('notify-contact-input').value = '';
-    
+
     const modal = document.getElementById('notify-subscribe-modal');
     modal.classList.remove('hidden');
 }
@@ -1164,9 +1541,9 @@ function handleNotifySubscribeSubmit(event) {
     event.preventDefault();
     const roomTitle = document.getElementById('notify-room-title-display').textContent;
     const contactInput = document.getElementById('notify-contact-input').value.trim();
-    
+
     if (!contactInput) return;
-    
+
     closeNotifySubscribeModal();
     showCustomAlert('Đăng ký thành công!', `Đã kích hoạt chuông báo trống phòng thành công cho phòng "${roomTitle}". Chúng tôi sẽ gửi thông báo tới "${contactInput}" ngay khi phòng Sẵn sàng.`);
 }
@@ -1185,7 +1562,7 @@ function toggleVisualFilter(key) {
     const btn = document.getElementById(`vbtn-${key}`);
     const checkbox = document.getElementById(`tag-${key}`);
     if (!btn || !checkbox) return;
-    
+
     checkbox.checked = !checkbox.checked;
     btn.classList.toggle('active', checkbox.checked);
     filterItems();
@@ -1195,7 +1572,7 @@ function syncFromCheckbox(key) {
     const btn = document.getElementById(`vbtn-${key}`);
     const checkbox = document.getElementById(`tag-${key}`);
     if (!btn || !checkbox) return;
-    
+
     btn.classList.toggle('active', checkbox.checked);
     filterItems();
 }
@@ -1207,10 +1584,20 @@ function initRentyDashboard() {
     }
 
     renderViewedRooms();
-    
+
     // Set initial view mode, default to 'grid'
     const savedMode = localStorage.getItem('rentry_view_mode') || 'grid';
     setViewMode(savedMode);
+
+    // Read search param from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchQuery = urlParams.get('search');
+    if (searchQuery) {
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.value = searchQuery;
+        }
+    }
 
     filterItems(); // Run initial filter to apply checked state of pets & balcony
 }
@@ -1481,7 +1868,7 @@ function submitQaQuestion() {
         newCard.className = 'qa-card rounded-2xl border border-slate-800/50 flex flex-col justify-between transition-all duration-300 hover:border-slate-700/60 group/card overflow-hidden animate-fade-in';
         newCard.style.backgroundColor = '#1a1a20';
         newCard.style.animationDelay = '0s';
-        
+
         newCard.innerHTML = `
             <div class="p-5 pb-0">
                 <!-- Meta Row -->
@@ -1745,6 +2132,7 @@ window.filterItems = filterItems;
 window.openRentySearchSuggestions = openRentySearchSuggestions;
 window.blurRentySearch = blurRentySearch;
 window.applySearchSuggestion = applySearchSuggestion;
+window.handleSearchInput = handleSearchInput;
 window.subscribeEmptyNotification = subscribeEmptyNotification;
 window.closeNotifySubscribeModal = closeNotifySubscribeModal;
 window.handleNotifySubscribeSubmit = handleNotifySubscribeSubmit;
@@ -1768,3 +2156,51 @@ window.subscribeNewsletter = subscribeNewsletter;
 window.openQaCommentsModal = openQaCommentsModal;
 window.closeQaCommentsModal = closeQaCommentsModal;
 window.submitQaReply = submitQaReply;
+
+function updateDistanceSlider(val) {
+    const slider = document.getElementById('distance-slider');
+    if (!slider) return;
+    const min = parseFloat(slider.min) || 0;
+    const max = parseFloat(slider.max) || 3;
+    const percentage = ((parseFloat(val) - min) / (max - min)) * 100;
+    slider.style.setProperty('--range-progress', `${percentage}%`);
+    
+    // Update feedback text
+    const feedback = document.getElementById('distance-feedback');
+    if (feedback) {
+        feedback.innerText = `Tìm phòng trong bán kính dưới ${val}km từ Đại học Bách Khoa`;
+    }
+    
+    // Update active state on ticks
+    document.querySelectorAll('.tick-mark').forEach(tick => {
+        const tickVal = parseFloat(tick.getAttribute('data-value'));
+        if (parseFloat(val) >= tickVal) {
+            tick.classList.add('active', 'text-teal-400');
+        } else {
+            tick.classList.remove('active', 'text-teal-400');
+        }
+    });
+    
+    // Run filtering
+    filterItems();
+}
+
+function setSliderValue(val) {
+    const slider = document.getElementById('distance-slider');
+    if (slider) {
+        slider.value = val;
+        updateDistanceSlider(val);
+    }
+}
+
+// Bind distance slider helpers to window
+window.updateDistanceSlider = updateDistanceSlider;
+window.setSliderValue = setSliderValue;
+
+// Initialize the distance slider progress on DOM Content Loaded
+document.addEventListener('DOMContentLoaded', () => {
+    const slider = document.getElementById('distance-slider');
+    if (slider) {
+        updateDistanceSlider(slider.value);
+    }
+});
