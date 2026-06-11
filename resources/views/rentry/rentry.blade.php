@@ -286,14 +286,16 @@
                 <div class="flex items-center gap-3 bg-slate-950/45 px-4 py-2 rounded-2xl border border-slate-900/60 backdrop-blur-sm">
                     <span class="text-xs text-slate-400 font-bold select-none">Ẩn phòng đã thuê</span>
                     <label class="ios-switch">
-                  @foreach($rooms as $room)
-                @include('rentry.partials.room_card', ['room' => $room])
-            @endforeach        <a href="{{ route('renty.room.show', $room['id']) }}" class="text-xs text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-                            <span>Chi tiết review</span> <i class="fa-solid fa-angle-right"></i>
-                        </a>
-                    </div>
+                        <input type="checkbox" id="hide-rented-toggle" onchange="filterItems()">
+                        <span class="ios-slider"></span>
+                    </label>
                 </div>
             </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16" id="rooms-grid">
+            @foreach($rooms as $room)
+                @include('rentry.partials.room_card', ['room' => $room])
             @endforeach
         </div>
 
