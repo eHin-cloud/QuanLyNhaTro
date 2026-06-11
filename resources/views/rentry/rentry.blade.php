@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -330,55 +330,359 @@
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Article Card 1 -->
-                <article class="group bg-slate-900/40 backdrop-blur-md border border-slate-800 hover:border-teal-500/40 rounded-2xl overflow-hidden hover:shadow-[0_20px_50px_rgba(20,184,166,0.12)] transition-all duration-300 flex flex-col justify-between">
-                    <div class="p-6">
-                        <div class="flex items-center gap-2 mb-4">
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-teal-500/10 text-teal-400 border border-teal-500/20 uppercase tracking-wider">
-                                Review Phòng
-                            </span>
-                            <span class="text-[11px] text-slate-500 font-bold">5 giờ trước</span>
-                        </div>
-                        <h3 class="text-sm font-bold text-slate-200 group-hover:text-teal-400 transition-colors mb-3">
-                            Kinh nghiệm tìm nhà trọ quanh Đại học Bách Khoa Hà Nội
-                        </h3>
-                        <p class="text-slate-400 text-[11px] leading-relaxed mb-4">
-                            Tổng hợp danh sách các khu vực trọ an ninh tốt, giá hợp lý ở ngõ Tự Do, Trần Đại Nghĩa và Lê Thanh Nghị cho tân sinh viên khóa mới chuẩn bị nhập học.
-                        </p>
-                    </div>
-                    <div class="px-6 pb-6 pt-3 border-t border-slate-800/40 flex justify-between items-center bg-slate-950/20">
-                        <span class="text-[10px] text-slate-500 font-semibold">Tác giả: Hoàng Anh</span>
-                        <a href="javascript:void(0)" class="text-[11px] text-teal-400 hover:text-teal-300 font-bold flex items-center gap-1 group-hover:translate-x-0.5 transition-all">
-                            Đọc tiếp <i class="fa-solid fa-angle-right text-[9px]"></i>
-                        </a>
-                    </div>
-                </article>
+            @php
+            $featuredArticles = [
+                [
+                    'id' => 1,
+                    'tag' => 'Review Phòng',
+                    'tag_class' => 'bg-teal-500/10 text-teal-400 border border-teal-500/20',
+                    'time' => '5 giờ trước',
+                    'title' => 'Kinh nghiệm tìm nhà trọ quanh Đại học Bách Khoa Hà Nội',
+                    'summary' => 'Tổng hợp danh sách các khu vực trọ an ninh tốt, giá hợp lý ở ngõ Tự Do, Trần Đại Nghĩa và Lê Thanh Nghị cho tân sinh viên khóa mới chuẩn bị nhập học.',
+                    'author' => 'Hoàng Anh',
+                    'border_color' => 'teal',
+                    'shadow_color' => '20,184,166',
+                    'text_color' => 'teal-400',
+                    'text_hover_color' => 'teal-300',
+                    'detail' => '
+                        <p><strong class="text-slate-200">1. Ngõ Tự Do (Hai Bà Trưng):</strong> Khu vực yên tĩnh, cách cổng trường Bách Khoa chỉ 300m. Giá phòng dao động từ 2.5 – 4 triệu/tháng. An ninh tốt nhờ camera và bảo vệ khu phố. Nhược điểm: đường vào hẹp, hay ngập khi mưa lớn.</p>
+                        <p><strong class="text-slate-200">2. Trần Đại Nghĩa:</strong> Nhiều lựa chọn phòng mới xây với đầy đủ tiện nghi (điều hòa, nóng lạnh, giặt miễn phí). Giá cao hơn khu Tự Do khoảng 500k–1tr. Gần quán ăn, tiện đi lại. Phù hợp bạn nào thích tiện nghi.</p>
+                        <p><strong class="text-slate-200">3. Lê Thanh Nghị:</strong> Giá mềm hơn (2 – 3.5 triệu), nhưng phòng thường cũ hơn. Gần ga Hà Nội nên hơi ồn ban đêm. Bù lại, rất thuận tiện đi các tuyến xe buýt và đường sắt đô thị.</p>
+                        <p><strong class="text-teal-400">💡 Mẹo:</strong> Nên đi xem phòng vào buổi tối để đánh giá tiếng ồn thực tế và kiểm tra ánh sáng hành lang, camera an ninh. Hỏi rõ về tiền điện nước trước khi đặt cọc.</p>
+                    '
+                ],
+                [
+                    'id' => 2,
+                    'tag' => 'Khu Vực',
+                    'tag_class' => 'bg-teal-500/10 text-teal-400 border border-teal-500/20',
+                    'time' => '1 ngày trước',
+                    'title' => 'Đánh giá an ninh ngõ 119 Chùa Láng đợt nắng nóng cao điểm',
+                    'summary' => 'Phản hồi chân thực từ cộng đồng khách thuê về tình hình điện nước, camera giám sát và giờ giấc đóng mở cửa của các tòa nhà chung cư mini trong khu vực.',
+                    'author' => 'Khánh Linh',
+                    'border_color' => 'teal',
+                    'shadow_color' => '20,184,166',
+                    'text_color' => 'teal-400',
+                    'text_hover_color' => 'teal-300',
+                    'detail' => '
+                        <p><strong class="text-slate-200">Tình hình điện nước:</strong> Đợt nắng nóng tháng 6, khu 119 Chùa Láng bị cúp nước 2–3 lần/tuần, mỗi lần kéo dài 4–6 tiếng. Điện ổn định hơn nhưng giá điện tại một số nhà trọ bị tính cao (4.000đ/kWh so với giá EVN).</p>
+                        <p><strong class="text-slate-200">Camera an ninh:</strong> Khoảng 60% nhà trọ trong ngõ đã lắp camera ở cổng và hành lang. Tuy nhiên, vẫn có tình trạng mất trộm xe đạp điện tại các nhà chưa có bảo vệ trực đêm.</p>
+                        <p><strong class="text-slate-200">Giờ giấc đóng cửa:</strong> Đa số nhà trọ khóa cổng lúc 23h00. Một số nhà linh hoạt hơn cho ra vào bằng vân tay đến 1h sáng. Sinh viên hay đi làm thêm ca tối nên cần hỏi kỹ trước khi thuê.</p>
+                        <p><strong class="text-teal-400">⚠️ Lưu ý:</strong> Nên kiểm tra hợp đồng có ghi rõ giá điện nước không. Tham khảo thêm bảng giá EVN để so sánh. Nếu chủ nhà tính quá cao, có thể phản ánh qua Sở Công Thương.</p>
+                    '
+                ],
+                [
+                    'id' => 3,
+                    'tag' => 'TP. HCM',
+                    'tag_class' => 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+                    'time' => '3 giờ trước',
+                    'title' => 'Top khu trọ giá rẻ quanh Làng Đại Học Thủ Đức cho tân sinh viên',
+                    'summary' => 'Hướng dẫn chi tiết tìm phòng trọ gần ĐH Bách Khoa, KHTN, Nông Lâm TP.HCM với giá từ 2.5 – 4 triệu/tháng kèm review thực tế từ sinh viên.',
+                    'author' => 'Minh Đức',
+                    'border_color' => 'amber',
+                    'shadow_color' => '245,158,11',
+                    'text_color' => 'amber-400',
+                    'text_hover_color' => 'amber-300',
+                    'detail' => '
+                        <p><strong class="text-slate-200">1. Khu Linh Trung – Linh Chiểu:</strong> Vị trí sát Làng Đại học, đi bộ 5–10 phút đến cổng trường. Giá phòng 2.5 – 3.5tr/tháng, đa số là nhà trọ dân xây. Ưu điểm: rẻ, gần trường. Nhược điểm: phòng nhỏ, ít tiện nghi cao cấp.</p>
+                        <p><strong class="text-slate-200">2. Khu Xa lộ Hà Nội – Trường Thọ:</strong> Phòng mới xây hơn, nhiều căn hộ mini có thang máy. Giá 3.5 – 4.5tr/tháng. Gần trạm Metro số 1 (Bến Xe Miền Đông mới), đi Quận 1 chỉ 20 phút. Phù hợp bạn đi làm thêm ở trung tâm.</p>
+                        <p><strong class="text-slate-200">3. Khu Đường số 7 – Khu phố 6:</strong> Khu trọ sinh viên lâu đời, giá mềm nhất (2 – 3tr). Nhà trọ đông đúc, vui, dễ tìm bạn ở ghép. Lưu ý: hay ngập khi mưa lớn, nên chọn phòng tầng 2 trở lên.</p>
+                        <p><strong class="text-amber-400">💡 Mẹo:</strong> Đăng lên nhóm Facebook "Phòng trọ Thủ Đức – Làng ĐH" để tìm phòng nhanh. Luôn đến xem phòng trước khi cọc. Hỏi kỹ giá điện (trên 3.500đ/kWh là đắt), nước, wifi và có cho nấu ăn không.</p>
+                    '
+                ],
+                [
+                    'id' => 4,
+                    'tag' => 'TP. HCM',
+                    'tag_class' => 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+                    'time' => '2 ngày trước',
+                    'title' => 'So sánh chi phí thuê trọ Quận 7 vs Gò Vấp – Đâu là lựa chọn tốt nhất?',
+                    'summary' => 'Phân tích giá phòng, tiện ích xung quanh, giao thông và chất lượng sống giữa 2 khu vực hot nhất Sài Gòn cho dân văn phòng và sinh viên.',
+                    'author' => 'Thanh Trúc',
+                    'border_color' => 'amber',
+                    'shadow_color' => '245,158,11',
+                    'text_color' => 'amber-400',
+                    'text_hover_color' => 'amber-300',
+                    'detail' => '
+                        <p><strong class="text-slate-200">Quận 7 – Phú Mỹ Hưng:</strong> Giá thuê cao hơn (5 – 8tr/tháng) nhưng đổi lại là môi trường sống sạch đẹp, an ninh tốt, gần Lotte Mart, SC VivoCity, bệnh viện FV. Phù hợp dân văn phòng thu nhập khá hoặc gia đình trẻ.</p>
+                        <p><strong class="text-slate-200">Gò Vấp:</strong> Giá mềm hơn nhiều (2.5 – 4tr/tháng), tiện ích đa dạng: chợ, Emart, Công viên Gia Định. Giao thông thuận tiện đi Quận 1, Bình Thạnh. Gần ĐH Công nghiệp, Văn Lang. Nhược điểm: kẹt xe giờ cao điểm ở Nguyễn Oanh và Phan Văn Trị.</p>
+                        <p><strong class="text-slate-200">Bình Thạnh – phương án trung gian:</strong> Giá 3.5 – 6tr, nằm giữa trung tâm và ngoại ô. Gần Ngã tư Hàng Xanh, Metro, nhiều trường ĐH (HUTECH, Ngoại Thương). Khu Nguyễn Gia Trí (D2 cũ) có nhiều studio đẹp, phù hợp freelancer.</p>
+                        <p><strong class="text-amber-400">⚠️ Lưu ý:</strong> Ở HCM nên ưu tiên phòng có ban công (thoáng, đỡ nóng). Kiểm tra kỹ hệ thống thoát nước (hay ngập mùa mưa). Nên thuê gần trạm Metro nếu đi làm ở Quận 1 – tiết kiệm thời gian và chi phí.</p>
+                    '
+                ],
+                [
+                    'id' => 5,
+                    'tag' => 'Cảnh Báo',
+                    'tag_class' => 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
+                    'time' => '3 ngày trước',
+                    'title' => 'Cảnh giác các chiêu trò lừa đảo đặt cọc phòng trọ mùa nhập học',
+                    'summary' => 'Tổng hợp các mánh khóe lừa tiền cọc giữ chỗ phổ biến hiện nay từ những kẻ mạo danh chủ trọ trên mạng xã hội.',
+                    'author' => 'Quốc Việt',
+                    'border_color' => 'rose',
+                    'shadow_color' => '244,63,94',
+                    'text_color' => 'rose-400',
+                    'text_hover_color' => 'rose-300',
+                    'detail' => '
+                        <p><strong class="text-slate-200">1. Đặt cọc giữ chỗ qua mạng không gặp mặt:</strong> Kẻ lừa đảo copy hình ảnh phòng đẹp từ các trang khác, rao giá cực rẻ rồi hối thúc khách chuyển khoản giữ chỗ qua tài khoản ảo ngân hàng.</p>
+                        <p><strong class="text-slate-200">2. Chủ nhà giả mạo:</strong> Dẫn khách đi xem phòng nhưng thực ra là thuê AirBnb theo ngày hoặc giả danh quản lý để nhận tiền cọc của 5-10 người cùng một lúc rồi biến mất.</p>
+                        <p><strong class="text-slate-200">3. Phát sinh phí khôn lường:</strong> Ghi hợp đồng mập mờ, sau khi chuyển vào thì bắt buộc đóng thêm phí dịch vụ cắt cổ như tiền giặt, tiền bảo trì thang máy, tiền rác gấp 5 lần bình thường.</p>
+                        <p><strong class="text-rose-400">⚠️ Cách phòng tránh:</strong> Tuyệt đối không cọc khi chưa xem phòng trực tiếp, chưa gặp chủ nhà và kiểm tra giấy tờ chứng minh sở hữu căn nhà.</p>
+                    '
+                ],
+                [
+                    'id' => 6,
+                    'tag' => 'Chia Sẻ',
+                    'tag_class' => 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20',
+                    'time' => '4 ngày trước',
+                    'title' => 'Kinh nghiệm ở ghép cùng người lạ: Làm sao để tránh xung đột?',
+                    'summary' => 'Các nguyên tắc vàng để duy trì mối quan hệ hòa thuận, chia sẻ chi phí sòng phẳng khi thuê phòng ở ghép cùng người mới quen.',
+                    'author' => 'Phương Thảo',
+                    'border_color' => 'indigo',
+                    'shadow_color' => '99,102,241',
+                    'text_color' => 'indigo-400',
+                    'text_hover_color' => 'indigo-300',
+                    'detail' => '
+                        <p><strong class="text-slate-200">1. Thống nhất quy tắc tài chính:</strong> Chia đều hóa đơn điện nước, mạng internet, ga ăn uống ngay từ đầu tháng. Tạo file Excel theo dõi minh bạch.</p>
+                        <p><strong class="text-slate-200">2. Giờ giấc sinh hoạt & Dọn dẹp vệ sinh:</strong> Phân chia lịch trực nhật phòng tắm, nấu ăn cụ thể. Hạn chế dẫn bạn bè về phòng tụ tập khuya gây ảnh hưởng đến giấc ngủ của người khác.</p>
+                        <p><strong class="text-slate-200">3. Tôn trọng không gian riêng tư:</strong> Không tự ý sử dụng đồ dùng cá nhân, mỹ phẩm hay quần áo của bạn cùng phòng khi chưa được sự đồng ý.</p>
+                        <p><strong class="text-indigo-400">💡 Gợi ý:</strong> Nên có một buổi nói chuyện thẳng thắn mỗi tháng để cùng nhau tháo gỡ những điểm chưa hài lòng, tránh tích tụ bức xúc lâu ngày.</p>
+                    '
+                ],
+                [
+                    'id' => 7,
+                    'tag' => 'Khu Vực',
+                    'tag_class' => 'bg-teal-500/10 text-teal-400 border border-teal-500/20',
+                    'time' => '5 ngày trước',
+                    'title' => 'Đánh giá chi tiết ngõ 175 Xuân Thủy Cầu Giấy dưới góc nhìn sinh viên',
+                    'summary' => 'Phân tích tiện ích xung quanh, tình hình giao thông, giá cả sinh hoạt tại ngõ trọ hot bậc nhất Cầu Giấy.',
+                    'author' => 'Bảo Châu',
+                    'border_color' => 'teal',
+                    'shadow_color' => '20,184,166',
+                    'text_color' => 'teal-400',
+                    'text_hover_color' => 'teal-300',
+                    'detail' => '
+                        <p><strong class="text-slate-200">Ưu điểm:</strong> Nằm ngay trung tâm Cầu Giấy, gần các trường Đại học Sư Phạm, Quốc Gia, Báo Chí. Xung quanh ngõ có chợ dân sinh, siêu thị mini và vô vàn quán ăn giá rẻ cho sinh viên.</p>
+                        <p><strong class="text-slate-200">Nhược điểm:</strong> Mật độ dân cư quá đông đúc, ngõ nhỏ hẹp thường xuyên xảy ra ùn tắc vào giờ cao điểm từ 17h00 - 19h00. Tiếng ồn từ các hàng quán mở muộn có thể ảnh hưởng đến học tập.</p>
+                        <p><strong class="text-slate-200">Chi phí:</strong> Giá phòng ở đây dao động từ 2.8 - 4.5tr. Chi phí ăn uống cực kỳ rẻ nhờ cạnh tranh cao, trung bình chỉ 30k-35k cho một suất cơm trưa chất lượng.</p>
+                    '
+                ],
+                [
+                    'id' => 8,
+                    'tag' => 'Tiện Ích',
+                    'tag_class' => 'bg-violet-500/10 text-violet-400 border border-violet-500/20',
+                    'time' => '1 tuần trước',
+                    'title' => 'Những tiện ích bắt buộc phải có khi thuê căn hộ dịch vụ Quận 10',
+                    'summary' => 'Danh sách các trang bị cơ bản giúp tối ưu cuộc sống bận rộn của người đi làm khi thuê phòng dịch vụ.',
+                    'author' => 'Anh Tuấn',
+                    'border_color' => 'violet',
+                    'shadow_color' => '139,92,246',
+                    'text_color' => 'violet-400',
+                    'text_hover_color' => 'violet-300',
+                    'detail' => '
+                        <p><strong class="text-slate-200">1. Hệ thống giặt sấy chung/riêng:</strong> Giúp tiết kiệm thời gian phơi phóng quần áo, đặc biệt tiện lợi trong mùa mưa kéo dài ở Sài Gòn.</p>
+                        <p><strong class="text-slate-200">2. Khóa vân tay tích hợp camera:</strong> Đảm bảo chỉ người trong tòa nhà được ra vào, hạn chế người lạ đột nhập trộm xe máy ở tầng trệt.</p>
+                        <p><strong class="text-slate-200">3. Khu bếp nấu ăn thông thoáng:</strong> Phòng có cửa sổ lớn hoặc máy hút mùi giúp tránh ám mùi dầu mỡ vào giường ngủ.</p>
+                        <p><strong class="text-violet-400">🔥 Lưu ý đặc biệt:</strong> Kiểm tra xem tòa nhà có trang bị thang thoát hiểm bên ngoài và hệ thống báo cháy tự động hoạt động tốt hay không.</p>
+                    '
+                ],
+                [
+                    'id' => 9,
+                    'tag' => 'Khu Vực',
+                    'tag_class' => 'bg-teal-500/10 text-teal-400 border border-teal-500/20',
+                    'time' => '1 tuần trước',
+                    'title' => 'Review khu vực trọ Phùng Khoang, Thanh Xuân – Thiên đường giá rẻ',
+                    'summary' => 'Đánh giá chân thực về mức giá thuê phòng, chi phí ăn uống và những lưu ý an ninh tại khu chợ Phùng Khoang.',
+                    'author' => 'Tiến Đạt',
+                    'border_color' => 'teal',
+                    'shadow_color' => '20,184,166',
+                    'text_color' => 'teal-400',
+                    'text_hover_color' => 'teal-300',
+                    'detail' => '
+                        <p><strong class="text-slate-200">Giá phòng:</strong> Rất rẻ, chỉ từ 1.8 - 2.5 triệu cho phòng khép kín cơ bản, phù hợp với các bạn sinh viên muốn tối ưu ngân sách chi tiêu hàng tháng.</p>
+                        <p><strong class="text-slate-200">Ăn uống & Mua sắm:</strong> Chợ Phùng Khoang bán thực phẩm tươi sống với giá vô cùng hạt dẻ. Đồ ăn vặt, quần áo thời trang dọc ngõ trọ phong phú, phục vụ học sinh sinh viên.</p>
+                        <p><strong class="text-slate-200">An ninh:</strong> Do lượng người qua lại lớn nên an ninh phức tạp hơn các khu khác. Cần chọn tòa nhà có bảo vệ hoặc camera giám sát bãi để xe 24/24.</p>
+                    '
+                ],
+                [
+                    'id' => 10,
+                    'tag' => 'Cẩm Nang',
+                    'tag_class' => 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+                    'time' => '2 tuần trước',
+                    'title' => 'Check-list 10 điều bắt buộc phải kiểm tra trước khi đặt bút ký hợp đồng trọ',
+                    'summary' => 'Cẩm nang pháp lý và thực tế giúp người thuê nhà bảo vệ quyền lợi, tránh các tranh chấp về sau.',
+                    'author' => 'Lan Hương',
+                    'border_color' => 'emerald',
+                    'shadow_color' => '16,185,129',
+                    'text_color' => 'emerald-400',
+                    'text_hover_color' => 'emerald-300',
+                    'detail' => '
+                        <p><strong class="text-slate-200">1. Xác minh thông tin chủ nhà:</strong> Yêu cầu xem sổ hồng căn nhà hoặc hợp đồng ủy quyền quản lý hợp pháp của chủ nhà.</p>
+                        <p><strong class="text-slate-200">2. Làm rõ giá dịch vụ:</strong> Ghi rõ giá điện, nước, internet, tiền rác, tiền xe trong hợp đồng; tránh việc tăng giá đột ngột sau vài tháng ở.</p>
+                        <p><strong class="text-slate-200">3. Chụp ảnh tình trạng thiết bị:</strong> Lưu lại hình ảnh hiện trạng tường sơn, tủ lạnh, điều hòa khi bàn giao để đối chiếu khi chuyển đi, tránh bị trừ tiền cọc oan.</p>
+                        <p><strong class="text-emerald-400">💡 Lời khuyên:</strong> Hãy thỏa thuận rõ về thời gian báo trước khi trả phòng (thường là 30 ngày) để nhận lại đầy đủ 100% tiền đặt cọc.</p>
+                    '
+                ],
+                [
+                    'id' => 11,
+                    'tag' => 'Review Phòng',
+                    'tag_class' => 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+                    'time' => '2 tuần trước',
+                    'title' => 'Đánh giá chất lượng chung cư mini khu vực Quận Bình Thạnh',
+                    'summary' => 'Trải nghiệm thực tế về không gian sống, dịch vụ vệ sinh và sự thuận tiện đi lại của các căn hộ studio Bình Thạnh.',
+                    'author' => 'Tuấn Kiệt',
+                    'border_color' => 'amber',
+                    'shadow_color' => '245,158,11',
+                    'text_color' => 'amber-400',
+                    'text_hover_color' => 'amber-300',
+                    'detail' => '
+                        <p><strong class="text-slate-200">Vị trí đắc địa:</strong> Gần Ngã tư Hàng Xanh, dễ dàng kết nối sang Quận 1, Quận 2 và Thủ Đức. Khu Nguyễn Gia Trí nhộn nhịp, đầy đủ tiện ích mua sắm, ăn chơi giải trí.</p>
+                        <p><strong class="text-slate-200">Chất lượng phòng:</strong> Hầu hết là chung cư mini mới xây từ 3-5 năm, thiết kế studio hiện đại có ban công lớn đón ánh sáng tự nhiên. Giá thuê tầm 5.5 - 7.5 triệu.</p>
+                        <p><strong class="text-slate-200">Điểm trừ:</strong> Tình trạng ngập úng nhẹ ở các hẻm nhỏ dọc đường Nguyễn Hữu Cảnh, Xô Viết Nghệ Tĩnh khi triều cường lên cao hoặc mưa lớn liên tục.</p>
+                    '
+                ],
+                [
+                    'id' => 12,
+                    'tag' => 'Khu Vực',
+                    'tag_class' => 'bg-teal-500/10 text-teal-400 border border-teal-500/20',
+                    'time' => '3 tuần trước',
+                    'title' => 'Review trọ khu vực Tây Hồ: Sang xịn mịn, view hồ thoáng mát',
+                    'summary' => 'Khảo sát giá thuê căn hộ studio, phong cách thiết kế và đối tượng người thuê chủ yếu tại khu vực ven Hồ Tây.',
+                    'author' => 'Thu Trang',
+                    'border_color' => 'teal',
+                    'shadow_color' => '20,184,166',
+                    'text_color' => 'teal-400',
+                    'text_hover_color' => 'teal-300',
+                    'detail' => '
+                        <p><strong class="text-slate-200">Không gian sống:</strong> Không khí trong lành nhất Hà Nội, thoáng đãng, nhiều cây xanh. Phù hợp cho những ai yêu thích sự yên tĩnh, bình yên sau giờ học và làm việc căng thẳng.</p>
+                        <p><strong class="text-slate-200">Giá cả:</strong> Khá cao, dao động từ 6 – 10 triệu/tháng cho căn hộ studio đầy đủ nội thất cao cấp. Đối tượng thuê chủ yếu là người nước ngoài và người đi làm thu nhập cao.</p>
+                        <p><strong class="text-slate-200">Tiện ích:</strong> Nhiều quán cafe view hồ xinh xắn, phòng gym hiện đại, nhà hàng Tây Âu và siêu thị đồ nhập khẩu chất lượng cao.</p>
+                    '
+                ],
+                [
+                    'id' => 13,
+                    'tag' => 'Chia Sẻ',
+                    'tag_class' => 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20',
+                    'time' => '3 tuần trước',
+                    'title' => 'Kinh nghiệm vàng giúp tiết kiệm tối đa chi phí sinh hoạt cho sinh viên ở trọ',
+                    'summary' => 'Những mẹo thực tiễn giúp quản lý tài chính thông minh, giảm thiểu hóa đơn tiền điện nước hàng tháng hiệu quả.',
+                    'author' => 'Minh Quân',
+                    'border_color' => 'indigo',
+                    'shadow_color' => '99,102,241',
+                    'text_color' => 'indigo-400',
+                    'text_hover_color' => 'indigo-300',
+                    'detail' => '
+                        <p><strong class="text-slate-200">1. Tự nấu ăn tại phòng:</strong> Hạn chế ăn ngoài hàng quán, chuẩn bị cơm hộp đi học giúp tiết kiệm đến 50% chi phí ăn uống mỗi tháng.</p>
+                        <p><strong class="text-slate-200">2. Sử dụng điện nước tiết kiệm:</strong> Tắt điều hòa khi ra ngoài, tận dụng ánh sáng tự nhiên ban ngày, gom quần áo giặt chung máy giặt để tiết kiệm điện nước.</p>
+                        <p><strong class="text-slate-200">3. Tìm bạn ở ghép:</strong> Chia sẻ không gian sống cùng 1-2 người bạn thân giúp giảm thiểu một nửa tiền phòng và các phí dịch vụ chung khác.</p>
+                    '
+                ],
+                [
+                    'id' => 14,
+                    'tag' => 'An Toàn',
+                    'tag_class' => 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
+                    'time' => '1 tháng trước',
+                    'title' => 'Cẩm nang an toàn phòng cháy chữa cháy tại các khu nhà trọ nhiều tầng',
+                    'summary' => 'Hướng dẫn kiểm tra lối thoát hiểm, cách sử dụng bình chữa cháy và xử lý tình huống khẩn cấp khi xảy ra hỏa hoạn.',
+                    'author' => 'Đức Hùng',
+                    'border_color' => 'rose',
+                    'shadow_color' => '244,63,94',
+                    'text_color' => 'rose-400',
+                    'text_hover_color' => 'rose-300',
+                    'detail' => '
+                        <p><strong class="text-slate-200">1. Khảo sát lối thoát hiểm:</strong> Luôn xác định rõ các hướng thoát hiểm phụ như ban công, lối lên sân thượng của tòa nhà khi mới chuyển đến ở.</p>
+                        <p><strong class="text-slate-200">2. Trang bị bình chữa cháy mini:</strong> Đề xuất chủ nhà trang bị đầy đủ bình chữa cháy dạng bột/khí CO2 tại khu vực cầu thang bộ mỗi tầng trệt.</p>
+                        <p><strong class="text-slate-200">3. Quy tắc an toàn điện xe máy:</strong> Hạn chế sạc xe máy điện, xe đạp điện qua đêm ở tầng trệt khi không có hệ thống ngắt điện tự động an toàn.</p>
+                    '
+                ]
+            ];
+            @endphp
 
-                <!-- Article Card 2 -->
-                <article class="group bg-slate-900/40 backdrop-blur-md border border-slate-800 hover:border-teal-500/40 rounded-2xl overflow-hidden hover:shadow-[0_20px_50px_rgba(20,184,166,0.12)] transition-all duration-300 flex flex-col justify-between">
-                    <div class="p-6">
-                        <div class="flex items-center gap-2 mb-4">
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-teal-500/10 text-teal-400 border border-teal-500/20 uppercase tracking-wider">
-                                Khu Vực
-                            </span>
-                            <span class="text-[11px] text-slate-500 font-bold">1 ngày trước</span>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                @foreach ($featuredArticles as $index => $article)
+                    <!-- Article Card {{ $article['id'] }} -->
+                    <article id="article-card-{{ $article['id'] }}" class="group bg-slate-900/40 backdrop-blur-md border border-slate-800 hover:border-{{ $article['border_color'] }}/40 rounded-2xl overflow-hidden hover:shadow-[0_20px_50px_rgba({{ $article['shadow_color'] }},0.12)] transition-all duration-300 flex flex-col justify-between {{ $index >= 4 ? 'article-extra hidden' : '' }}">
+                        <div class="p-6">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold {{ $article['tag_class'] }} uppercase tracking-wider">
+                                    {{ $article['tag'] }}
+                                </span>
+                                <span class="text-[11px] text-slate-500 font-bold">{{ $article['time'] }}</span>
+                            </div>
+                            <h3 class="text-sm font-bold text-slate-200 group-hover:text-{{ $article['text_color'] }} transition-colors mb-3">
+                                {{ $article['title'] }}
+                            </h3>
+                            <p class="text-slate-400 text-[11px] leading-relaxed mb-4">
+                                {{ $article['summary'] }}
+                            </p>
+                            <div id="article-detail-{{ $article['id'] }}" class="hidden mt-2 pt-4 border-t border-slate-800/30 space-y-3 text-[11px] text-slate-400 leading-relaxed animate-fadeIn">
+                                {!! $article['detail'] !!}
+                            </div>
                         </div>
-                        <h3 class="text-sm font-bold text-slate-200 group-hover:text-teal-400 transition-colors mb-3">
-                            Đánh giá an ninh ngõ 119 Chùa Láng đợt nắng nóng cao điểm
-                        </h3>
-                        <p class="text-slate-400 text-[11px] leading-relaxed mb-4">
-                            Phản hồi chân thực từ cộng đồng khách thuê về tình hình điện nước, camera giám sát và giờ giấc đóng mở cửa của các tòa nhà chung cư mini trong khu vực.
-                        </p>
-                    </div>
-                    <div class="px-6 pb-6 pt-3 border-t border-slate-800/40 flex justify-between items-center bg-slate-950/20">
-                        <span class="text-[10px] text-slate-500 font-semibold">Tác giả: Khánh Linh</span>
-                        <a href="javascript:void(0)" class="text-[11px] text-teal-400 hover:text-teal-300 font-bold flex items-center gap-1 group-hover:translate-x-0.5 transition-all">
-                            Đọc tiếp <i class="fa-solid fa-angle-right text-[9px]"></i>
-                        </a>
-                    </div>
-                </article>
+                        <div class="px-6 pb-6 pt-3 border-t border-slate-800/40 flex justify-between items-center bg-slate-950/20">
+                            <span class="text-[10px] text-slate-500 font-semibold">Tác giả: {{ $article['author'] }}</span>
+                            <button type="button" onclick="toggleArticleDetail({{ $article['id'] }})" id="article-toggle-{{ $article['id'] }}" class="text-[11px] text-{{ $article['text_color'] }} hover:text-{{ $article['text_hover_color'] }} font-bold flex items-center gap-1 group-hover:translate-x-0.5 transition-all cursor-pointer">
+                                Đọc tiếp <i class="fa-solid fa-angle-right text-[9px] transition-transform" id="article-icon-{{ $article['id'] }}"></i>
+                            </button>
+                        </div>
+                    </article>
+                @endforeach
             </div>
+
+            @if (count($featuredArticles) > 4)
+                <div class="flex justify-center mt-8" id="show-more-articles-btn-container">
+                    <button type="button" onclick="toggleMoreArticles()" id="toggle-more-articles-btn" class="px-6 py-2.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-900 hover:border-teal-500/40 text-teal-400 hover:text-teal-300 text-xs font-bold transition-all shadow-lg flex items-center gap-2 cursor-pointer">
+                        <span id="toggle-more-articles-btn-text">Xem thêm bài viết</span>
+                        <i id="toggle-more-articles-btn-icon" class="fa-solid fa-chevron-down text-[10px]"></i>
+                    </button>
+                </div>
+            @endif
+
+            <script>
+            function toggleMoreArticles() {
+                const extraArticles = document.querySelectorAll('.article-extra');
+                const btnText = document.getElementById('toggle-more-articles-btn-text');
+                const btnIcon = document.getElementById('toggle-more-articles-btn-icon');
+                if (!btnText || !btnIcon || extraArticles.length === 0) return;
+
+                const isHidden = extraArticles[0].classList.contains('hidden');
+
+                if (isHidden) {
+                    extraArticles.forEach(art => {
+                        art.classList.remove('hidden');
+                        art.style.animation = 'fadeSlideDown 0.4s ease-out forwards';
+                    });
+                    btnText.textContent = 'Thu gọn bài viết';
+                    btnIcon.className = 'fa-solid fa-chevron-up text-[10px]';
+                } else {
+                    extraArticles.forEach(art => {
+                        art.classList.add('hidden');
+                    });
+                    btnText.textContent = 'Xem thêm bài viết';
+                    btnIcon.className = 'fa-solid fa-chevron-down text-[10px]';
+                    
+                    // Smoothly scroll back to the top of featured articles section
+                    const sectionHeader = document.querySelector('.fa-newspaper').closest('h2');
+                    if (sectionHeader) {
+                        sectionHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }
+            }
+
+            function toggleArticleDetail(id) {
+                const detail = document.getElementById('article-detail-' + id);
+                const toggleBtn = document.getElementById('article-toggle-' + id);
+                const icon = document.getElementById('article-icon-' + id);
+                if (!detail || !toggleBtn) return;
+
+                const isHidden = detail.classList.contains('hidden');
+                detail.classList.toggle('hidden', !isHidden);
+                
+                if (isHidden) {
+                    toggleBtn.innerHTML = 'Thu gọn <i class="fa-solid fa-angle-up text-[9px] transition-transform"></i>';
+                    detail.style.animation = 'fadeSlideDown 0.3s ease-out forwards';
+                } else {
+                    toggleBtn.innerHTML = 'Đọc tiếp <i class="fa-solid fa-angle-right text-[9px] transition-transform"></i>';
+                }
+            }
+            </script>
         </section>
 
         <!-- COMMUNITY Q&A SECTION -->
@@ -646,7 +950,7 @@
                 <div class="quick-preview-tags" id="quick-preview-tags"></div>
 
                 <div class="quick-preview-actions">
-                    <a href="tel:0987654321" class="quick-preview-call">
+                    <a href="tel:0396519196" class="quick-preview-call">
                         <i class="fa-solid fa-phone"></i> Gọi ngay
                     </a>
                     <a href="#" id="quick-preview-detail" class="quick-preview-detail">
@@ -905,10 +1209,10 @@
                             </div>
                         </div>
                         <div class="flex gap-2">
-                            <a href="tel:0987654321" class="flex-1 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold text-center flex items-center justify-center gap-1.5 transition-all">
+                            <a href="tel:0396519196" class="flex-1 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold text-center flex items-center justify-center gap-1.5 transition-all">
                                 <i class="fa-solid fa-phone"></i> Gọi điện
                             </a>
-                            <a href="https://zalo.me/0987654321" target="_blank" class="flex-1 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold text-center flex items-center justify-center gap-1.5 transition-all">
+                            <a href="https://zalo.me/0396519196" target="_blank" class="flex-1 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold text-center flex items-center justify-center gap-1.5 transition-all">
                                 <i class="fa-solid fa-comments"></i> Chat Zalo
                             </a>
                         </div>
@@ -965,7 +1269,7 @@
                         </div>
                         <div class="flex-1 space-y-2" id="review-score-bars"></div>
                     </div>
-                    <a href="https://zalo.me/0987654321" target="_blank" class="w-full min-h-10 rounded-lg bg-blue-600/20 border border-blue-500/30 text-blue-200 text-xs font-extrabold flex items-center justify-center gap-2 hover:bg-blue-600/30 transition-all">
+                    <a href="https://zalo.me/0396519196" target="_blank" class="w-full min-h-10 rounded-lg bg-blue-600/20 border border-blue-500/30 text-blue-200 text-xs font-extrabold flex items-center justify-center gap-2 hover:bg-blue-600/30 transition-all">
                         <i class="fa-solid fa-comments"></i> Chat Zalo để hỏi phòng
                     </a>
                 </div>
@@ -1022,8 +1326,8 @@
                     <strong id="sticky-room-price">3.2tr/tháng</strong>
                 </div>
                 <div class="sticky-actions">
-                    <a href="tel:0987654321" class="sticky-call-button"><i class="fa-solid fa-phone"></i> Gọi điện</a>
-                    <a href="https://zalo.me/0987654321" target="_blank" class="sticky-zalo-button"><i class="fa-solid fa-comments"></i> Chat Zalo</a>
+                    <a href="tel:0396519196" class="sticky-call-button"><i class="fa-solid fa-phone"></i> Gọi điện</a>
+                    <a href="https://zalo.me/0396519196" target="_blank" class="sticky-zalo-button"><i class="fa-solid fa-comments"></i> Chat Zalo</a>
                 </div>
             </div>
         </div>
