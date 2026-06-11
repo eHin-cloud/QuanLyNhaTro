@@ -79,6 +79,48 @@
         .custom-scroll::-webkit-scrollbar-thumb:hover {
             background: rgba(16, 185, 129, 0.4);
         }
+
+        /* 3D Tilt Glare Elements */
+        .tilt-element {
+            transform-style: preserve-3d;
+            will-change: transform;
+            transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+            position: relative;
+        }
+
+        .card-3d-glare {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at var(--glare-x, 50%) var(--glare-y, 50%), rgba(255, 255, 255, 0.1) 0%, transparent 60%);
+            z-index: 5;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            mix-blend-mode: overlay;
+            border-radius: inherit;
+        }
+        .tilt-element:hover .card-3d-glare {
+            opacity: 1;
+        }
+
+        /* AI Summary Glowing Pulsing Box */
+        #review-summary-box {
+            position: relative;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(6, 182, 212, 0.05) 100%) !important;
+            border: 1px solid rgba(16, 185, 129, 0.25) !important;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.05) !important;
+            animation: summary-pulse 3s infinite alternate;
+        }
+        @keyframes summary-pulse {
+            0% {
+                border-color: rgba(16, 185, 129, 0.25);
+                box-shadow: 0 10px 30px rgba(16, 185, 129, 0.05);
+            }
+            100% {
+                border-color: rgba(6, 182, 212, 0.4);
+                box-shadow: 0 10px 35px rgba(6, 182, 212, 0.12);
+            }
+        }
     </style>
 </head>
 <body class="bg-[#080b11] text-slate-100 min-h-screen overflow-x-hidden selection:bg-emerald-500 selection:text-white">
@@ -132,7 +174,7 @@
                     @endphp
                     
                     <!-- Ảnh chính tràn toàn bộ khung -->
-                    <button type="button" onclick="openZoomWithIndex(activeImageIndex)" class="relative block w-full h-[320px] md:h-[480px] rounded-xl overflow-hidden group text-left">
+                    <button type="button" onclick="openZoomWithIndex(activeImageIndex)" class="tilt-element relative block w-full h-[320px] md:h-[480px] rounded-xl overflow-hidden group text-left">
                         <img id="main-image" src="{{ $images[0]['url'] ?? $room['cover_image'] }}" alt="{{ $images[0]['label'] ?? 'Ảnh phòng' }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.015]" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80';">
                         <span class="media-overlay-label absolute left-4 bottom-4 z-10">
                             <i class="fa-solid fa-camera text-emerald-300 mr-1.5"></i><span id="main-image-label">{{ $images[0]['label'] ?? 'View toàn phòng' }}</span>
@@ -224,7 +266,7 @@
                                 $colorIdx = (ord(strtolower($firstLetter)) % count($bgColors));
                                 $avatarClass = $bgColors[$colorIdx];
                             @endphp
-                            <article class="p-4 rounded-xl bg-slate-900/30 border border-slate-800/50 hover:border-slate-800 transition-all relative group shadow-[inset_0_1px_0_rgba(255,255,255,0.01)]">
+                            <article class="tilt-element p-4 rounded-xl bg-slate-900/30 border border-slate-800/50 hover:border-slate-800 transition-all relative group shadow-[inset_0_1px_0_rgba(255,255,255,0.01)]">
                                 <!-- Background Quote Decors -->
                                 <i class="fa-solid fa-quote-right absolute right-4 top-4 text-slate-800/10 text-3xl pointer-events-none group-hover:text-slate-800/20 transition-colors"></i>
                                 
@@ -285,7 +327,7 @@
             <!-- Right Sidebar Columns (Sticky cards) -->
             <aside class="lg:sticky lg:top-24 space-y-5">
                 <!-- Bento box: Thông số phòng -->
-                <section class="p-6 rounded-2xl bg-slate-900/30 border border-slate-800/80 backdrop-blur-md relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+                <section class="tilt-element p-6 rounded-2xl bg-slate-900/30 border border-slate-800/80 backdrop-blur-md relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
                     <div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent"></div>
                     
                     <h2 class="text-sm font-extrabold text-slate-100 mb-4 flex items-center gap-2">
@@ -355,7 +397,7 @@
                 @endif
 
                 <!-- Glassmorphic Receipt Box: Chi phí dự kiến -->
-                <section class="p-6 rounded-2xl bg-slate-900/30 border border-slate-800/80 backdrop-blur-md relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+                <section class="tilt-element p-6 rounded-2xl bg-slate-900/30 border border-slate-800/80 backdrop-blur-md relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
                     <div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent"></div>
                     
                     <h2 class="text-sm font-extrabold text-slate-100 mb-4 flex items-center gap-2">
@@ -403,7 +445,7 @@
                 </section>
 
                 <!-- Liên hệ & Hẹn lịch xem trọ -->
-                <section class="p-6 rounded-2xl bg-slate-900/30 border border-slate-800/80 backdrop-blur-md relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+                <section class="tilt-element p-6 rounded-2xl bg-slate-900/30 border border-slate-800/80 backdrop-blur-md relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
                     <div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-teal-500/30 to-transparent"></div>
                     
                     <h2 class="text-sm font-extrabold text-slate-100 mb-4 flex items-center gap-2">
@@ -681,6 +723,39 @@
                 if (event.key === 'ArrowLeft') changeZoom(-1);
                 if (event.key === 'ArrowRight') changeZoom(1);
             }
+        });
+
+        // Initialize 3D Card Tilt effects on detail page cards
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.tilt-element').forEach(el => {
+                // Prepend glare sheen dynamically
+                if (!el.querySelector('.card-3d-glare')) {
+                    const glare = document.createElement('div');
+                    glare.className = 'card-3d-glare';
+                    el.appendChild(glare);
+                }
+                
+                el.addEventListener('mousemove', (e) => {
+                    const rect = el.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const xc = rect.width / 2;
+                    const yc = rect.height / 2;
+                    const dx = x - xc;
+                    const dy = y - yc;
+
+                    const rotateX = -(dy / yc) * 6;
+                    const rotateY = (dx / xc) * 6;
+
+                    el.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.015, 1.015, 1.015)`;
+                    el.style.setProperty('--glare-x', `${(x / rect.width) * 100}%`);
+                    el.style.setProperty('--glare-y', `${(y / rect.height) * 100}%`);
+                });
+
+                el.addEventListener('mouseleave', () => {
+                    el.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+                });
+            });
         });
     </script>
 </body>

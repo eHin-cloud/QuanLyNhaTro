@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -63,8 +63,10 @@
     @include('header.header')
 
     <!-- HERO BENTO GRID & ADVANCED FILTERS -->
-    <section id="renty-hero-section" class="container mx-auto px-6 pt-8 pb-8 max-w-6xl relative z-10">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <section id="renty-hero-section" class="container mx-auto px-6 pt-8 pb-8 max-w-6xl relative z-10 overflow-hidden rounded-3xl">
+        <!-- Ambient floating particles background -->
+        <canvas id="renty-ambient-particles" class="absolute inset-0 w-full h-full pointer-events-none z-0" style="mix-blend-mode: screen;"></canvas>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
             <!-- Bento Box 1: Main Search & Visual Filters (Col span 2) -->
             <div class="lg:col-span-2 bg-gradient-to-br from-slate-900/40 to-slate-950/40 border border-slate-800/80 rounded-3xl p-6 md:p-8 backdrop-blur-md flex flex-col justify-between relative overflow-hidden group">
                 <!-- Decorative absolute glow inside card -->
@@ -272,7 +274,13 @@
         <!-- Room Cards List Pane (Right 50% in map mode) -->
         <div class="renty-split-right">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 border-b border-slate-900 pb-4 renty-split-header">
-            <h2 class="text-lg font-bold text-slate-200" id="results-count">Tìm thấy {{ count($rooms) }} phòng</h2>
+            <div class="flex items-center gap-3.5 flex-wrap">
+                <h2 class="text-lg font-bold text-slate-200" id="results-count">Tìm thấy {{ count($rooms) }} phòng</h2>
+                <div id="live-activity-pill" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-extrabold text-emerald-400 select-none shadow-sm transition-all duration-500">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span id="live-activity-text">24 người đang xem khu vực Đống Đa</span>
+                </div>
+            </div>
             
             <div class="flex flex-wrap items-center gap-3 self-start sm:self-auto">
                 <!-- View Mode Toggle (Map vs Grid) -->
@@ -1589,9 +1597,23 @@
 <!-- ═══════════════════════════════════════════════════════════════════ -->
 <!-- RENTY CHATBOT - Tư vấn tìm trọ thông minh                       -->
 <!-- ═══════════════════════════════════════════════════════════════════ -->
-<div id="renty-chatbot-toggle" class="renty-chatbot-toggle" onclick="toggleRentyChatbot()" aria-label="Mở chatbot tư vấn">
+<!-- Holographic AI Assistant Mascot & Speech Bubble -->
+<div id="renty-agent-bubble" class="renty-agent-bubble">
+    <div class="renty-agent-bubble-header">
+        <i class="fa-solid fa-sparkles text-teal-400"></i> Renty Companion AI
+    </div>
+    <div id="renty-agent-bubble-text" class="renty-agent-bubble-body">
+        Chào bạn! Mình có thể giúp bạn tìm phòng và check review quanh khu vực đấy!
+    </div>
+</div>
+
+<div id="renty-chatbot-toggle" class="renty-chatbot-toggle" onclick="toggleRentyChatbot()" aria-label="Mở chatbot tư vấn" onmouseenter="showAgentBubble()" onmouseleave="hideAgentBubble()">
     <div class="renty-chatbot-toggle-pulse"></div>
-    <i class="fa-solid fa-comments"></i>
+    <div class="renty-chatbot-toggle-glow"></div>
+    <!-- Mascot representation -->
+    <div class="renty-chatbot-mascot">
+        <i class="fa-solid fa-robot"></i>
+    </div>
     <span class="renty-chatbot-badge" id="renty-chatbot-badge">1</span>
 </div>
 
@@ -1639,6 +1661,62 @@
         <button type="button" onclick="sendRentyChatbotMessage()" aria-label="Gửi tin nhắn" class="renty-chatbot-send-btn">
             <i class="fa-solid fa-paper-plane"></i>
         </button>
+    </div>
+</div>
+
+<!-- FLOATING ROOM COMPARISON BAR -->
+<div id="renty-compare-bar" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#0d121f]/90 border border-slate-800 rounded-2xl px-6 py-4 flex items-center justify-between gap-6 backdrop-blur-lg shadow-2xl transition-all duration-300 translate-y-24 opacity-0 pointer-events-none max-w-lg w-[calc(100%-2rem)]">
+    <div class="flex items-center gap-3">
+        <span class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center text-xs shrink-0 font-bold" id="compare-count-badge">0</span>
+        <div>
+            <h4 class="text-xs font-bold text-slate-200">So sánh phòng trọ</h4>
+            <p class="text-[10px] text-slate-400">Chọn tối đa 3 phòng để so sánh chi tiết</p>
+        </div>
+    </div>
+    <div class="flex items-center gap-3">
+        <button type="button" onclick="clearCompareList()" class="px-3 py-2 text-[10px] font-bold text-slate-400 hover:text-slate-200 hover:bg-slate-900 rounded-xl transition-all">
+            Xóa hết
+        </button>
+        <button type="button" onclick="showCompareModal()" class="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-[10px] font-extrabold shadow-lg shadow-emerald-500/15 uppercase tracking-wider transition-all">
+            So sánh ngay
+        </button>
+    </div>
+</div>
+
+<!-- DETAILED COMPARISON MODAL -->
+<div id="renty-compare-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-slate-950/75 backdrop-blur-md px-4 py-6">
+    <div class="w-full max-w-4xl bg-[#0b0f19] border border-slate-800 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] animate-fade-in">
+        <!-- Header -->
+        <div class="px-6 py-4 border-b border-slate-800/80 bg-slate-900/40 flex justify-between items-center">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center">
+                    <i class="fa-solid fa-code-compare text-emerald-400"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-extrabold text-slate-100 uppercase tracking-wider">Bảng So Sánh Chi Tiết</h3>
+                    <p class="text-[10px] text-slate-500 mt-0.5">So sánh thông số, giá cả và tiện ích của các phòng</p>
+                </div>
+            </div>
+            <button type="button" onclick="hideCompareModal()" class="w-8 h-8 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-all">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        
+        <!-- Table Container -->
+        <div class="p-6 overflow-auto flex-grow">
+            <div class="overflow-x-auto rounded-2xl border border-slate-800/80 bg-slate-950/20">
+                <table class="w-full text-left text-xs text-slate-300 min-w-[600px] border-collapse" id="compare-table">
+                    <!-- Dynamic comparison table will be populated by JS -->
+                </table>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="px-6 py-4 border-t border-slate-800/80 bg-slate-900/20 flex justify-end gap-3">
+            <button type="button" onclick="hideCompareModal()" class="px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-900 text-xs font-bold text-slate-350 hover:bg-slate-850 hover:text-white transition-all">
+                Đóng
+            </button>
+        </div>
     </div>
 </div>
 

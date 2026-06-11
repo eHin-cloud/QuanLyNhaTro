@@ -390,6 +390,65 @@
                             <p>Theo dõi phòng, đánh giá, hóa đơn và trải nghiệm thuê trọ trong một giao diện tối hiện đại.</p>
                         </div>
                         <div id="login-house-3d" class="login-house-3d" aria-hidden="true"></div>
+
+                        <!-- 3D Controls Panel -->
+                        <div class="login-3d-controls-panel glass-card p-3.5 rounded-2xl flex flex-col gap-3 relative z-10 my-3 text-slate-200">
+                            <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                                <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-350 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-indigo-400"></i> Thiết kế &amp; Tùy chỉnh 3D
+                                </span>
+                                <span class="text-[9px] font-extrabold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20 uppercase tracking-wide">Tương tác</span>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                                <!-- Wall paint colors selector -->
+                                <div class="flex flex-col gap-1.5">
+                                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Màu sơn tường</span>
+                                    <div class="flex gap-2 items-center h-full">
+                                        <button type="button" onclick="setWallTheme('slate')" class="w-6 h-6 rounded-full border-2 border-white/80 bg-[#1e293b] hover:scale-110 active:scale-95 transition-all shadow-md shadow-black/30" title="Midnight Slate"></button>
+                                        <button type="button" onclick="setWallTheme('terracotta')" class="w-6 h-6 rounded-full border-2 border-transparent bg-[#c2410c] hover:scale-110 active:scale-95 transition-all shadow-md shadow-black/30" title="Warm Clay"></button>
+                                        <button type="button" onclick="setWallTheme('moss')" class="w-6 h-6 rounded-full border-2 border-transparent bg-[#0f766e] hover:scale-110 active:scale-95 transition-all shadow-md shadow-black/30" title="Forest Green"></button>
+                                        <button type="button" onclick="setWallTheme('gold')" class="w-6 h-6 rounded-full border-2 border-transparent bg-[#d97706] hover:scale-110 active:scale-95 transition-all shadow-md shadow-black/30" title="Classic Gold"></button>
+                                    </div>
+                                </div>
+
+                                <!-- Light/Night switch -->
+                                <div class="flex flex-col gap-1.5">
+                                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Ánh sáng</span>
+                                    <div class="flex gap-1">
+                                        <button type="button" id="btn-light-day" onclick="set3DLightMode('day')" class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-all flex items-center justify-center gap-1 flex-1 text-[10px] font-semibold" title="Day Mode">
+                                            <i class="fa-solid fa-sun text-[9px]"></i> Sáng
+                                        </button>
+                                        <button type="button" id="btn-light-night" onclick="set3DLightMode('night')" class="px-2.5 py-1.5 rounded-lg bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 hover:text-white transition-all flex items-center justify-center gap-1 flex-1 text-[10px] font-semibold" title="Night Mode">
+                                            <i class="fa-solid fa-moon text-[9px]"></i> Tối
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Camera Preset selector -->
+                                <div class="flex flex-col gap-1.5">
+                                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Góc camera</span>
+                                    <div class="flex gap-1">
+                                        <button type="button" onclick="set3DCameraPreset('front')" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-all text-[9px] font-bold flex-1 uppercase">Trước</button>
+                                        <button type="button" onclick="set3DCameraPreset('iso')" class="p-1.5 rounded-lg bg-indigo-500/20 border border-indigo-550/30 text-indigo-300 hover:text-white transition-all text-[9px] font-bold flex-1 uppercase">Xéo</button>
+                                        <button type="button" onclick="set3DCameraPreset('top')" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-all text-[9px] font-bold flex-1 uppercase">Trên</button>
+                                    </div>
+                                </div>
+
+                                <!-- Rotation Toggle -->
+                                <div class="flex flex-col gap-1.5">
+                                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Tính năng</span>
+                                    <div class="flex items-center h-full">
+                                        <label class="relative inline-flex items-center cursor-pointer select-none">
+                                            <input type="checkbox" id="chk-auto-rotate" onchange="toggle3DRotation(this)" checked class="sr-only peer">
+                                            <div class="w-8 h-4 bg-slate-950 border border-slate-800 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-slate-400 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-indigo-500"></div>
+                                            <span class="ml-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-wider">Tự xoay</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="login-visual-stats" aria-label="Thông tin nổi bật">
                             <span><strong>24/7</strong> Theo dõi</span>
                             <span><strong>3D</strong> Trực quan</span>

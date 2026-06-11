@@ -8,7 +8,7 @@ Danh sách Tài khoản Hệ thống Renty & SmartRoom:
   - Số điện thoại (phone): 0987654321
   - Email: admin@smartroom.com
   - Mật khẩu (password): admin123
-  - Phân quyền (role): admin (Hệ thống / Hà Nội)
+  - Phân quyền (role): admin (Admin hệ thống / Hà Nội)
 
 * Tài khoản Superadmin:
   - Tên đăng nhập (username): superadmin
@@ -21,69 +21,72 @@ Danh sách Tài khoản Hệ thống Renty & SmartRoom:
 2. TÀI KHOẢN CHỦ TRỌ / QUẢN TRỊ VIÊN CƠ SỞ (LANDLORDS)
 ================================================================================
 * Chủ trọ Cầu Giấy (Hà Nội):
-  - Tên đăng nhập: landlord1
-  - Số điện thoại: 0988123456
-  - Email: landlord1@gmail.com
-  - Mật khẩu: password
-  - Vai trò: landlord
+  - Tên đăng nhập (username): demo-landlord-1
+  - Số điện thoại (phone): 0988000001
+  - Email: demo-caugiay@smartroom.local
+  - Mật khẩu (password): password
+  - Vai trò (role): landlord
 
 * Chủ trọ Thanh Xuân (Hà Nội):
-  - Tên đăng nhập: landlord2
-  - Số điện thoại: 0977222333
-  - Email: landlord2@gmail.com
-  - Mật khẩu: password
-  - Vai trò: landlord
+  - Tên đăng nhập (username): demo-landlord-2
+  - Số điện thoại (phone): 0988000002
+  - Email: demo-thanhxuan@smartroom.local
+  - Mật khẩu (password): password
+  - Vai trò (role): landlord
 
 * Chủ trọ Bình Thạnh (TP. Hồ Chí Minh):
-  - Tên đăng nhập: admin-hcm
-  - Số điện thoại: 0909123456
+  - Tên đăng nhập (username): admin-hcm
+  - Số điện thoại (phone): 0909123456
   - Email: admin-hcm@smartroom.local
-  - Mật khẩu: password
-  - Vai trò: landlord
+  - Mật khẩu (password): password
+  - Vai trò (role): landlord
 
 * Chủ trọ chưa xác minh (KYC pending):
-  - Tên đăng nhập: unverified-landlord
-  - Số điện thoại: 0888999888
+  - Tên đăng nhập (username): unverified-landlord
+  - Số điện thoại (phone): 0888999888
   - Email: unverified@demo.smartroom.local
-  - Mật khẩu: password
-  - Vai trò: unverified_landlord
+  - Mật khẩu (password): password
+  - Vai trò (role): unverified_landlord
 
 ================================================================================
-3. TÀI KHOẢN CƯ DÂN & KHÁCH THUÊ (TENANTS / RESIDENTS)
+3. TÀI KHOẢN NHÂN VIÊN QUẢN LÝ (MANAGERS)
+================================================================================
+* Nhân viên quản lý Cầu Giấy:
+  - Tên đăng nhập (username): demo-manager-1-1
+  - Số điện thoại (phone): 0777000011
+  - Email: manager1-1@demo.smartroom.local
+  - Mật khẩu (password): password
+  - Vai trò (role): manager
+
+================================================================================
+4. TÀI KHOẢN CƯ DÂN & KHÁCH THUÊ (TENANTS / RESIDENTS)
 ================================================================================
 * Tài khoản Khách thuê mặc định:
   - Tên đăng nhập (username): tenant
   - Số điện thoại (phone): 0123456789
   - Email: tenant@example.com
   - Mật khẩu (password): password
-  - Vai trò: user
+  - Vai trò (role): resident
 
-* Cư dân Phòng 101 (Cầu Giấy):
-  - Tên đăng nhập: resident-t1-101
-  - Số điện thoại: 0912345678
-  - Email: hung.tran@gmail.com
-  - Mật khẩu: password
-  - Vai trò: resident
+* Cư dân Phòng 101 (Cầu Giấy - Khách thuê chính):
+  - Tên đăng nhập (username): demo-resident-101-1
+  - Số điện thoại (phone): 0777001011
+  - Email: resident101-1@demo.smartroom.local
+  - Mật khẩu (password): password
+  - Vai trò (role): resident
 
-* Cư dân Phòng 102 (Cầu Giấy):
-  - Tên đăng nhập: resident-t1-102
-  - Số điện thoại: 0987654322
-  - Email: lan.nguyen@gmail.com
-  - Mật khẩu: password
-  - Vai trò: resident
-
-* Cư dân Phòng 201 (Thanh Xuân):
-  - Tên đăng nhập: resident-t2-101
-  - Số điện thoại: 0912111222
-  - Email: son.nguyen@gmail.com
-  - Mật khẩu: password
-  - Vai trò: resident
+* Cư dân Phòng 101 (Cầu Giấy - Ở ghép):
+  - Tên đăng nhập (username): demo-resident-101-2
+  - Số điện thoại (phone): 0777001012
+  - Email: resident101-2@demo.smartroom.local
+  - Mật khẩu (password): password
+  - Vai trò (role): resident
 
 ================================================================================
-4. TÀI KHOẢN KHÁCH VÃNG LAI / TÌM PHÒNG (GUEST)
+5. TÀI KHOẢN KHÁCH VÃNG LAI / TÌM PHÒNG (GUEST)
 ================================================================================
-* Tên đăng nhập (username): guest
-* Số điện thoại (phone): 0900000001
-* Email: guest@gmail.com
+* Tên đăng nhập (username): demo-guest
+* Số điện thoại (phone): 0999000001
+* Email: guest@demo.smartroom.local
 * Mật khẩu (password): password
 * Phân quyền (role): guest

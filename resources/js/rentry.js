@@ -838,12 +838,66 @@ function initRentyMap() {
 
     // Add markers
     Object.values(mockRooms).forEach(room => {
-        // Generate a deterministic coordinate based on room address/region
-        const isHcm = (room.address && (room.address.includes('Hồ Chí Minh') || room.address.includes('Bình Thạnh') || room.address.includes('Quận 10') || room.address.includes('HCM'))) || (room.area_name && (room.area_name.includes('Quan 10') || room.area_name.includes('Bình Thạnh') || room.area_name.includes('Hồ Chí Minh')));
-        const offsetLat = Math.sin(room.id * 1.7) * 0.006;
-        const offsetLng = Math.cos(room.id * 2.3) * 0.006;
-        const lat = isHcm ? (10.798 + offsetLat) : (21.036 + offsetLat);
-        const lng = isHcm ? (106.705 + offsetLng) : (105.790 + offsetLng);
+        // Generate a deterministic coordinate based on room address/region keywords for realistic distribution
+        let baseLat = 21.036; // Default Hanoi center
+        let baseLng = 105.790;
+        let isHcm = false;
+
+        const addr = (room.address || '').toLowerCase();
+        const area = (room.area_name || '').toLowerCase();
+
+        if (addr.includes('hồ chí minh') || addr.includes('hcm') || addr.includes('thủ đức') || addr.includes('bình thạnh') || addr.includes('quận 10') || addr.includes('quận 7') || addr.includes('gò vấp') ||
+            area.includes('hồ chí minh') || area.includes('hcm') || area.includes('thủ đức') || area.includes('bình thạnh') || area.includes('quan 10') || area.includes('quan 7') || area.includes('gò vấp')) {
+            isHcm = true;
+            // District specific coords in HCM
+            if (addr.includes('thủ đức') || area.includes('thủ đức')) {
+                if (addr.includes('linh trung') || addr.includes('đại học')) {
+                    baseLat = 10.875;
+                    baseLng = 106.801;
+                } else {
+                    baseLat = 10.850;
+                    baseLng = 106.772;
+                }
+            } else if (addr.includes('quận 10') || area.includes('quan 10')) {
+                baseLat = 10.775;
+                baseLng = 106.667;
+            } else if (addr.includes('quận 7') || area.includes('quan 7')) {
+                baseLat = 10.732;
+                baseLng = 106.726;
+            } else if (addr.includes('gò vấp') || area.includes('gò vấp')) {
+                baseLat = 10.838;
+                baseLng = 106.665;
+            } else {
+                // default Binh Thanh / District 1
+                baseLat = 10.803;
+                baseLng = 106.708;
+            }
+        } else {
+            // Hanoi districts mapping
+            if (addr.includes('tây hồ') || area.includes('tây hồ')) {
+                baseLat = 21.062;
+                baseLng = 105.815;
+            } else if (addr.includes('đống đa') || area.includes('đống đa')) {
+                baseLat = 21.018;
+                baseLng = 105.825;
+            } else if (addr.includes('hai bà trưng') || area.includes('hai bà trưng')) {
+                baseLat = 21.012;
+                baseLng = 105.850;
+            } else if (addr.includes('thanh xuân') || area.includes('thanh xuân')) {
+                baseLat = 20.998;
+                baseLng = 105.808;
+            } else {
+                // Default Cầu Giấy / Từ Liêm
+                baseLat = 21.036;
+                baseLng = 105.790;
+            }
+        }
+
+        // Apply a small deterministic spread so pins do not overlap perfectly
+        const offsetLat = Math.sin(room.id * 4.7) * 0.0035;
+        const offsetLng = Math.cos(room.id * 5.9) * 0.0035;
+        const lat = baseLat + offsetLat;
+        const lng = baseLng + offsetLng;
 
         const shortPrice = (function (price) {
             if (price >= 1000000) {
@@ -892,6 +946,25 @@ function initRentyMap() {
                     openRoomDetailModal(room.id);
                 });
             }
+        });
+
+        // Zoom straight in when hovering the pin on the map
+        marker.on('mouseover', function () {
+            document.querySelectorAll('.glowing-teal-pin').forEach(pin => {
+                pin.classList.remove('active');
+            });
+
+            const pinEl = document.getElementById(`map-pin-${room.id}`);
+            if (pinEl) {
+                pinEl.classList.add('active');
+            }
+
+            rentyMap.setView(marker.getLatLng(), 17, {
+                animate: true,
+                duration: 0.8
+            });
+
+            marker.openPopup();
         });
 
         // Marker click effect and active state toggle
@@ -960,23 +1033,30 @@ function initRentyMap() {
         }
     });
 
-    // Add hover listeners to room cards to open matching map marker
-    document.querySelectorAll('.room-item-card').forEach(card => {
-        card.addEventListener('mouseenter', () => {
-            const roomId = card.getAttribute('data-room-id');
-            if (rentyMarkers[roomId] && rentyMap) {
-                // Highlight pin
-                document.querySelectorAll('.glowing-teal-pin').forEach(pin => {
-                    pin.classList.remove('active');
-                });
-                const pinEl = document.getElementById(`map-pin-${roomId}`);
-                if (pinEl) pinEl.classList.add('active');
+    // Global hover listener using event delegation to zoom straight to matching map marker
+    document.body.addEventListener('mouseover', (e) => {
+        const card = e.target.closest('.room-item-card');
+        if (!card) return;
+        const roomId = card.getAttribute('data-room-id');
+        if (!roomId) return;
 
-                // Open Leaflet popup
-                rentyMarkers[roomId].openPopup();
-                rentyMap.panTo(rentyMarkers[roomId].getLatLng());
-            }
-        });
+        if (rentyMarkers && rentyMarkers[roomId] && rentyMap) {
+            // Highlight pin
+            document.querySelectorAll('.glowing-teal-pin').forEach(pin => {
+                pin.classList.remove('active');
+            });
+            const pinEl = document.getElementById(`map-pin-${roomId}`);
+            if (pinEl) pinEl.classList.add('active');
+
+            // Open Leaflet popup
+            rentyMarkers[roomId].openPopup();
+            
+            // Zoom straight into marker (level 17)
+            rentyMap.setView(rentyMarkers[roomId].getLatLng(), 17, {
+                animate: true,
+                duration: 0.8
+            });
+        }
     });
 }
 
@@ -2229,20 +2309,259 @@ document.addEventListener('DOMContentLoaded', () => {
         updateDistanceSlider(slider.value);
     }
 
-    // Event delegation for mouse tracking radial glow on room cards
-    const grid = document.getElementById('rooms-grid');
-    if (grid) {
-        grid.addEventListener('mousemove', (e) => {
-            const card = e.target.closest('.room-item-card');
-            if (card) {
-                const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                card.style.setProperty('--mouse-x', `${x}px`);
-                card.style.setProperty('--mouse-y', `${y}px`);
+    // 1. 3D CARD TILT & GLARE EFFECT
+    function init3DCardTilt() {
+        const cardsSelector = '.room-item-card, #renty-hero-section div.lg-col-span-2, #renty-hero-section div.bg-gradient-to-br';
+        
+        // Add glare overlay dynamically to room cards
+        document.querySelectorAll('.room-item-card').forEach(card => {
+            if (!card.querySelector('.card-3d-glare')) {
+                const glare = document.createElement('div');
+                glare.className = 'card-3d-glare';
+                card.appendChild(glare);
             }
         });
+
+        // Use event delegation for dynamic rooms list updates
+        document.body.addEventListener('mousemove', (e) => {
+            const card = e.target.closest(cardsSelector);
+            if (!card) return;
+
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const xc = rect.width / 2;
+            const yc = rect.height / 2;
+            const dx = x - xc;
+            const dy = y - yc;
+
+            // Apply slight tilt angle (max 6 degrees)
+            const rotateX = -(dy / yc) * 6;
+            const rotateY = (dx / xc) * 6;
+
+            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.015, 1.015, 1.015)`;
+            card.style.setProperty('--glare-x', `${(x / rect.width) * 100}%`);
+            card.style.setProperty('--glare-y', `${(y / rect.height) * 100}%`);
+            
+            // Still support standard radial glow
+            card.style.setProperty('--mouse-x', `${x}px`);
+            card.style.setProperty('--mouse-y', `${y}px`);
+        });
+
+        document.body.addEventListener('mouseleave', (e) => {
+            const card = e.target.closest(cardsSelector);
+            if (card) {
+                card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+            }
+        }, true);
     }
+    init3DCardTilt();
+
+    // Re-run glare adding on list filter updates
+    const originalFilterItems = window.filterItems;
+    if (typeof originalFilterItems === 'function') {
+        window.filterItems = function(...args) {
+            originalFilterItems(...args);
+            // Re-apply glare overlay to newly generated/revealed room cards
+            setTimeout(() => {
+                document.querySelectorAll('.room-item-card').forEach(card => {
+                    if (!card.querySelector('.card-3d-glare')) {
+                        const glare = document.createElement('div');
+                        glare.className = 'card-3d-glare';
+                        card.appendChild(glare);
+                    }
+                });
+            }, 100);
+        };
+    }
+
+    // 2. AMBIENT PARTICLES BACKGROUND FOR HERO SECTION
+    function initAmbientParticles() {
+        const canvas = document.getElementById('renty-ambient-particles');
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let mouse = { x: null, y: null, radius: 100 };
+        
+        function resize() {
+            const rect = canvas.parentNode.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+        
+        canvas.parentNode.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouse.x = e.clientX - rect.left;
+            mouse.y = e.clientY - rect.top;
+        });
+        
+        canvas.parentNode.addEventListener('mouseleave', () => {
+            mouse.x = null;
+            mouse.y = null;
+        });
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height + canvas.height;
+                this.size = Math.random() * 2 + 1;
+                this.speedX = Math.random() * 0.4 - 0.2;
+                this.speedY = -(Math.random() * 0.6 + 0.2);
+                this.color = Math.random() > 0.5 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(99, 102, 241, 0.12)';
+                this.baseX = this.x;
+                this.baseY = this.y;
+                this.density = (Math.random() * 20) + 5;
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                
+                // Repel effect on mouse hover
+                if (mouse.x !== null && mouse.y !== null) {
+                    let dx = mouse.x - this.x;
+                    let dy = mouse.y - this.y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < mouse.radius) {
+                        let force = (mouse.radius - distance) / mouse.radius;
+                        let directionX = dx / distance;
+                        let directionY = dy / distance;
+                        this.x -= directionX * force * 3;
+                        this.y -= directionY * force * 3;
+                    }
+                }
+                
+                // Reset when off-screen
+                if (this.y < -10) {
+                    this.y = canvas.height + 10;
+                    this.x = Math.random() * canvas.width;
+                }
+                if (this.x < -10 || this.x > canvas.width + 10) {
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        // Spawn particles
+        const particleCount = Math.min(50, Math.floor(canvas.width / 15));
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+        
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+            }
+            requestAnimationFrame(animate);
+        }
+        animate();
+    }
+    initAmbientParticles();
+
+    // 3. LIVE ACTIVITY TICKER PILL (Multi-Agent Interaction Simulation)
+    function initLiveActivityTicker() {
+        const textEl = document.getElementById('live-activity-text');
+        const pillEl = document.getElementById('live-activity-pill');
+        if (!textEl || !pillEl) return;
+        
+        const activities = [
+            '24 người đang tìm phòng tại Đống Đa',
+            'Một phòng mới ở Cầu Giấy vừa được thuê thành công 🎉',
+            '35 sinh viên đang xem đánh giá khu vực Bách Khoa',
+            '12 người dùng đang so sánh căn hộ tại Thanh Xuân',
+            'AI Companion vừa cập nhật 5 mẹo tránh mất cọc trọ',
+            'Hơn 40 lượt tìm kiếm phòng có ban công và thú cưng trong 1 giờ qua',
+            'Chủ nhà Nguyễn Văn A vừa cập nhật trạng thái phòng trống mới'
+        ];
+        
+        let index = 0;
+        setInterval(() => {
+            pillEl.style.opacity = '0';
+            pillEl.style.transform = 'translateY(-5px)';
+            
+            setTimeout(() => {
+                index = (index + 1) % activities.length;
+                textEl.textContent = activities[index];
+                
+                // Randomize background/text opacity for visual variety
+                if (index % 3 === 0) {
+                    pillEl.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-extrabold text-emerald-400 select-none shadow-sm transition-all duration-500';
+                } else if (index % 3 === 1) {
+                    pillEl.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[10px] font-extrabold text-indigo-400 select-none shadow-sm transition-all duration-500';
+                } else {
+                    pillEl.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-[10px] font-extrabold text-cyan-400 select-none shadow-sm transition-all duration-500';
+                }
+                
+                pillEl.style.opacity = '1';
+                pillEl.style.transform = 'translateY(0)';
+            }, 500);
+        }, 7000);
+    }
+    initLiveActivityTicker();
+
+    // 4. RENTY COMPANION AI SPEECH BUBBLE HINTS
+    const bubbleEl = document.getElementById('renty-agent-bubble');
+    const bubbleTextEl = document.getElementById('renty-agent-bubble-text');
+    let bubbleTimer = null;
+    
+    const companionTips = [
+        'Hôm nay khu Cầu Giấy đang có nhiều phòng giá tốt nhất đấy! 📍',
+        '💡 Mẹo: Nhấp chọn nhiều phòng để bật tính năng so sánh trực quan nhé!',
+        '🐾 Bạn mang theo thú cưng? Hãy bật bộ lọc "Nuôi thú cưng" ngay.',
+        '🛡️ Nhớ đọc kỹ điều khoản hợp đồng trước khi chuyển tiền đặt cọc nha!',
+        '✨ Renty AI hỗ trợ tư vấn 24/7. Bạn cứ tự nhiên chat với mình nhé!'
+    ];
+    
+    function showAgentBubble() {
+        if (!bubbleEl || !bubbleTextEl) return;
+        clearTimeout(bubbleTimer);
+        
+        // Pick a random tip
+        const randomTip = companionTips[Math.floor(Math.random() * companionTips.length)];
+        bubbleTextEl.innerHTML = randomTip;
+        
+        bubbleEl.classList.add('show');
+    }
+    
+    function hideAgentBubble() {
+        if (!bubbleEl) return;
+        bubbleEl.classList.remove('show');
+    }
+    
+    // Bind to window for HTML event handlers
+    window.showAgentBubble = showAgentBubble;
+    window.hideAgentBubble = hideAgentBubble;
+    
+    // Periodically show auto tips when idle
+    function initAgentCompanion() {
+        if (!bubbleEl) return;
+        
+        // Show first tip after 4 seconds
+        setTimeout(() => {
+            showAgentBubble();
+            // Hide after 6 seconds
+            bubbleTimer = setTimeout(hideAgentBubble, 6000);
+        }, 4000);
+        
+        // Repeat cycle every 24 seconds
+        setInterval(() => {
+            if (!document.getElementById('renty-chatbot-panel').classList.contains('is-open')) {
+                showAgentBubble();
+                bubbleTimer = setTimeout(hideAgentBubble, 7000);
+            }
+        }, 24000);
+    }
+    initAgentCompanion();
 
     // Dynamic Scroll Progress Indicator
     const progressContainer = document.createElement('div');
@@ -3056,5 +3375,246 @@ function sendRentyChatbotMessage(presetMsg) {
     });
 }
 window.sendRentyChatbotMessage = sendRentyChatbotMessage;
+
+
+// ── Room Comparison Feature ──────────────────────────────────────────
+let rentyCompareList = [];
+
+function toggleCompare(roomId, checkbox) {
+    roomId = parseInt(roomId);
+    if (checkbox.checked) {
+        if (rentyCompareList.length >= 3) {
+            checkbox.checked = false;
+            alert('Bạn chỉ có thể so sánh tối đa 3 phòng trọ cùng lúc.');
+            return;
+        }
+        if (!rentyCompareList.includes(roomId)) {
+            rentyCompareList.push(roomId);
+        }
+    } else {
+        rentyCompareList = rentyCompareList.filter(id => id !== roomId);
+    }
+    updateCompareBar();
+}
+window.toggleCompare = toggleCompare;
+
+function clearCompareList() {
+    rentyCompareList = [];
+    document.querySelectorAll('.compare-checkbox').forEach(cb => cb.checked = false);
+    updateCompareBar();
+}
+window.clearCompareList = clearCompareList;
+
+function updateCompareBar() {
+    const bar = document.getElementById('renty-compare-bar');
+    const badge = document.getElementById('compare-count-badge');
+    if (!bar || !badge) return;
+
+    badge.textContent = rentyCompareList.length;
+
+    if (rentyCompareList.length > 0) {
+        bar.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
+        bar.classList.add('translate-y-0', 'opacity-100');
+    } else {
+        bar.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none');
+        bar.classList.remove('translate-y-0', 'opacity-100');
+    }
+}
+window.updateCompareBar = updateCompareBar;
+
+function showCompareModal() {
+    const modal = document.getElementById('renty-compare-modal');
+    const table = document.getElementById('compare-table');
+    if (!modal || !table) return;
+
+    const mockRooms = window.rentyRoomsData || {};
+    const roomsToCompare = rentyCompareList.map(id => mockRooms[id]).filter(Boolean);
+
+    if (roomsToCompare.length === 0) {
+        alert('Vui lòng chọn ít nhất 1 phòng trọ để so sánh.');
+        return;
+    }
+
+    // Generate comparison table HTML
+    let html = `
+        <thead>
+            <tr class="bg-slate-900/80 border-b border-slate-800">
+                <th class="px-5 py-4 font-bold text-slate-400 w-1/4">Thông số / Tiêu chí</th>
+    `;
+    roomsToCompare.forEach(room => {
+        html += `
+            <th class="px-5 py-4 font-bold text-center w-[25%]">
+                <div class="flex flex-col items-center gap-2">
+                    <img src="${room.cover_image}" alt="Ảnh ${room.room_number}" class="w-24 h-16 object-cover rounded-xl border border-slate-800 shadow-md">
+                    <span class="block text-xs text-slate-200 font-extrabold line-clamp-1">${room.title}</span>
+                </div>
+            </th>
+        `;
+    });
+    html += `
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-900/60 bg-slate-950/10">
+            <!-- Row 1: Giá thuê -->
+            <tr class="hover:bg-slate-900/20 transition-all">
+                <td class="px-5 py-3.5 font-bold text-slate-400">Giá thuê / tháng</td>
+    `;
+    roomsToCompare.forEach(room => {
+        html += `
+            <td class="px-5 py-3.5 text-center font-extrabold text-emerald-400 text-sm">
+                ${formatCurrency(room.price)}
+            </td>
+        `;
+    });
+    html += `
+            </tr>
+            <!-- Row 2: Diện tích -->
+            <tr class="hover:bg-slate-900/20 transition-all">
+                <td class="px-5 py-3.5 font-bold text-slate-400">Diện tích</td>
+    `;
+    roomsToCompare.forEach(room => {
+        html += `
+            <td class="px-5 py-3.5 text-center font-bold text-slate-200">
+                ${room.area_text || room.area + ' m²'}
+            </td>
+        `;
+    });
+    html += `
+            </tr>
+            <!-- Row 3: Khoảng cách -->
+            <tr class="hover:bg-slate-900/20 transition-all">
+                <td class="px-5 py-3.5 font-bold text-slate-400">Khoảng cách</td>
+    `;
+    roomsToCompare.forEach(room => {
+        html += `
+            <td class="px-5 py-3.5 text-center text-slate-300 font-semibold">
+                ${room.distance} km
+            </td>
+        `;
+    });
+    html += `
+            </tr>
+            <!-- Row 4: Điểm đánh giá -->
+            <tr class="hover:bg-slate-900/20 transition-all">
+                <td class="px-5 py-3.5 font-bold text-slate-400">Điểm đánh giá</td>
+    `;
+    roomsToCompare.forEach(room => {
+        html += `
+            <td class="px-5 py-3.5 text-center font-extrabold text-amber-400">
+                <i class="fa-solid fa-star text-[10px] mr-1"></i>${room.rating} / 5
+            </td>
+        `;
+    });
+    html += `
+            </tr>
+            <!-- Row 5: Thú cưng -->
+            <tr class="hover:bg-slate-900/20 transition-all">
+                <td class="px-5 py-3.5 font-bold text-slate-400">Nuôi thú cưng</td>
+    `;
+    roomsToCompare.forEach(room => {
+        const hasPets = room.pets === 'true';
+        html += `
+            <td class="px-5 py-3.5 text-center">
+                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-bold ${hasPets ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20' : 'bg-slate-900 text-slate-500 border border-slate-800'}">
+                    ${hasPets ? 'Cho phép' : 'Không'}
+                </span>
+            </td>
+        `;
+    });
+    html += `
+            </tr>
+            <!-- Row 6: Gác lửng -->
+            <tr class="hover:bg-slate-900/20 transition-all">
+                <td class="px-5 py-3.5 font-bold text-slate-400">Gác lửng</td>
+    `;
+    roomsToCompare.forEach(room => {
+        const hasLoft = room.loft === 'true';
+        html += `
+            <td class="px-5 py-3.5 text-center">
+                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-bold ${hasLoft ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' : 'bg-slate-900 text-slate-500 border border-slate-800'}">
+                    ${hasLoft ? 'Có gác' : 'Không'}
+                </span>
+            </td>
+        `;
+    });
+    html += `
+            </tr>
+            <!-- Row 7: Ban công -->
+            <tr class="hover:bg-slate-900/20 transition-all">
+                <td class="px-5 py-3.5 font-bold text-slate-400">Ban công</td>
+    `;
+    roomsToCompare.forEach(room => {
+        const hasBalcony = room.balcony === 'true';
+        html += `
+            <td class="px-5 py-3.5 text-center">
+                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-bold ${hasBalcony ? 'bg-sky-500/10 text-sky-400 border border-sky-500/20' : 'bg-slate-900 text-slate-500 border border-slate-800'}">
+                    ${hasBalcony ? 'Có ban công' : 'Không'}
+                </span>
+            </td>
+        `;
+    });
+    html += `
+            </tr>
+            <!-- Row 8: Nhà vệ sinh -->
+            <tr class="hover:bg-slate-900/20 transition-all">
+                <td class="px-5 py-3.5 font-bold text-slate-400">Vệ sinh (WC)</td>
+    `;
+    roomsToCompare.forEach(room => {
+        const hasWc = room.wc === 'true';
+        html += `
+            <td class="px-5 py-3.5 text-center">
+                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-bold ${hasWc ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-900 text-slate-500 border border-slate-800'}">
+                    ${hasWc ? 'Khép kín' : 'Chung'}
+                </span>
+            </td>
+        `;
+    });
+    html += `
+            </tr>
+            <!-- Row 9: Đánh giá chủ trọ -->
+            <tr class="hover:bg-slate-900/20 transition-all">
+                <td class="px-5 py-3.5 font-bold text-slate-400">Đánh giá chủ trọ</td>
+    `;
+    roomsToCompare.forEach(room => {
+        html += `
+            <td class="px-5 py-3.5 text-center text-[10px] font-semibold text-slate-350">
+                ${room.owner}
+            </td>
+        `;
+    });
+    html += `
+            </tr>
+            <!-- Row 10: Xem chi tiết -->
+            <tr class="hover:bg-slate-900/20 transition-all">
+                <td class="px-5 py-4 font-bold text-slate-400">Thao tác</td>
+    `;
+    roomsToCompare.forEach(room => {
+        html += `
+            <td class="px-5 py-4 text-center">
+                <a href="/renty/room/${room.id}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 border border-slate-800 hover:border-emerald-500/40 text-emerald-400 hover:text-emerald-300 rounded-xl text-[10px] font-extrabold transition-all">
+                    Xem review <i class="fa-solid fa-angle-right"></i>
+                </a>
+            </td>
+        `;
+    });
+    html += `
+            </tr>
+        </tbody>
+    `;
+
+    table.innerHTML = html;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+window.showCompareModal = showCompareModal;
+
+function hideCompareModal() {
+    const modal = document.getElementById('renty-compare-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+window.hideCompareModal = hideCompareModal;
 
 

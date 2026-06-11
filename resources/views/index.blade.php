@@ -89,7 +89,7 @@
             @if(Auth::check())
                 @if(Auth::user()->isAdmin())
                     <!-- PORTAL 1: SYSTEM ADMIN -->
-                    <a href="{{ route('user.list') }}" id="portal-system-admin" class="group relative bg-slate-900/40 backdrop-blur-xl border border-slate-800 hover:border-violet-500/50 rounded-3xl p-8 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(139,92,246,0.15)] flex flex-col justify-between overflow-hidden">
+                    <a href="{{ route('user.list') }}" id="portal-system-admin" class="glass-card portal-violet group rounded-3xl p-8 flex flex-col justify-between">
                         <div class="absolute -right-10 -top-10 w-40 h-40 bg-violet-600/10 rounded-full blur-2xl group-hover:bg-violet-600/20 transition-all duration-500"></div>
                         <div>
                             <div class="w-14 h-14 rounded-2xl bg-violet-500/10 border border-violet-500/20 text-violet-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300">
@@ -112,7 +112,7 @@
                     </a>
                 @elseif(Auth::user()->canAccessLandlordDashboard())
                     <!-- PORTAL 1: ADMIN (SMARTROOM) -->
-                    <a href="{{ route('smartroom.admin') }}" id="portal-admin" class="group relative bg-slate-900/40 backdrop-blur-xl border border-slate-800 hover:border-indigo-500/50 rounded-3xl p-8 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(99,102,241,0.15)] flex flex-col justify-between overflow-hidden">
+                    <a href="{{ route('smartroom.admin') }}" id="portal-admin" class="glass-card portal-indigo group rounded-3xl p-8 flex flex-col justify-between">
                         <div class="absolute -right-10 -top-10 w-40 h-40 bg-indigo-600/10 rounded-full blur-2xl group-hover:bg-indigo-600/20 transition-all duration-500"></div>
                         <div>
                             <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300">
@@ -135,7 +135,7 @@
                     </a>
                 @elseif(Auth::user()->isResident())
                     <!-- PORTAL 1: RESIDENT (SMARTROOM RESIDENT) -->
-                    <a href="{{ route('smartroom.resident') }}" id="portal-resident" class="group relative bg-slate-900/40 backdrop-blur-xl border border-slate-800 hover:border-indigo-500/50 rounded-3xl p-8 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(99,102,241,0.15)] flex flex-col justify-between overflow-hidden">
+                    <a href="{{ route('smartroom.resident') }}" id="portal-resident" class="glass-card portal-indigo group rounded-3xl p-8 flex flex-col justify-between">
                         <div class="absolute -right-10 -top-10 w-40 h-40 bg-indigo-600/10 rounded-full blur-2xl group-hover:bg-indigo-600/20 transition-all duration-500"></div>
                         <div>
                             <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300">
@@ -159,7 +159,7 @@
                 @endif
             @else
                 <!-- PORTAL 1: ADMIN (SMARTROOM) -->
-                <a href="{{ route('smartroom.admin') }}" id="portal-admin" class="group relative bg-slate-900/40 backdrop-blur-xl border border-slate-800 hover:border-indigo-500/50 rounded-3xl p-8 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(99,102,241,0.15)] flex flex-col justify-between overflow-hidden">
+                <a href="{{ route('smartroom.admin') }}" id="portal-admin" class="glass-card portal-indigo group rounded-3xl p-8 flex flex-col justify-between">
                     <div class="absolute -right-10 -top-10 w-40 h-40 bg-indigo-600/10 rounded-full blur-2xl group-hover:bg-indigo-600/20 transition-all duration-500"></div>
                     <div>
                         <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300">
@@ -183,7 +183,7 @@
             @endif
 
             <!-- PORTAL 2: USER (RENTY REVIEW) -->
-            <a href="{{ route('renty.user') }}" id="portal-user" class="group relative bg-slate-900/40 backdrop-blur-xl border border-slate-800 hover:border-emerald-500/50 rounded-3xl p-8 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(16,185,129,0.15)] flex flex-col justify-between overflow-hidden">
+            <a href="{{ route('renty.user') }}" id="portal-user" class="glass-card portal-emerald group rounded-3xl p-8 flex flex-col justify-between">
                 <div class="absolute -right-10 -top-10 w-40 h-40 bg-emerald-600/10 rounded-full blur-2xl group-hover:bg-emerald-600/20 transition-all duration-500"></div>
                 <div>
                     <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300">
