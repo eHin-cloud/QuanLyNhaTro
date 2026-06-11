@@ -858,6 +858,81 @@ class FullDemoSeeder extends Seeder
                     ]
                 ],
             ],
+            [
+                'name' => 'Demo Phòng Trọ Quận 7 Phú Mỹ Hưng',
+                'email' => 'demo-quan7@smartroom.local',
+                'phone' => '0988000012',
+                'owner_name' => 'Lý Minh Quận 7',
+                'bank_name' => 'ACB',
+                'bank_account_no' => '999988880012',
+                'bank_account_name' => 'LY MINH QUAN 7',
+                'buildings' => [
+                    [
+                        'code' => 'Q7A',
+                        'name' => 'Căn hộ dịch vụ Sky Garden PMH',
+                        'address' => '25 Nguyễn Lương Bằng, Phường Tân Phú, Quận 7, TP. Hồ Chí Minh',
+                        'description' => 'Căn hộ dịch vụ cao cấp khu Phú Mỹ Hưng, gần Lotte Mart, SC VivoCity và bệnh viện FV.',
+                        'rooms' => $this->roomBlueprints(7500000),
+                    ],
+                    [
+                        'code' => 'Q7B',
+                        'name' => 'Nhà trọ sinh viên Tôn Thất Thuyết',
+                        'address' => '112/5 Tôn Thất Thuyết, Phường 16, Quận 4, TP. Hồ Chí Minh',
+                        'description' => 'Nhà trọ giá rẻ gần cầu Kênh Tẻ, thuận tiện qua Quận 7 và Quận 1, phù hợp sinh viên.',
+                        'rooms' => $this->roomBlueprints(3500000),
+                    ],
+                ],
+            ],
+            [
+                'name' => 'Demo Nhà Trọ Thủ Đức Làng ĐH',
+                'email' => 'demo-thuduc@smartroom.local',
+                'phone' => '0988000013',
+                'owner_name' => 'Nguyễn Hữu Thủ Đức',
+                'bank_name' => 'MB',
+                'bank_account_no' => '999988880013',
+                'bank_account_name' => 'NGUYEN HUU THU DUC',
+                'buildings' => [
+                    [
+                        'code' => 'TDA',
+                        'name' => 'Khu trọ Làng Đại Học Thủ Đức',
+                        'address' => '18 Đường Số 7, Khu phố 6, Phường Linh Trung, TP. Thủ Đức, TP. Hồ Chí Minh',
+                        'description' => 'Nhà trọ sinh viên giá rẻ ngay Làng Đại học Quốc gia, gần ĐH Bách Khoa, ĐH KHTN, ĐH Nông Lâm.',
+                        'rooms' => $this->roomBlueprints(2800000),
+                    ],
+                    [
+                        'code' => 'TDB',
+                        'name' => 'Studio cao cấp Xa lộ Hà Nội',
+                        'address' => '215 Xa lộ Hà Nội, Phường Trường Thọ, TP. Thủ Đức, TP. Hồ Chí Minh',
+                        'description' => 'Khu căn hộ mini tiện nghi gần trạm Metro Bến Xe Miền Đông, thuận lợi di chuyển toàn thành phố.',
+                        'rooms' => $this->roomBlueprints(4200000),
+                    ],
+                ],
+            ],
+            [
+                'name' => 'Demo Phòng Trọ Gò Vấp',
+                'email' => 'demo-govap@smartroom.local',
+                'phone' => '0988000014',
+                'owner_name' => 'Trần Thị Gò Vấp',
+                'bank_name' => 'Sacombank',
+                'bank_account_no' => '999988880014',
+                'bank_account_name' => 'TRAN THI GO VAP',
+                'buildings' => [
+                    [
+                        'code' => 'GVA',
+                        'name' => 'Nhà trọ Nguyễn Oanh Gò Vấp',
+                        'address' => '45/3 Nguyễn Oanh, Phường 17, Quận Gò Vấp, TP. Hồ Chí Minh',
+                        'description' => 'Nhà trọ mới xây thoáng mát, gần chợ Gò Vấp, ĐH Công nghiệp TP.HCM và ĐH Văn Lang.',
+                        'rooms' => $this->roomBlueprints(3200000),
+                    ],
+                    [
+                        'code' => 'GVB',
+                        'name' => 'Căn hộ mini Phan Văn Trị',
+                        'address' => '200 Phan Văn Trị, Phường 11, Quận Gò Vấp, TP. Hồ Chí Minh',
+                        'description' => 'Căn hộ mini đầy đủ tiện nghi, gần Emart Gò Vấp, Công viên Gia Định, thuận tiện xe buýt.',
+                        'rooms' => $this->roomBlueprints(3800000),
+                    ],
+                ],
+            ],
         ];
     }
 

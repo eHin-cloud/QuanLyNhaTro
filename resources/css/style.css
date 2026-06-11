@@ -871,6 +871,18 @@ body.theme-light .app-brand-text .text-indigo-400 {
     -webkit-text-fill-color: #4f46e5;
 }
 
+html.theme-light .login-brand-smart,
+body.theme-light .login-brand-smart {
+    color: #0f172a !important;
+    text-shadow: none !important;
+}
+
+html.theme-light .login-brand-renty,
+body.theme-light .login-brand-renty {
+    color: #4f46e5 !important;
+    text-shadow: none !important;
+}
+
 html.theme-light .glass-card,
 html.theme-light .glass-panel,
 html.theme-light .room-detail-panel,
@@ -895,11 +907,48 @@ html.theme-light .bg-\[\#070b13\],
 html.theme-light .bg-\[\#0a0e17\],
 html.theme-light .bg-slate-950,
 html.theme-light .bg-slate-900,
+html.theme-light .bg-slate-800,
+html.theme-light .bg-slate-700,
+html.theme-light .bg-slate-950\/60,
+html.theme-light .bg-slate-950\/50,
+html.theme-light .bg-slate-950\/40,
+html.theme-light .bg-slate-950\/30,
+html.theme-light .bg-slate-950\/20,
+html.theme-light .bg-slate-950\/10,
+html.theme-light .bg-slate-900\/70,
 html.theme-light .bg-slate-900\/60,
 html.theme-light .bg-slate-900\/50,
 html.theme-light .bg-slate-900\/45,
 html.theme-light .bg-slate-900\/40,
 html.theme-light .bg-slate-900\/35,
+html.theme-light .bg-slate-900\/30,
+html.theme-light .bg-slate-900\/20,
+html.theme-light .bg-slate-900\/10,
+html.theme-light .bg-slate-800\/80,
+html.theme-light .bg-slate-800\/60,
+html.theme-light .bg-slate-800\/50,
+html.theme-light .bg-slate-800\/40,
+html.theme-light .bg-slate-800\/30,
+html.theme-light .bg-slate-800\/20,
+html.theme-light .bg-slate-800\/10,
+html.theme-light .bg-slate-700\/80,
+html.theme-light .bg-slate-700\/60,
+html.theme-light .bg-slate-700\/50,
+html.theme-light .bg-slate-700\/40,
+html.theme-light .bg-slate-700\/30,
+html.theme-light .bg-slate-700\/20,
+html.theme-light .bg-slate-700\/10,
+html.theme-light .bg-\[\#080b11\]\/80,
+html.theme-light .bg-\[\#080b11\]\/90,
+html.theme-light .bg-\[\#04060b\]\/80,
+html.theme-light .bg-\[\#0a0f1d\]\/90,
+html.theme-light .bg-\[\#0a0f1d\]\/80,
+html.theme-light .bg-\[\#0a0f1d\]\/60,
+html.theme-light .bg-\[\#0d121f\]\/50,
+html.theme-light .bg-\[\#111827\],
+html.theme-light .bg-slate-950\/5,
+html.theme-light .bg-slate-900\/5,
+html.theme-light .sidebar-user,
 body.theme-light .bg-\[\#080b11\],
 body.theme-light .bg-\[\#0b0f19\],
 body.theme-light .bg-\[\#0d121f\],
@@ -908,15 +957,58 @@ body.theme-light .bg-\[\#070b13\],
 body.theme-light .bg-\[\#0a0e17\],
 body.theme-light .bg-slate-950,
 body.theme-light .bg-slate-900,
+body.theme-light .bg-slate-800,
+body.theme-light .bg-slate-700,
+body.theme-light .bg-slate-950\/60,
+body.theme-light .bg-slate-950\/50,
+body.theme-light .bg-slate-950\/40,
+body.theme-light .bg-slate-950\/30,
+body.theme-light .bg-slate-950\/20,
+body.theme-light .bg-slate-950\/10,
+body.theme-light .bg-slate-900\/70,
 body.theme-light .bg-slate-900\/60,
 body.theme-light .bg-slate-900\/50,
 body.theme-light .bg-slate-900\/45,
 body.theme-light .bg-slate-900\/40,
-body.theme-light .bg-slate-900\/35 {
+body.theme-light .bg-slate-900\/35,
+body.theme-light .bg-slate-900\/30,
+body.theme-light .bg-slate-900\/20,
+body.theme-light .bg-slate-900\/10,
+body.theme-light .bg-slate-800\/80,
+body.theme-light .bg-slate-800\/60,
+body.theme-light .bg-slate-800\/50,
+body.theme-light .bg-slate-800\/40,
+body.theme-light .bg-slate-800\/30,
+body.theme-light .bg-slate-800\/20,
+body.theme-light .bg-slate-800\/10,
+body.theme-light .bg-slate-700\/80,
+body.theme-light .bg-slate-700\/60,
+body.theme-light .bg-slate-700\/50,
+body.theme-light .bg-slate-700\/40,
+body.theme-light .bg-slate-700\/30,
+body.theme-light .bg-slate-700\/20,
+body.theme-light .bg-slate-700\/10,
+body.theme-light .bg-\[\#080b11\]\/80,
+body.theme-light .bg-\[\#080b11\]\/90,
+body.theme-light .bg-\[\#04060b\]\/80,
+body.theme-light .bg-\[\#0a0f1d\]\/90,
+body.theme-light .bg-\[\#0a0f1d\]\/80,
+body.theme-light .bg-\[\#0a0f1d\]\/60,
+body.theme-light .bg-\[\#0d121f\]\/50,
+body.theme-light .bg-\[\#111827\],
+body.theme-light .bg-slate-950\/5,
+body.theme-light .bg-slate-900\/5,
+body.theme-light .sidebar-user {
     background-color: rgba(255, 255, 255, 0.78) !important;
 }
 
+html.theme-light .border-slate-950,
 html.theme-light .border-slate-900,
+html.theme-light .border-slate-900\/80,
+html.theme-light .border-slate-900\/70,
+html.theme-light .border-slate-900\/60,
+html.theme-light .border-slate-900\/50,
+html.theme-light .border-slate-900\/40,
 html.theme-light .border-slate-850,
 html.theme-light .border-slate-855,
 html.theme-light .border-slate-800,
@@ -925,7 +1017,18 @@ html.theme-light .border-slate-800\/70,
 html.theme-light .border-slate-800\/60,
 html.theme-light .border-slate-800\/50,
 html.theme-light .border-slate-800\/40,
+html.theme-light .border-slate-700,
+html.theme-light .border-slate-700\/80,
+html.theme-light .border-slate-700\/50,
+html.theme-light .border-slate-700\/40,
+html.theme-light .sidebar-footer,
+body.theme-light .border-slate-950,
 body.theme-light .border-slate-900,
+body.theme-light .border-slate-900\/80,
+body.theme-light .border-slate-900\/70,
+body.theme-light .border-slate-900\/60,
+body.theme-light .border-slate-900\/50,
+body.theme-light .border-slate-900\/40,
 body.theme-light .border-slate-850,
 body.theme-light .border-slate-855,
 body.theme-light .border-slate-800,
@@ -933,9 +1036,98 @@ body.theme-light .border-slate-800\/80,
 body.theme-light .border-slate-800\/70,
 body.theme-light .border-slate-800\/60,
 body.theme-light .border-slate-800\/50,
-body.theme-light .border-slate-800\/40 {
+body.theme-light .border-slate-800\/40,
+body.theme-light .border-slate-700,
+body.theme-light .border-slate-700\/80,
+body.theme-light .border-slate-700\/50,
+body.theme-light .border-slate-700\/40,
+body.theme-light .sidebar-footer {
     border-color: rgba(203, 213, 225, 0.86) !important;
 }
+
+/* Sidebar user initials background light mode */
+html.theme-light .bg-indigo-900\/50,
+body.theme-light .bg-indigo-900\/50 {
+    background-color: rgba(99, 102, 241, 0.15) !important;
+    border-color: rgba(99, 102, 241, 0.25) !important;
+}
+
+/* Light mode overrides for colorful text with poor contrast on light bg */
+html.theme-light .text-emerald-400,
+body.theme-light .text-emerald-400 {
+    color: #059669 !important; /* emerald-600 */
+}
+html.theme-light .text-red-400,
+body.theme-light .text-red-400 {
+    color: #dc2626 !important; /* red-600 */
+}
+html.theme-light .text-amber-400,
+html.theme-light .text-amber-300,
+html.theme-light .text-amber-200,
+html.theme-light .text-amber-100,
+html.theme-light .text-amber-50,
+html.theme-light .text-amber-100\/80,
+body.theme-light .text-amber-400,
+body.theme-light .text-amber-300,
+body.theme-light .text-amber-200,
+body.theme-light .text-amber-100,
+body.theme-light .text-amber-50,
+body.theme-light .text-amber-100\/80 {
+    color: #b45309 !important; /* amber-700 */
+}
+html.theme-light .text-blue-400,
+body.theme-light .text-blue-400 {
+    color: #2563eb !important; /* blue-600 */
+}
+html.theme-light .text-indigo-400,
+body.theme-light .text-indigo-400 {
+    color: #4f46e5 !important; /* indigo-600 */
+}
+html.theme-light .text-rose-400,
+body.theme-light .text-rose-400 {
+    color: #e11d48 !important; /* rose-600 */
+}
+html.theme-light .text-cyan-400,
+body.theme-light .text-cyan-400 {
+    color: #0891b2 !important; /* cyan-600 */
+}
+html.theme-light .text-sky-300,
+html.theme-light .text-sky-200,
+html.theme-light .text-sky-100,
+html.theme-light .text-sky-50,
+html.theme-light .text-sky-100\/75,
+body.theme-light .text-sky-300,
+body.theme-light .text-sky-200,
+body.theme-light .text-sky-100,
+body.theme-light .text-sky-50,
+body.theme-light .text-sky-100\/75 {
+    color: #0369a1 !important; /* sky-700 */
+}
+
+/* Light mode overrides for hover backgrounds in tables and lists */
+html.theme-light .hover\:bg-slate-800\/50:hover,
+html.theme-light .hover\:bg-slate-800\/60:hover,
+html.theme-light .hover\:bg-slate-900\/30:hover,
+html.theme-light .hover\:bg-slate-900\/50:hover,
+html.theme-light .hover\:bg-slate-900\/60:hover,
+html.theme-light .hover\:bg-slate-900:hover,
+html.theme-light .hover\:bg-slate-850:hover,
+html.theme-light .hover\:bg-slate-800:hover,
+body.theme-light .hover\:bg-slate-800\/50:hover,
+body.theme-light .hover\:bg-slate-800\/60:hover,
+body.theme-light .hover\:bg-slate-900\/30:hover,
+body.theme-light .hover\:bg-slate-900\/50:hover,
+body.theme-light .hover\:bg-slate-900\/60:hover,
+body.theme-light .hover\:bg-slate-900:hover,
+body.theme-light .hover\:bg-slate-850:hover,
+body.theme-light .hover\:bg-slate-800:hover {
+    background-color: rgba(226, 232, 240, 0.6) !important;
+}
+html.theme-light .hover\:border-slate-800:hover,
+body.theme-light .hover\:border-slate-800:hover {
+    border-color: rgba(203, 213, 225, 0.86) !important;
+}
+
 
 html.theme-light aside,
 body.theme-light aside {
@@ -2416,9 +2608,16 @@ body.renty-map-mode .renty-split-header {
 }
 
 /* Light theme overrides for the sticky header */
-.theme-light .renty-split-header {
-    background: #ffffff;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+html.theme-light .renty-split-header,
+body.theme-light .renty-split-header {
+    background: #ffffff !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+html.theme-light .renty-split-header .bg-slate-950\/45,
+body.theme-light .renty-split-header .bg-slate-950\/45 {
+    background-color: rgba(241, 245, 249, 0.8) !important;
+    border-color: rgba(203, 213, 225, 0.6) !important;
 }
 
 body.renty-map-mode #rooms-grid {
@@ -3217,7 +3416,6 @@ body.theme-light .room-status-empty {
     background-color: rgba(16, 185, 129, 0.15) !important;
     border-color: rgba(16, 185, 129, 0.3) !important;
 }
-
 /* ════════════════════════════════════════════════════════════════════════
    RENTY CHATBOT STYLES
    ════════════════════════════════════════════════════════════════════════ */
@@ -3646,5 +3844,696 @@ body.theme-light .renty-chatbot-input-area { background: rgba(241, 245, 249, 0.5
 body.theme-light .renty-chatbot-input-area input { background: #fff; border-color: rgba(0,0,0,0.1); color: #1e293b; }
 body.theme-light .renty-chatbot-input-area input::placeholder { color: #94a3b8; }
 body.theme-light .renty-cb-typing span { background: #94a3b8; }
+
+/* Interactive Map Coordinates indicator light mode styling */
+#map-coords-indicator {
+    background-color: rgba(15, 23, 42, 0.85) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #cbd5e1 !important;
+}
+
+html.theme-light #map-coords-indicator,
+body.theme-light #map-coords-indicator {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    border-color: rgba(203, 213, 225, 0.8) !important;
+    color: #1e293b !important;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08) !important;
+}
+
+html.theme-light #map-coords-indicator i,
+body.theme-light #map-coords-indicator i {
+    color: #0d9488 !important;
+}
+
+/* Ensure all overlay elements inside the dark room-card-media keep high contrast in light mode */
+html.theme-light .room-card-media .text-slate-100,
+html.theme-light .room-card-media .text-slate-200,
+html.theme-light .room-card-media .text-slate-300,
+body.theme-light .room-card-media .text-slate-100,
+body.theme-light .room-card-media .text-slate-200,
+body.theme-light .room-card-media .text-slate-300 {
+    color: #cbd5e1 !important;
+}
+
+html.theme-light .room-card-media .text-white,
+body.theme-light .room-card-media .text-white {
+    color: #ffffff !important;
+}
+
+/* Light mode override for bg-slate-950/75 when used outside the dark image overlays (e.g. room details trust badge) */
+html.theme-light .bg-slate-950\/75:not(.room-card-media *),
+body.theme-light .bg-slate-950\/75:not(.room-card-media *) {
+    background-color: rgba(241, 245, 249, 0.9) !important;
+    border-color: rgba(203, 213, 225, 0.8) !important;
+}
+
+/* Article expand animation */
+@keyframes fadeSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Light mode overrides for Community Q&A Section */
+html.theme-light #community-qa,
+body.theme-light #community-qa {
+    border-color: rgba(226, 232, 240, 0.8) !important;
+}
+
+html.theme-light .qa-section-header,
+body.theme-light .qa-section-header {
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%) !important;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8) !important;
+}
+
+html.theme-light .qa-section-header h2,
+body.theme-light .qa-section-header h2 {
+    color: #0f172a !important;
+}
+
+html.theme-light .qa-section-header p,
+body.theme-light .qa-section-header p {
+    color: #64748b !important;
+}
+
+html.theme-light .qa-section-header .bg-slate-800\/60,
+body.theme-light .qa-section-header .bg-slate-800\/60 {
+    background-color: rgba(241, 245, 249, 0.9) !important;
+    color: #475569 !important;
+    border-color: rgba(203, 213, 225, 0.6) !important;
+}
+
+html.theme-light #qa-input-field,
+body.theme-light #qa-input-field {
+    background-color: #ffffff !important;
+    border-color: rgba(203, 213, 225, 0.8) !important;
+    color: #0f172a !important;
+}
+
+html.theme-light #qa-input-field::placeholder,
+body.theme-light #qa-input-field::placeholder {
+    color: #94a3b8 !important;
+}
+
+html.theme-light #qa-grid,
+body.theme-light #qa-grid {
+    background-color: #f8fafc !important;
+}
+
+html.theme-light .qa-card,
+body.theme-light .qa-card {
+    background-color: #ffffff !important;
+    border-color: rgba(226, 232, 240, 0.8) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02) !important;
+}
+
+html.theme-light .qa-card:hover,
+body.theme-light .qa-card:hover {
+    border-color: rgba(203, 213, 225, 0.9) !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02) !important;
+}
+
+html.theme-light .qa-card .text-slate-300,
+body.theme-light .qa-card .text-slate-300 {
+    color: #334155 !important;
+}
+
+html.theme-light .qa-card .text-slate-200,
+body.theme-light .qa-card .text-slate-200 {
+    color: #1e293b !important;
+}
+
+html.theme-light .qa-card .text-slate-400,
+body.theme-light .qa-card .text-slate-400 {
+    color: #475569 !important;
+}
+
+html.theme-light .qa-card .bg-slate-800\/60,
+body.theme-light .qa-card .bg-slate-800\/60 {
+    background-color: rgba(241, 245, 249, 0.9) !important;
+    color: #64748b !important;
+    border-color: rgba(226, 232, 240, 0.8) !important;
+}
+
+html.theme-light .qa-card .bg-slate-900\/50,
+body.theme-light .qa-card .bg-slate-900\/50 {
+    background-color: rgba(241, 245, 249, 0.6) !important;
+    border-color: rgba(226, 232, 240, 0.8) !important;
+}
+
+html.theme-light .qa-card .qa-vote-count,
+body.theme-light .qa-card .qa-vote-count {
+    color: #475569 !important;
+}
+
+html.theme-light .qa-best-reply,
+body.theme-light .qa-best-reply {
+    background-color: rgba(248, 250, 252, 0.8) !important;
+    border-color: rgba(226, 232, 240, 0.8) !important;
+}
+
+html.theme-light .qa-best-reply p,
+body.theme-light .qa-best-reply p {
+    color: #475569 !important;
+}
+
+html.theme-light .qa-load-more-bar,
+body.theme-light .qa-load-more-bar {
+    background-color: #ffffff !important;
+    border-top-color: rgba(226, 232, 240, 0.8) !important;
+}
+
+html.theme-light .qa-load-more,
+body.theme-light .qa-load-more {
+    background-color: rgba(241, 245, 249, 0.9) !important;
+    border-color: rgba(226, 232, 240, 0.8) !important;
+    color: #475569 !important;
+}
+
+html.theme-light .qa-load-more:hover,
+body.theme-light .qa-load-more:hover {
+    background-color: rgba(13, 148, 136, 0.05) !important;
+    border-color: rgba(13, 148, 136, 0.2) !important;
+    color: #0d9488 !important;
+}
+
+/* Light mode overrides for Hero Bento Section */
+html.theme-light #renty-hero-section > div > div,
+body.theme-light #renty-hero-section > div > div {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+    border-color: rgba(226, 232, 240, 0.8) !important;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04) !important;
+}
+
+html.theme-light #renty-hero-section h1,
+body.theme-light #renty-hero-section h1 {
+    color: #0f172a !important;
+}
+
+html.theme-light #renty-hero-section .text-slate-400,
+body.theme-light #renty-hero-section .text-slate-400 {
+    color: #475569 !important;
+}
+
+html.theme-light #renty-hero-section .text-slate-500,
+body.theme-light #renty-hero-section .text-slate-500 {
+    color: #64748b !important;
+}
+
+html.theme-light #renty-hero-section .group\/search > div:nth-child(2),
+body.theme-light #renty-hero-section .group\/search > div:nth-child(2) {
+    background-color: #ffffff !important;
+    border-color: rgba(203, 213, 225, 0.8) !important;
+}
+
+html.theme-light #hero-search-input,
+body.theme-light #hero-search-input {
+    color: #0f172a !important;
+}
+
+html.theme-light #hero-search-input::placeholder,
+body.theme-light #hero-search-input::placeholder {
+    color: #94a3b8 !important;
+}
+
+html.theme-light #renty-hero-section .border-t,
+body.theme-light #renty-hero-section .border-t {
+    border-top-color: rgba(226, 232, 240, 0.8) !important;
+}
+
+html.theme-light #renty-hero-section button,
+body.theme-light #renty-hero-section button {
+    background-color: #ffffff !important;
+    border-color: rgba(203, 213, 225, 0.8) !important;
+    color: #475569 !important;
+}
+
+html.theme-light #renty-hero-section button:hover,
+body.theme-light #renty-hero-section button:hover {
+    background-color: #f8fafc !important;
+    border-color: rgba(13, 148, 136, 0.3) !important;
+    color: #0d9488 !important;
+}
+
+/* Stat Cards in Bento Box 2 */
+html.theme-light #renty-hero-section .space-y-4 > div,
+body.theme-light #renty-hero-section .space-y-4 > div {
+    background-color: #ffffff !important;
+    border-color: rgba(226, 232, 240, 0.8) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02) !important;
+}
+
+html.theme-light #renty-hero-section .space-y-4 > div:hover,
+body.theme-light #renty-hero-section .space-y-4 > div:hover {
+    border-color: rgba(203, 213, 225, 0.8) !important;
+}
+
+html.theme-light #renty-hero-section .space-y-4 span.text-slate-200,
+body.theme-light #renty-hero-section .space-y-4 span.text-slate-200 {
+    color: #1e293b !important;
+}
+
+html.theme-light #renty-hero-section .space-y-4 span.text-slate-500,
+body.theme-light #renty-hero-section .space-y-4 span.text-slate-500 {
+    color: #64748b !important;
+}
+
+html.theme-light #renty-hero-section .relative.z-10.pt-4.border-t span,
+body.theme-light #renty-hero-section .relative.z-10.pt-4.border-t span {
+    color: #64748b !important;
+}
+
+/* Light mode overrides for Header/Navbar navigation and inputs */
+html.theme-light header nav,
+body.theme-light header nav {
+    color: #475569 !important; /* slate-600 */
+}
+
+html.theme-light header nav a,
+body.theme-light header nav a {
+    color: #475569 !important;
+}
+
+html.theme-light header nav a:hover,
+body.theme-light header nav a:hover {
+    color: #0d9488 !important; /* emerald-600 */
+}
+
+/* Renty Search input in light mode */
+html.theme-light .renty-search-input,
+body.theme-light .renty-search-input {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important; /* slate-900 */
+}
+
+html.theme-light .renty-search-input::placeholder,
+body.theme-light .renty-search-input::placeholder {
+    color: #94a3b8 !important; /* slate-400 */
+}
+
+html.theme-light .renty-search-icon,
+body.theme-light .renty-search-icon {
+    color: #475569 !important;
+}
+
+html.theme-light .renty-search-shell button,
+body.theme-light .renty-search-shell button {
+    color: #475569 !important;
+}
+
+html.theme-light .renty-search-shell button:hover,
+body.theme-light .renty-search-shell button:hover {
+    color: #0d9488 !important;
+    background-color: #f1f5f9 !important;
+}
+
+/* Sharp focus state for search input in light mode */
+html.theme-light .renty-search-panel.is-search-active .renty-search-input,
+body.theme-light .renty-search-panel.is-search-active .renty-search-input {
+    background-color: #ffffff !important;
+    border-color: #0d9488 !important;
+    color: #0f172a !important;
+    box-shadow: 0 10px 25px rgba(13, 148, 136, 0.12), 0 0 0 1px rgba(13, 148, 136, 0.1) !important;
+}
+
+html.theme-light .renty-search-suggestions,
+body.theme-light .renty-search-suggestions {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08) !important;
+}
+
+/* Sharp active state for visual filters in light mode */
+html.theme-light .vfilter-btn,
+body.theme-light .vfilter-btn {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #334155 !important;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+}
+
+html.theme-light .vfilter-btn span,
+body.theme-light .vfilter-btn span {
+    color: #475569 !important;
+}
+
+html.theme-light .vfilter-btn i,
+body.theme-light .vfilter-btn i {
+    color: #0d9488 !important;
+}
+
+html.theme-light .vfilter-btn:hover,
+body.theme-light .vfilter-btn:hover {
+    background-color: #f8fafc !important;
+    border-color: #94a3b8 !important;
+}
+
+html.theme-light .vfilter-btn.active,
+body.theme-light .vfilter-btn.active {
+    background-color: rgba(13, 148, 136, 0.1) !important;
+    border-color: #0d9488 !important;
+    box-shadow: 0 0 14px rgba(13, 148, 136, 0.25) !important;
+}
+
+html.theme-light .vfilter-btn.active span,
+body.theme-light .vfilter-btn.active span,
+html.theme-light .vfilter-btn.active .vfilter-text,
+body.theme-light .vfilter-btn.active .vfilter-text {
+    color: #0d9488 !important;
+    font-weight: 800;
+}
+
+html.theme-light .vfilter-btn.active i,
+body.theme-light .vfilter-btn.active i,
+html.theme-light .vfilter-btn.active .vfilter-icon-box,
+body.theme-light .vfilter-btn.active .vfilter-icon-box {
+    color: #0d9488 !important;
+}
+
+
+/* User profile & Login buttons in header */
+html.theme-light header .bg-slate-900\/40,
+html.theme-light header .bg-slate-900,
+body.theme-light header .bg-slate-900\/40,
+body.theme-light header .bg-slate-900 {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+}
+
+html.theme-light header a[href*="login"],
+html.theme-light header a[href*="signout"],
+body.theme-light header a[href*="login"],
+body.theme-light header a[href*="signout"] {
+    color: #1e293b !important; /* slate-800 */
+}
+
+html.theme-light header a[href*="login"]:hover,
+body.theme-light header a[href*="login"]:hover {
+    background-color: #e2e8f0 !important;
+    color: #0f172a !important;
+}
+
+html.theme-light header .text-slate-300,
+body.theme-light header .text-slate-300 {
+    color: #1e293b !important;
+}
+
+html.theme-light header .text-slate-350,
+body.theme-light header .text-slate-350 {
+    color: #1e293b !important;
+}
+
+html.theme-light header .bg-indigo-500\/10,
+body.theme-light header .bg-indigo-500\/10 {
+    background-color: rgba(79, 70, 229, 0.1) !important;
+    color: #4f46e5 !important;
+}
+
+/* Premium Renty Page Animations & Transitions */
+
+/* 1. Bento Grid Entrance Animations */
+#renty-hero-section > div > div:nth-child(1) {
+    animation: slideInLeft 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+#renty-hero-section > div > div:nth-child(2) {
+    animation: slideInRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: 0.12s;
+}
+
+/* 2. Ambient Floating Background Glows */
+.absolute.bg-emerald-600\/5,
+.absolute.bg-indigo-600\/5,
+.absolute.bg-indigo-600\/10,
+.absolute.bg-emerald-600\/10 {
+    animation: floatInPlace 14s ease-in-out infinite;
+}
+
+/* 3. Staggered Card Entrance Transitions */
+.room-item-card:nth-child(1) { animation-delay: 0.04s; }
+.room-item-card:nth-child(2) { animation-delay: 0.08s; }
+.room-item-card:nth-child(3) { animation-delay: 0.12s; }
+.room-item-card:nth-child(4) { animation-delay: 0.16s; }
+.room-item-card:nth-child(5) { animation-delay: 0.20s; }
+.room-item-card:nth-child(6) { animation-delay: 0.24s; }
+.room-item-card:nth-child(7) { animation-delay: 0.28s; }
+.room-item-card:nth-child(8) { animation-delay: 0.32s; }
+.room-item-card:nth-child(9) { animation-delay: 0.36s; }
+.room-item-card:nth-child(n+10) { animation-delay: 0.40s; }
+
+/* 4. Active Click Physical Scale Feedback */
+.vfilter-btn:active,
+#renty-hero-section button:active,
+.ios-switch:active,
+.room-report-button:active,
+.compare-checkbox:active {
+    transform: scale(0.95) !important;
+    transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* 5. Premium Mouse Tracking Radial Glow on Room Cards */
+.room-item-card {
+    position: relative;
+    z-index: 1;
+}
+
+.room-item-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: radial-gradient(
+        350px circle at var(--mouse-x, 0) var(--mouse-y, 0),
+        rgba(16, 185, 129, 0.22),
+        transparent 55%
+    );
+    -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.room-item-card:hover::before {
+    opacity: 1;
+}
+
+/* Light Mode variation for Mouse Tracking Glow */
+html.theme-light .room-item-card::before,
+body.theme-light .room-item-card::before {
+    background: radial-gradient(
+        350px circle at var(--mouse-x, 0) var(--mouse-y, 0),
+        rgba(13, 148, 136, 0.18),
+        transparent 55%
+    );
+}
+
+/* 6. Glowing Status Badges */
+.room-status-empty {
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.2), inset 0 0 4px rgba(16, 185, 129, 0.1);
+    position: relative;
+}
+
+.room-status-rented {
+    box-shadow: 0 0 10px rgba(244, 63, 94, 0.2), inset 0 0 4px rgba(244, 63, 94, 0.1);
+    position: relative;
+}
+
+/* 7. Bento Box Hover Elevation */
+#renty-hero-section > div > div {
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+#renty-hero-section > div > div:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(2, 6, 23, 0.45) !important;
+    border-color: rgba(16, 185, 129, 0.25) !important;
+}
+
+html.theme-light #renty-hero-section > div > div:hover,
+body.theme-light #renty-hero-section > div > div:hover {
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.06) !important;
+    border-color: rgba(13, 148, 136, 0.25) !important;
+}
+
+/* Global scroll behavior */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Renty Header Notification dropdown style overrides */
+#renty-notification-dropdown {
+    transform-origin: top right;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#renty-notification-dropdown:not(.hidden) {
+    animation: quickPanelIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Light mode overrides for Notification Bell & Dropdown */
+html.theme-light #renty-notification-bell,
+body.theme-light #renty-notification-bell {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #475569 !important;
+}
+
+html.theme-light #renty-notification-bell:hover,
+body.theme-light #renty-notification-bell:hover {
+    background-color: #f8fafc !important;
+    color: #0d9488 !important;
+    border-color: rgba(13, 148, 136, 0.3) !important;
+}
+
+html.theme-light #renty-notification-dropdown,
+body.theme-light #renty-notification-dropdown {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08) !important;
+}
+
+html.theme-light #renty-notification-dropdown h4,
+body.theme-light #renty-notification-dropdown h4 {
+    color: #0f172a !important;
+}
+
+html.theme-light #renty-notification-dropdown button,
+body.theme-light #renty-notification-dropdown button {
+    color: #475569 !important;
+}
+
+html.theme-light #renty-notification-dropdown button:hover,
+body.theme-light #renty-notification-dropdown button:hover {
+    color: #0d9488 !important;
+}
+
+html.theme-light #renty-notification-list a:hover,
+body.theme-light #renty-notification-list a:hover {
+    background-color: #f1f5f9 !important;
+    border-color: #e2e8f0 !important;
+}
+
+html.theme-light #renty-notification-list a h5,
+body.theme-light #renty-notification-list a h5 {
+    color: #1e293b !important;
+}
+
+html.theme-light #renty-notification-list a p,
+body.theme-light #renty-notification-list a p {
+    color: #475569 !important;
+}
+
+html.theme-light #renty-notification-list a div,
+body.theme-light #renty-notification-list a div {
+    background-color: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+}
+
+
+
+/* Media note alert styling in light mode */
+html.theme-light .renty-media-note,
+body.theme-light .renty-media-note {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #475569 !important;
+}
+
+/* Thumbnail button borders & backgrounds in light mode */
+html.theme-light .thumb-button,
+body.theme-light .thumb-button {
+    border-color: #cbd5e1 !important;
+    background-color: #f8fafc !important;
+}
+
+html.theme-light .thumb-button.border-emerald-400,
+body.theme-light .thumb-button.border-emerald-400 {
+    border-color: #0d9488 !important;
+    border-width: 2px !important;
+}
+
+/* Zoom Button (Xem tất cả ảnh) in Dark Mode */
+.renty-zoom-btn {
+    background-color: rgba(2, 6, 23, 0.75) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: #34d399 !important;
+}
+.renty-zoom-btn i {
+    color: #34d399 !important;
+}
+.renty-zoom-btn:hover {
+    color: #ffffff !important;
+    background-color: rgba(2, 6, 23, 0.9) !important;
+}
+
+/* Zoom Button in Light Mode */
+html.theme-light .renty-zoom-btn,
+body.theme-light .renty-zoom-btn {
+    background-color: rgba(255, 255, 255, 0.85) !important;
+    border-color: rgba(148, 163, 184, 0.25) !important;
+    color: #0d9488 !important;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
+}
+html.theme-light .renty-zoom-btn i,
+body.theme-light .renty-zoom-btn i {
+    color: #0d9488 !important;
+}
+html.theme-light .renty-zoom-btn:hover,
+body.theme-light .renty-zoom-btn:hover {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border-color: rgba(13, 148, 136, 0.3) !important;
+}
+
+/* Zoom Lightbox Modal in Light Mode */
+html.theme-light #zoom-modal,
+body.theme-light #zoom-modal {
+    background-color: rgba(248, 250, 252, 0.96) !important;
+}
+
+html.theme-light #zoom-modal button,
+body.theme-light #zoom-modal button {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    border-color: #cbd5e1 !important;
+    color: #475569 !important;
+}
+
+html.theme-light #zoom-modal button:hover,
+body.theme-light #zoom-modal button:hover {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #94a3b8 !important;
+}
+
+html.theme-light #zoom-image,
+body.theme-light #zoom-image {
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.08) !important;
+}
+
+html.theme-light #zoom-modal div.absolute.bottom-5,
+body.theme-light #zoom-modal div.absolute.bottom-5 {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    border-color: rgba(148, 163, 184, 0.25) !important;
+    color: #1e293b !important;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05) !important;
+}
+
+html.theme-light #zoom-count,
+body.theme-light #zoom-count {
+    color: #0d9488 !important;
+}
 
 
