@@ -70,6 +70,7 @@ Route::get('/smartroom/resident', [ResidentPortalController::class, 'index'])->n
 Route::post('/smartroom/resident/tickets/analyze', [ResidentPortalController::class, 'analyzeTicket'])->name('smartroom.resident.tickets.analyze');
 Route::post('/smartroom/resident/tickets', [ResidentPortalController::class, 'storeTicket'])->name('smartroom.resident.tickets.store');
 Route::get('/smartroom/resident/bills/{id}/qr', [ResidentPortalController::class, 'billQr'])->name('smartroom.resident.bills.qr');
+Route::post('/smartroom/resident/contract/{id}/request-renewal', [ResidentPortalController::class, 'requestRenewal'])->name('smartroom.resident.contract.request_renewal');
 
 
 Route::middleware('admin')->group(function () {
@@ -179,6 +180,8 @@ Route::middleware('admin')->group(function () {
     // Online Contracts
     Route::post('/smartroom/admin/contract', [AdminDashboardController::class, 'storeContract'])->name('smartroom.admin.contract.store');
     Route::delete('/smartroom/admin/contract/{id}', [AdminDashboardController::class, 'deleteContract'])->middleware('role:landlord')->name('smartroom.admin.contract.delete');
+    Route::post('/smartroom/admin/contract/{id}/renew', [AdminDashboardController::class, 'renewContract'])->name('smartroom.admin.contract.renew');
+    Route::post('/smartroom/admin/contract/{id}/decline-renewal', [AdminDashboardController::class, 'declineRenewal'])->name('smartroom.admin.contract.decline_renewal');
 
     // Contact Requests Management
     Route::post('/smartroom/admin/contact-request/{id}/status', [AdminDashboardController::class, 'updateContactRequestStatus'])->name('smartroom.admin.contact_request.status');
@@ -465,6 +468,10 @@ Route::post('/renty/room/{id}/report', function (Illuminate\Http\Request $reques
     ]);
     return back()->with('success', 'Cảm ơn bạn đã gửi báo cáo. Renty Review sẽ kiểm tra phòng này sớm nhất.');
 })->middleware('throttle:5,1')->name('renty.room.report.store');
+
+Route::post('/renty/chatbot/chat', [\App\Http\Controllers\ChatbotController::class, 'chat'])
+    ->name('renty.chatbot.chat')
+    ->middleware('throttle:60,1');
 
 Route::get('/renty/notifications', function () {
     if (!auth()->check()) {

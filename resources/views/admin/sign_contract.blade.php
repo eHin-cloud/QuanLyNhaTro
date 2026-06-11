@@ -63,7 +63,6 @@
             background-size: 100% 32px;
         }
         .signature-preview-img {
-            filter: grayscale(1) invert(1) contrast(3.2) brightness(1.08);
             mix-blend-mode: multiply;
         }
     </style>
@@ -72,9 +71,10 @@
     @php
         $signedInUser = Auth::user();
         $canLessorSign = $signedInUser
+            && !in_array($signedInUser->role, ['user', 'guest'])
             && (
                 (int) $signedInUser->tenant_id === (int) $contract->tenant_id
-                || (!$signedInUser->tenant_id && $signedInUser->role === 'admin')
+                || $signedInUser->role === 'admin'
             );
         $showTenantSignaturePad = !$canLessorSign && $contract->status !== 'active';
     @endphp
@@ -239,11 +239,11 @@
                             </div>
                             
                             <!-- Drawing Pad Canvas with interactive helpers -->
-                            <div class="bg-slate-950 border border-slate-800/80 rounded-2xl overflow-hidden relative group" style="height: 220px;">
+                            <div class="bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden relative group" style="height: 220px;">
                                 <!-- Sign baseline guide line -->
-                                <div class="absolute bottom-12 left-8 right-8 h-[1px] border-b border-dashed border-slate-800/60 pointer-events-none"></div>
-                                <div class="absolute bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-slate-600 uppercase tracking-widest font-bold pointer-events-none select-none">
-                                    Vẽ chữ ký của bạn vào khung này
+                                <div class="absolute bottom-12 left-8 right-8 h-[1px] border-b border-dashed border-slate-300 pointer-events-none"></div>
+                                <div class="absolute bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-slate-400 uppercase tracking-widest font-bold pointer-events-none select-none">
+                                    Vẽ chữ ký của bạn vào khung này (Nét bút màu tối)
                                 </div>
                                 <canvas id="signature-pad" class="w-full h-full cursor-crosshair z-10 relative"></canvas>
                             </div>
@@ -298,10 +298,10 @@
                             <form id="lessor-sign-form" action="{{ route('smartroom.contract.lessor_sign', $contract->id) }}" method="POST" class="w-full max-w-sm space-y-4">
                                 @csrf
                                 <input type="hidden" name="lessor_signature" id="lessor-signature-input">
-                                <div class="bg-slate-950 border border-slate-800/80 rounded-2xl overflow-hidden relative group" style="height: 180px;">
-                                    <div class="absolute bottom-10 left-8 right-8 h-[1px] border-b border-dashed border-slate-800/60 pointer-events-none"></div>
-                                    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] text-slate-600 uppercase tracking-widest font-bold pointer-events-none select-none">
-                                        Chủ trọ ký vào khung này
+                                <div class="bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden relative group" style="height: 180px;">
+                                    <div class="absolute bottom-10 left-8 right-8 h-[1px] border-b border-dashed border-slate-300 pointer-events-none"></div>
+                                    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] text-slate-400 uppercase tracking-widest font-bold pointer-events-none select-none">
+                                        Chủ trọ ký vào khung này (Nét bút màu tối)
                                     </div>
                                     <canvas id="lessor-signature-pad" class="w-full h-full cursor-crosshair z-10 relative"></canvas>
                                 </div>
@@ -502,7 +502,7 @@
             ctx.lineWidth = 3.5;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
-            ctx.strokeStyle = '#ffffff';
+            ctx.strokeStyle = '#0f172a';
         }
 
         window.addEventListener('resize', resizeCanvas);
@@ -628,7 +628,7 @@
             lessorCtx.lineWidth = 3.5;
             lessorCtx.lineCap = 'round';
             lessorCtx.lineJoin = 'round';
-            lessorCtx.strokeStyle = '#ffffff';
+            lessorCtx.strokeStyle = '#0f172a';
         }
 
         function getLessorCoords(e) {

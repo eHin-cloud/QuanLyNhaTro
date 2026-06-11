@@ -1194,9 +1194,35 @@
                                                 Chờ chữ ký
                                             </span>
                                         @endif
+
+                                        @if($c->renewal_status === 'requested')
+                                            <div class="mt-1">
+                                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 animate-pulse" title="Ghi chú cư dân: {{ $c->renewal_note }}">
+                                                    Cần gia hạn ({{ $c->renewal_months }} thg)
+                                                </span>
+                                            </div>
+                                        @elseif($c->renewal_status === 'approved')
+                                            <div class="mt-1">
+                                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                                                    Đã duyệt gia hạn
+                                                </span>
+                                            </div>
+                                        @elseif($c->renewal_status === 'declined')
+                                            <div class="mt-1">
+                                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-500/10 text-rose-300 border border-rose-500/20">
+                                                    Đã từ chối gia hạn
+                                                </span>
+                                            </div>
+                                        @elseif($c->renewal_status === 'renewed')
+                                            <div class="mt-1">
+                                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-500/10 text-slate-400 border border-slate-500/20">
+                                                    Đã gia hạn/tái ký
+                                                </span>
+                                            </div>
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 text-center">
-                                        <div class="flex items-center justify-center gap-2">
+                                        <div class="flex items-center justify-center gap-2 flex-wrap">
                                             @if($c->status === 'pending')
                                                 <button onclick="copySignLink('{{ route('smartroom.contract.sign_view', $c->id, false) }}', this)" class="px-3 py-2 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-400 hover:text-white rounded-xl text-xs font-bold border border-indigo-500/20 transition-all flex items-center gap-1.5">
                                                     <i class="fa-solid fa-link"></i> Link ký
@@ -1205,6 +1231,13 @@
                                                     <i class="fa-solid fa-paper-plane"></i> Gửi Zalo/SMS
                                                 </button>
                                             @endif
+                                            
+                                            @if($c->status === 'active' || $c->renewal_status === 'requested')
+                                                <button onclick="openRenewContractModal({{ $c->toJson() }}, {{ $c->resident ? $c->resident->toJson() : 'null' }}, {{ $c->room ? $c->room->toJson() : 'null' }})" class="px-3 py-2 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-xl text-xs font-bold border border-emerald-500/20 transition-all flex items-center gap-1.5">
+                                                    <i class="fa-solid fa-clock-rotate-left"></i> Gia hạn / Tái ký
+                                                </button>
+                                            @endif
+
                                             <a href="{{ route('smartroom.contract.sign_view', $c->id) }}" target="_blank" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold border border-slate-750 transition-all flex items-center gap-1.5">
                                                 <i class="fa-solid fa-arrow-up-right-from-square"></i> Xem HĐ
                                             </a>
@@ -3946,6 +3979,134 @@
         </div>
     </div>
 
+    <!-- RENEW CONTRACT MODAL -->
+    <div id="renew-contract-modal" class="fixed inset-0 z-50 bg-[#04060b]/90 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-3xl bg-[#0a0f1d] border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl relative animate-fade-in overflow-y-auto max-h-[90vh]">
+            <button onclick="closeRenewContractModal()" class="absolute top-6 right-6 w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-all z-30">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-lg">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-slate-100 flex items-center gap-2">
+                        Xử Lý Gia Hạn & Tái Ký Hợp Đồng
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Duyệt gia hạn trực tiếp thời hạn thuê hoặc khởi tạo hợp đồng tái ký mới.</p>
+                </div>
+            </div>
+
+            <!-- Resident Renewal Request Info -->
+            <div id="renew-request-info-box" class="hidden rounded-2xl border border-indigo-500/20 bg-indigo-500/5 p-4 mb-6">
+                <h4 class="text-xs font-bold text-indigo-400 mb-1 flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-info"></i> Yêu cầu từ Cư dân
+                </h4>
+                <p class="text-xs text-slate-300 leading-relaxed whitespace-pre-line" id="renew-request-info-text"></p>
+            </div>
+
+            <form id="renew-contract-form" method="POST" action="" class="space-y-6" onsubmit="return disableSubmit(this)">
+                @csrf
+                <!-- Hidden fields containing old contract details -->
+                <input type="hidden" name="room_id" id="renew-room-id">
+                <input type="hidden" name="resident_id" id="renew-resident-id">
+                <input type="hidden" name="lessor_name" id="renew-lessor-name">
+                <input type="hidden" name="lessor_phone" id="renew-lessor-phone">
+                <input type="hidden" name="lessor_id_number" id="renew-lessor-id-number">
+                <input type="hidden" name="lessor_address" id="renew-lessor-address">
+                <input type="hidden" name="lessee_name" id="renew-lessee-name">
+                <input type="hidden" name="lessee_phone" id="renew-lessee-phone">
+                <input type="hidden" name="lessee_id_number" id="renew-lessee-id-number">
+                <input type="hidden" name="lessee_permanent_address" id="renew-lessee-permanent-address">
+                <input type="hidden" name="lessee_current_address" id="renew-lessee-current-address">
+                <input type="hidden" name="rental_address" id="renew-rental-address">
+                <input type="hidden" name="rental_area_description" id="renew-rental-area-description">
+                <input type="hidden" name="equipment_list" id="renew-equipment-list">
+                <input type="hidden" name="rental_purpose" id="renew-rental-purpose">
+                <input type="hidden" name="occupant_count" id="renew-occupant-count">
+                <input type="hidden" name="first_payment_date" id="renew-first-payment-date">
+                <input type="hidden" name="payment_method" id="renew-payment-method">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2">Phòng trọ</label>
+                        <input type="text" id="renew-room-display" readonly class="w-full bg-slate-900/50 border border-slate-800/80 rounded-xl px-4 py-2.5 text-xs text-slate-400 font-bold focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2">Cư dân đại diện</label>
+                        <input type="text" id="renew-resident-display" readonly class="w-full bg-slate-900/50 border border-slate-800/80 rounded-xl px-4 py-2.5 text-xs text-slate-400 font-bold focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Hình thức xử lý</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <label class="relative flex flex-col p-4 rounded-2xl bg-slate-950 border border-slate-850 hover:border-slate-700 cursor-pointer select-none group transition-all">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-200">Gia hạn trực tiếp</span>
+                                <input type="radio" name="renewal_mode" value="extend" checked onchange="toggleRenewalModeFields('extend')" class="accent-indigo-600">
+                            </div>
+                            <span class="text-[10px] text-slate-500 mt-2 leading-relaxed">Cập nhật trực tiếp ngày hết hạn của hợp đồng hiện tại. Không cần cư dân ký lại chữ ký số.</span>
+                        </label>
+                        <label class="relative flex flex-col p-4 rounded-2xl bg-slate-950 border border-slate-850 hover:border-slate-700 cursor-pointer select-none group transition-all">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-200">Tái ký hợp đồng mới</span>
+                                <input type="radio" name="renewal_mode" value="new_contract" onchange="toggleRenewalModeFields('new_contract')" class="accent-indigo-600">
+                            </div>
+                            <span class="text-[10px] text-slate-500 mt-2 leading-relaxed">Kết thúc hợp đồng cũ và tạo một bản hợp đồng điện tử hoàn toàn mới. Cư dân cần ký kết online để kích hoạt.</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div id="renew-start-date-group" class="hidden">
+                        <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2">Ngày bắt đầu mới</label>
+                        <input type="date" name="start_date" id="renew-start-date" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-bold">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2" id="renew-end-date-label">Ngày kết thúc gia hạn mới</label>
+                        <input type="date" name="end_date" id="renew-end-date" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-bold">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2">Giá thuê mới (đ/tháng)</label>
+                        <input type="number" name="rent_price" id="renew-rent-price" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-bold">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2">Tiền cọc mới (đ)</label>
+                        <input type="number" name="deposit" id="renew-deposit" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-bold">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2">Chu kỳ đóng tiền (tháng)</label>
+                        <select name="payment_cycle_months" id="renew-payment-cycle-months" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-bold">
+                            <option value="1">1 tháng</option>
+                            <option value="2">2 tháng</option>
+                            <option value="3">3 tháng</option>
+                            <option value="6">6 tháng</option>
+                            <option value="12">12 tháng</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center gap-3 pt-4 border-t border-slate-850">
+                    <button type="button" id="renew-decline-btn" class="w-full sm:w-auto px-5 py-3 bg-rose-600/10 hover:bg-rose-600 text-rose-400 hover:text-white rounded-xl text-xs font-bold border border-rose-500/20 transition-all flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-ban"></i> Từ Chối Yêu Cầu
+                    </button>
+                    <div class="flex-1"></div>
+                    <button type="button" onclick="closeRenewContractModal()" class="w-full sm:w-auto px-5 py-3 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-slate-200 rounded-xl text-xs font-bold transition-all">
+                        Hủy bỏ
+                    </button>
+                    <button type="submit" class="submit-btn w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-extrabold shadow-lg shadow-emerald-600/25 transition-all flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-check"></i> Xác Nhận Duyệt
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         function openKycTermsModal() {
             const modal = document.getElementById('kyc-terms-modal');
@@ -3959,8 +4120,132 @@
             modal.classList.remove('flex');
             document.body.style.overflow = '';
         }
+        
+        function openRenewContractModal(contract, resident, room) {
+            const modal = document.getElementById('renew-contract-modal');
+            if (!modal) return;
+
+            const form = document.getElementById('renew-contract-form');
+            form.action = `/smartroom/admin/contract/${contract.id}/renew`;
+
+            document.getElementById('renew-room-display').value = 'Phòng ' + (room ? room.room_number : 'N/A');
+            document.getElementById('renew-resident-display').value = resident ? resident.name : 'N/A';
+
+            document.getElementById('renew-room-id').value = contract.room_id || '';
+            document.getElementById('renew-resident-id').value = contract.resident_id || '';
+            
+            if (resident) {
+                document.getElementById('renew-lessee-name').value = resident.name || '';
+                document.getElementById('renew-lessee-phone').value = resident.phone || '';
+                document.getElementById('renew-lessee-id-number').value = resident.cccd || '';
+                document.getElementById('renew-lessee-permanent-address').value = resident.hometown || '';
+                document.getElementById('renew-lessee-current-address').value = resident.hometown || '';
+            }
+
+            document.getElementById('renew-lessor-name').value = '{{ $tenant->name ?? "" }}';
+            document.getElementById('renew-lessor-phone').value = '{{ $tenant->phone ?? "" }}';
+            document.getElementById('renew-lessor-id-number').value = '';
+            document.getElementById('renew-lessor-address').value = '{{ $tenant->address ?? "" }}';
+            document.getElementById('renew-rental-address').value = (room && room.building) ? room.building.address : 'SmartRoom Apartment';
+            document.getElementById('renew-rental-area-description').value = room ? `Phòng trọ số ${room.room_number}` : '';
+            document.getElementById('renew-equipment-list').value = room ? (room.equipments || '') : '';
+            document.getElementById('renew-rental-purpose').value = 'Để ở';
+            document.getElementById('renew-occupant-count').value = '1';
+            document.getElementById('renew-first-payment-date').value = '';
+            document.getElementById('renew-payment-method').value = 'Chuyển khoản / Tiền mặt';
+
+            const infoBox = document.getElementById('renew-request-info-box');
+            const infoText = document.getElementById('renew-request-info-text');
+            if (contract.renewal_status === 'requested') {
+                infoBox.classList.remove('hidden');
+                infoText.textContent = `Cư dân đã gửi yêu cầu gia hạn thêm ${contract.renewal_months} tháng.\nGhi chú của cư dân: "${contract.renewal_note || 'Không có ghi chú'}"`;
+            } else {
+                infoBox.classList.add('hidden');
+            }
+
+            document.getElementById('renew-rent-price').value = room ? room.price : (contract.rent_price || 0);
+            document.getElementById('renew-deposit').value = contract.deposit || (room ? room.price : 0);
+            document.getElementById('renew-payment-cycle-months').value = contract.payment_cycle_months || '3';
+
+            if (contract.end_date) {
+                const oldEndDate = new Date(contract.end_date);
+                const nextDay = new Date(oldEndDate);
+                nextDay.setDate(oldEndDate.getDate() + 1);
+                
+                const yyyy = nextDay.getFullYear();
+                const mm = String(nextDay.getMonth() + 1).padStart(2, '0');
+                const dd = String(nextDay.getDate()).padStart(2, '0');
+                document.getElementById('renew-start-date').value = `${yyyy}-${mm}-${dd}`;
+
+                const durationMonths = contract.renewal_status === 'requested' ? parseInt(contract.renewal_months) : 6;
+                const newEndDate = new Date(oldEndDate);
+                newEndDate.setMonth(oldEndDate.getMonth() + durationMonths);
+                
+                const ey = newEndDate.getFullYear();
+                const em = String(newEndDate.getMonth() + 1).padStart(2, '0');
+                const ed = String(newEndDate.getDate()).padStart(2, '0');
+                document.getElementById('renew-end-date').value = `${ey}-${em}-${ed}`;
+            }
+
+            const declineBtn = document.getElementById('renew-decline-btn');
+            if (contract.renewal_status === 'requested') {
+                declineBtn.classList.remove('hidden');
+                declineBtn.onclick = function() {
+                    if (confirm('Bạn có chắc chắn muốn từ chối yêu cầu gia hạn này không?')) {
+                        const declineForm = document.createElement('form');
+                        declineForm.method = 'POST';
+                        declineForm.action = `/smartroom/admin/contract/${contract.id}/decline-renewal`;
+                        
+                        const csrfInput = document.createElement('input');
+                        csrfInput.type = 'hidden';
+                        csrfInput.name = '_token';
+                        csrfInput.value = '{{ csrf_token() }}';
+                        declineForm.appendChild(csrfInput);
+                        
+                        document.body.appendChild(declineForm);
+                        declineForm.submit();
+                    }
+                };
+            } else {
+                declineBtn.classList.add('hidden');
+            }
+
+            // Reset radio
+            document.querySelector('input[name="renewal_mode"][value="extend"]').checked = true;
+            toggleRenewalModeFields('extend');
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeRenewContractModal() {
+            const modal = document.getElementById('renew-contract-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                document.body.style.overflow = '';
+            }
+        }
+
+        function toggleRenewalModeFields(mode) {
+            const startDateGroup = document.getElementById('renew-start-date-group');
+            const endDateLabel = document.getElementById('renew-end-date-label');
+            
+            if (mode === 'extend') {
+                startDateGroup.classList.add('hidden');
+                endDateLabel.textContent = 'Ngày kết thúc gia hạn mới';
+            } else {
+                startDateGroup.classList.remove('hidden');
+                endDateLabel.textContent = 'Ngày kết thúc hợp đồng mới';
+            }
+        }
+
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') closeKycTermsModal();
+            if (e.key === 'Escape') {
+                closeKycTermsModal();
+                closeRenewContractModal();
+            }
         });
     </script>
 
